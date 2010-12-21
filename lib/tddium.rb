@@ -32,3 +32,7 @@ EOF
     end
   end
 end
+
+def test_sequential_task
+
+end
