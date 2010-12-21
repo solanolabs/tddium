@@ -12,19 +12,19 @@ tddium has already been initialized.
 
 (settings are in %s)
 
-Use 'tddium config' to change settings.
+Use 'tddium reset' to clear configuration, and then run 'tddium init' again.
 EOF
 
-def init_task
-  path = File.expand_path('~/.tddium')
+CONFIG_FILE_PATH = File.expand_path('~/.tddium')
 
-  if File.exists?(path) then
-    puts ALREADY_CONFIGURED % path
+def init_task
+  if File.exists?(CONFIG_FILE_PATH) then
+    puts ALREADY_CONFIGURED % CONFIG_FILE_PATH
   else
     key = ask('Enter AWS Access Key: ')
     secret = ask('Enter AWS Secret: ')
 
-    File.open(path, 'w', 0600) do |f|
+    File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
       f.write <<EOF
 aws_key: #{key}
 aws_secret: #{secret}

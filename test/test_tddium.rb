@@ -5,7 +5,7 @@ require 'mocha'
 class TestFileops < Test::Unit::TestCase
   context "init task" do
     setup do
-      @path = File.expand_path('~/.tddium')
+      @path = File.expand_path(CONFIG_FILE_PATH)
     end
 
     context "when ~/.tddium doesn't exist" do

@@ -4,9 +4,25 @@ $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'tddium'
 require 'rubygems'
 require 'rake'
+require 'fileutils'
 
-task :init do
-  init_task
+namespace :config do
+  task :init do
+    init_task
+  end
+
+  task :reset do
+    rm CONFIG_FILE_PATH, :force => true
+  end
 end
 
-Rake::Task[ARGV.first].execute
+begin
+  Rake::Task[ARGV.first].execute
+rescue RuntimeError
+  puts "Unknown command '#{ARGV.first}'.  Try one of:"
+  puts
+  Rake::Task.tasks.each do |t|
+    puts t
+  end
+  puts
+end
