@@ -2,6 +2,11 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'tddium'
+require 'rubygems'
+require 'rake'
 
-exit TDDium.new().run!(*ARGV)
+task :init do
+  init_task
+end
 
+Rake::Task[ARGV.first].execute

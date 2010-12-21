@@ -1,10 +1,14 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    fakefs (0.3.1)
     git (1.2.5)
+    highline (1.6.1)
     jeweler (1.5.1)
       bundler (~> 1.0.0)
       git (>= 1.2.5)
+      rake
+    mocha (0.9.10)
       rake
     rake (0.8.7)
     rcov (0.9.9)
@@ -15,6 +19,9 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.0.0)
+  fakefs (>= 0.3.1)
+  highline
   jeweler (~> 1.5.1)
+  mocha
   rcov
   shoulda

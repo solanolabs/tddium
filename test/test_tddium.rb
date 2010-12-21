@@ -1,39 +1,43 @@
 require 'helper'
+require 'fakefs'
+require 'mocha'
 
-class TestTddium < Test::Unit::TestCase
-  context "executable" do
+class TestFileops < Test::Unit::TestCase
+  context "init task" do
     setup do
-      @tddium = TDDium.new
+      @path = File.expand_path('~/.tddium')
     end
 
-    should "have a run! method" do
-      assert @tddium.respond_to?(:run!)
+    context "when ~/.tddium doesn't exist" do
+      setup do
+        FakeFS::FileSystem.clear
+        HighLine.any_instance.stubs(:ask).returns('abc')
+        init_task
+      end
+    
+      should "write ~/.tddium" do
+        assert File.exists?(@path), "#{@path} doesn't exist"
+      end
+
+      should "have the right contents" do
+        f = FakeFS::FileSystem.find(@path)
+        assert f.content.include?('abc'), "Should contain magic string"
+        %w(aws_key aws_secret).each do |field|
+          assert f.content.include?(field), "Should contain #{field}"
+        end
+      end
     end
 
-    should "return exit code from run!" do
-      assert @tddium.run!.is_a? Integer
+    context "when ~/.tddium exists" do
+      setup do
+        FakeFS::FileSystem.add(@path)
+      end
+
+      should "print a warning message" do
+        HighLine.expects(:ask).never
+        init_task
+      end
     end
   end
-      
-  context "prompt the user for configuration" do
-    should "ask for AWS access key"
-    should "ask for AWS secret"
-  end
-  context "save configuration" do
-    should "write ~/.tddium"
-  end
-  context "read configuration" do
-    should "read AWS access key"
-    should "read AWS secret key"
-  end
-  context "create instance" do
-    should "create instance from tddium AMI"
-    should "start services on instance"
-  end
-  context "run selenium with created instance" do
-    should "set SELENIUM_REMOTE_HOST environment variable"
-    should "run spec rake task"
-    should "save selenium report to unique folder"
-  end
-  should "stop created instance"
 end
+
