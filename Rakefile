@@ -14,9 +14,8 @@ Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tddium"
   gem.homepage = "http://github.com/semipermeable/tddium"
-  gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = "tddium Cloud Test Runner"
+  gem.description = "tddium gets your rspec tests into the cloud by running them on your VMs"
   gem.email = "jaymoorthi@me.com"
   gem.authors = ["Jay Moorthi"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
