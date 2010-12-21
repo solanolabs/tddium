@@ -1,3 +1,7 @@
+=begin
+Copyright (c) 2010 tddium.com All Rights Reserved
+=end
+
 #
 # tddium support methods
 #

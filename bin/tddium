@@ -1,4 +1,9 @@
 #!/usr/bin/env ruby
+
+=begin
+Copyright (c) 2010 tddium.com All Rights Reserved
+=end
+
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'tddium'
