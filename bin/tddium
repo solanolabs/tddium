@@ -24,7 +24,7 @@ end
 
 namespace :test do
   Spec::Rake::SpecTask.new('sequential') do |t|
-    t.pattern = "**/test.rb"
+    t.pattern = "**/*_spec.rb"
     t.spec_opts << '--color'
     t.spec_opts << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
     t.spec_opts << "--format=Selenium::RSpec::SeleniumTestReportFormatter:./tmp/test_report.html"
