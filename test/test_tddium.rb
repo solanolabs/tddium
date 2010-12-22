@@ -15,7 +15,7 @@ class TestFileops < Test::Unit::TestCase
     context "when ~/.tddium doesn't exist" do
       setup do
         FakeFS::FileSystem.clear
-        HighLine.any_instance.stubs(:ask).returns('abc')
+        HighLine.any_instance.stubs(:ask).returns('abc', 'def', 'ghi')
         init_task
       end
     
@@ -26,7 +26,7 @@ class TestFileops < Test::Unit::TestCase
       should "have the right contents" do
         f = FakeFS::FileSystem.find(@path)
         assert f.content.include?('abc'), "Should contain magic string"
-        %w(aws_key aws_secret).each do |field|
+        %w(aws_key aws_secret test_pattern).each do |field|
           assert f.content.include?(field), "Should contain #{field}"
         end
       end
@@ -57,11 +57,13 @@ class TestConfigRead < Test::Unit::TestCase
           f.write <<EOF
 aws_secret: abc
 aws_key: abx
+test_pattern: **/*_spec.rb
 EOF
         end
         conf = read_config
         assert_equal conf[:aws_key], 'abx'
         assert_equal conf[:aws_secret], 'abc'
+        assert_equal conf[:test_pattern], '**/*_spec.rb'
       end
     end
 

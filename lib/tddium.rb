@@ -30,11 +30,15 @@ def init_task
   else
     key = ask('Enter AWS Access Key: ')
     secret = ask('Enter AWS Secret: ')
+    pattern = ask('Enter filepattern for tests: ') { |q|
+      q.default='**/*_spec.rb'
+    }
 
     File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
       f.write <<EOF
 aws_key: #{key}
 aws_secret: #{secret}
+test_pattern: #{pattern}
 EOF
     end
   end
@@ -43,7 +47,8 @@ end
 def read_config
   conf = {
     :aws_key => nil,
-    :aws_secret => nil
+    :aws_secret => nil,
+    :test_pattern => '**/*_test.rb'
   }
 
   if File.exists?(CONFIG_FILE_PATH) then
