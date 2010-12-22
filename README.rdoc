@@ -1,16 +1,44 @@
 = tddium
 
-Description goes here.
+tddium takes the pain out of running Selenium testing in cloud.
 
-== Contributing to tddium
- 
-* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
-* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
-* Fork the project
-* Start a feature/bugfix branch
-* Commit and push until you are happy with your contribution
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+It automatically starts private Amazon EC2 Instances, runs your test,
+collect results, and cleans up the EC2 resources it used so you only pay for
+what you use.
+
+== Getting Started
+
+1.  Sign up for an EC2 account, by going here:
+
+  https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
+
+Note that if you have a personal Amazon account, you'll want to make a new one
+for Amazon Web Services. 
+
+The registration process generates a variety of certificates and keys.  Please
+keep track of them.
+
+2.  Note your AWS Access Key and AWS Secret.  You can find them by:
+
+     - go to the AWS Management Console
+     - click on the "Account" link in the upper navigation menu
+     - click on "Security Credentials"
+     - scroll down to the first section "Access Credentials"
+     - the Access Key is a 20-character alphabetic string.  The Secret is hidden. Click the 'show' link to reveal it.
+
+3.  Subscribe to tddium:
+
+Subscribe your Amazon EC2 account to tddium here:
+
+https://aws-portal.amazon.com/gp/aws/user/subscription/index.html?ie=UTF8&offeringCode=FA429DE5
+
+4.  Start using tddium:
+
+$ tddium config:init
+# Asks you for the AWS Access Key and AWS Secret
+
+$ tddium test:sequential
+# Starts an EC2 Instance, sets SELENIUM_RC_HOST to it, and runs **/*_spec.rb in sequence
 
 == Copyright
 

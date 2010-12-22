@@ -27,22 +27,47 @@ namespace :config do
   end
 end
 
-namespace :test do
+result_path = "./tmp/test_report.html"
+
+namespace :internal do
   Spec::Rake::SpecTask.new('sequential') do |t|
     t.pattern = "**/*_spec.rb"
     t.spec_opts << '--color'
     t.spec_opts << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
-    t.spec_opts << "--format=Selenium::RSpec::SeleniumTestReportFormatter:./tmp/test_report.html"
+    t.spec_opts << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{result_path}"
     t.spec_opts << "--format=progress"                
     t.fail_on_error = true
     t.verbose = true
+  end
+
+  task :start do
+    server = start_instance
+    ENV['SELENIUM_RC_HOST'] = server.dns_name
+  end
+
+  task :stop do
+    stop_instance
+  end
+end
+
+namespace :test do
+  task :sequential do
+    begin
+      puts "starting EC2 Instance"
+      Rake::Task['internal:start'].execute
+      puts "Running tests. Results will be in #{result_path}"
+      sleep 10
+      Rake::Task['internal:sequential'].execute
+    ensure
+      Rake::Task['internal:stop'].execute
+    end
   end
 end
 
 begin
   Rake::Task[ARGV.first].execute
 rescue RuntimeError
-  puts "Unknown command '#{ARGV.first}'.  Try one of:"
+  puts "Error running '#{ARGV.first}'.  Try one of:"
   puts
   Rake::Task.tasks.each do |t|
     puts t
