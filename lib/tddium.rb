@@ -80,11 +80,12 @@ def start_instance
 
   rc_up = false
   tries = 0
-  while !rc_up && tries < 3
+  while !rc_up && tries < 5
     begin
       http.request(Net::HTTP::Get.new(uri.request_uri))
       rc_up = true
     rescue Errno::ECONNREFUSED
+      sleep 5
     ensure
       tries += 1
     end

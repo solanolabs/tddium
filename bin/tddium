@@ -56,7 +56,7 @@ namespace :test do
       puts "starting EC2 Instance"
       Rake::Task['internal:start'].execute
       puts "Running tests. Results will be in #{result_path}"
-      sleep 10
+      sleep 30
       Rake::Task['internal:sequential'].execute
     ensure
       Rake::Task['internal:stop'].execute
