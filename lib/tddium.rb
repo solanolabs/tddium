@@ -33,22 +33,33 @@ def init_task
     pattern = ask('Enter filepattern for tests: ') { |q|
       q.default='**/*_spec.rb'
     }
+    key_directory = ask('Enter directory for secret key(s): ') { |q|
+      q.default='spec/secret'
+    }
+    key_name = ask('Enter secret key name (excluding .pem suffix): ') { |q|
+      q.default='sg-keypair'
+    }
 
     File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
       f.write <<EOF
 aws_key: #{key}
 aws_secret: #{secret}
 test_pattern: #{pattern}
+key_directory: #{key_directory}
+key_name: #{key_name}
 EOF
     end
   end
 end
 
+# TODO: Format config as a Yaml file, and permit custom server tags
 def read_config
   conf = {
     :aws_key => nil,
     :aws_secret => nil,
-    :test_pattern => '**/*_test.rb'
+    :test_pattern => '**/*_test.rb',
+    :key_name => nil,
+    :key_directory => nil,
   }
 
   if File.exists?(CONFIG_FILE_PATH) then
@@ -66,17 +77,31 @@ AMI_NAME = 'ami-b0a253d9'
 
 def start_instance
   conf = read_config
+  @tddium_session = rand(2**64-1).to_s(36)
+
+  key_file = nil
+  if !conf[:key_name].nil? && !conf[:key_directory].nil?
+    key_file = File.join(conf[:key_directory], "#{conf[:key_name]}.pem")
+    STDERR.puts "No key file #{key_file} with x00 permissions present" unless File.exists?(key_file) && (File.stat(key_file).mode & "77".to_i(8) == 0)
+  end
+
   @ec2pool = Fog::AWS::Compute.new(:aws_access_key_id => conf[:aws_key],
-                              :aws_secret_access_key => conf[:aws_secret])
+                                   :aws_secret_access_key => conf[:aws_secret])
 
   server = @ec2pool.servers.create(:flavor_id => 'm1.large',
                                    :groups => ['selenium-grid'],
                                    :image_id => AMI_NAME,
                                    :name => 'sg-server',
-                                   :key_name => 'sg-keypair')
-  server.wait_for { ready? }
+                                   :key_name => conf[:key_name])
 
-  puts "started instance #{server.id} #{server.dns_name} in group #{server.groups}"
+  @ec2pool.tags.create(:key => 'tddium_session', 
+                       :value => @tddium_session,
+                       :resource_id => server.id)
+
+  server.wait_for { ready? }
+  server.reload
+
+  puts "started instance #{server.id} #{server.dns_name} in group #{server.groups} with tags #{server.tags.inspect}"
 
   uri = URI.parse("http://#{server.dns_name}:4444/console")
   http = Net::HTTP.new(uri.host, uri.port)
@@ -95,11 +120,19 @@ def start_instance
       tries += 1
     end
   end
+  raise "Couldn't connect to #{uri.request_uri}" unless rc_up
 
   puts "Selenium Console:"
   puts "#{uri}"
 
-  puts "ssh -i sg-keypair.pem ec2-user@#{server.dns_name}"
+  if !key_file.nil?
+    STDERR.puts "You can login via \"ssh -i #{key_file} ec2-user@#{server.dns_name}\""
+    STDERR.puts "Making /var/log/messages world readable"
+    system "ssh -i #{key_file} ec2-user@#{server.dns_name} 'sudo chmod 644 /var/log/messages'"
+  else
+    # TODO: Remove when /var/log/messages bug is fixed
+    STDERR.puts "No key_file provided.  /var/log/messages may not be readable by ec2-user."
+  end
   server
 end
 
@@ -107,10 +140,17 @@ def stop_instance
   conf = read_config
   @ec2pool = Fog::AWS::Compute.new(:aws_access_key_id => conf[:aws_key],
                               :aws_secret_access_key => conf[:aws_secret])
-  @ec2pool.servers.each do |s|
-    if s.image_id == AMI_NAME then
-      puts "stopping instance #{s.id} #{s.dns_name}"
+
+  # TODO: The logic here is a bit convoluted now
+  @ec2pool.servers.select{|s| s.image_id == AMI_NAME}.each do |s|
+    # in Fog 0.3.33, :filters is buggy and won't accept resourceId or resource_id
+    tags = @ec2pool.tags(:filters => {:key => 'tddium_session'}).select{|t| t.resource_id == s.id}
+    if tags.first.value == @tddium_session then
+      STDERR.puts "stopping instance #{s.id} #{s.dns_name} from our session"
       s.destroy
+    else
+      STDERR.puts "skipping instance #{s.id} #{s.dns_name} created in another session"
     end
   end
+  nil
 end
