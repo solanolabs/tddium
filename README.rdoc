@@ -9,36 +9,51 @@ what you use.
 == Getting Started
 
 1.  Sign up for an EC2 account, by going here:
+  
+    https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
 
-  https://aws-portal.amazon.com/gp/aws/developer/registration/index.html
+    Note that if you have a personal Amazon account, you'll want to make a new one
+    for Amazon Web Services. 
 
-Note that if you have a personal Amazon account, you'll want to make a new one
-for Amazon Web Services. 
+    The registration process generates a variety of certificates and keys.  Please
+    keep track of them.
 
-The registration process generates a variety of certificates and keys.  Please
-keep track of them.
+2.  Note your AWS Access Key and AWS Secret.  You can find them by the following
+    steps:
 
-2.  Note your AWS Access Key and AWS Secret.  You can find them by:
+    - go to the AWS Management Console
+    - click on the "Account" link in the upper navigation menu
+    - click on "Security Credentials"
+    - scroll down to the first section "Access Credentials"
+    - the Access Key is a 20-character alphabetic string.  The Secret is hidden. Click the 'show' link to reveal it.
 
-     - go to the AWS Management Console
-     - click on the "Account" link in the upper navigation menu
-     - click on "Security Credentials"
-     - scroll down to the first section "Access Credentials"
-     - the Access Key is a 20-character alphabetic string.  The Secret is hidden. Click the 'show' link to reveal it.
+3.  In the AWS Management Console, create a selenium-grid security group, and
+    create rules for:
+
+    * allow dest port 4444 (Selenium-Grid)
+    * allow dest port 5900 (Windows Remote Desktop)
+    * allow http
+    * allow https
+    * allow vnc
+    * allow ssh
+
+4.  In the AWS Management Console, create a keypair called sg-keypair.
 
 3.  Subscribe to tddium:
 
-Subscribe your Amazon EC2 account to tddium here:
+    Subscribe your Amazon EC2 account to tddium here:
 
-https://aws-portal.amazon.com/gp/aws/user/subscription/index.html?ie=UTF8&offeringCode=FA429DE5
+    https://aws-portal.amazon.com/gp/aws/user/subscription/index.html?ie=UTF8&offeringCode=FA429DE5
 
 4.  Start using tddium:
 
-$ tddium config:init
-# Asks you for the AWS Access Key and AWS Secret
+    <tt>$ tddium config:init</tt>
 
-$ tddium test:sequential
-# Starts an EC2 Instance, sets SELENIUM_RC_HOST to it, and runs **/*_spec.rb in sequence
+    # Asks you for the AWS Access Key and AWS Secret
+
+    <tt>$ tddium test:sequential</tt>
+
+    # Starts an EC2 Instance, sets SELENIUM_RC_HOST to it, and runs **/*_spec.rb in sequence
 
 == Copyright
 

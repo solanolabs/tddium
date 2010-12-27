@@ -12,6 +12,7 @@ require 'highline/import'
 require 'fog'
 require 'net/http'
 require 'uri'
+require 'logrotate'
 
 ALREADY_CONFIGURED =<<'EOF'
 
