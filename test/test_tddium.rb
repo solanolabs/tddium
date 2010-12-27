@@ -119,6 +119,12 @@ class TestLogRotate < Test::Unit::TestCase
       @latest = File.join(@config[:result_directory], 'latest')
       stubs(:read_config => @config)
     end
+    context "regardless" do
+      should "return directory name" do
+        x = result_directory
+        assert_equal @latest, x
+      end
+    end
     context "with no results" do
       setup do
         FakeFS::FileSystem.clear

@@ -156,6 +156,7 @@ def result_directory
     FileUtils.mv(latest, archive)
   end
   FileUtils.mkdir_p latest
+  latest
 end
 
 def stop_instance
