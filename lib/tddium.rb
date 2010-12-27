@@ -12,7 +12,6 @@ require 'highline/import'
 require 'fog'
 require 'net/http'
 require 'uri'
-require 'logrotate'
 
 ALREADY_CONFIGURED =<<'EOF'
 
@@ -140,8 +139,23 @@ def start_instance
   server
 end
 
+#
+# Prepare the result directory, as specified by config[:result_directory].
+#
+# If the directory doesn't exist create it, and a latest subdirectory.
+#
+# If the latest subdirectory exists, rotate it and create a new empty latest.
+#
 def result_directory
-  
+  conf = read_config
+  latest = File.join(conf[:result_directory], 'latest')
+
+  if File.directory?(latest) then
+    mtime = File.stat(latest).mtime.strftime("%Y%m%d-%H%M%S")
+    archive = File.join(conf[:result_directory], mtime)
+    FileUtils.mv(latest, archive)
+  end
+  FileUtils.mkdir_p latest
 end
 
 def stop_instance

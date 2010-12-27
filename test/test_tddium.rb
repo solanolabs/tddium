@@ -83,7 +83,7 @@ class TestEC2 < Test::Unit::TestCase
     setup do
       Fog.mock!
       config = {:aws_key => 'abc', :aws_secret => 'def'}
-      stub(:read_config => config)
+      stubs(:read_config => config)
       httpmock = mock()
       httpmock.expects(:open_timeout=)
       httpmock.expects(:read_timeout=)
@@ -117,6 +117,7 @@ class TestLogRotate < Test::Unit::TestCase
     setup do
       @config = {:result_directory => 'results'}
       @latest = File.join(@config[:result_directory], 'latest')
+      stubs(:read_config => @config)
     end
     context "with no results" do
       setup do
@@ -135,7 +136,8 @@ class TestLogRotate < Test::Unit::TestCase
 
       should "rotate latest to date-extended directory name" do
         result_directory
-        files = Dir.glob(@config[:result_directory])
+        files = Dir.glob("#{@config[:result_directory]}/*")
+        puts files
         assert_equal 2, files.length
       end
 
@@ -146,7 +148,7 @@ class TestLogRotate < Test::Unit::TestCase
         end
         result_directory
         assert !File.exists?(fname)
-        files = Dir.glob('*/report.html')
+        files = Dir.glob('**/report.html')
         assert_equal 1, files.length
         assert_equal 'foo', File.open(files[0]).read
       end
