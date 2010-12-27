@@ -39,6 +39,9 @@ def init_task
     key_name = ask('Enter secret key name (excluding .pem suffix): ') { |q|
       q.default='sg-keypair'
     }
+    result_directory = ask('Enter directory for result reports: ') { |q|
+      q.default='results'
+    }
 
     File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
       f.write <<EOF
@@ -47,12 +50,12 @@ aws_secret: #{secret}
 test_pattern: #{pattern}
 key_directory: #{key_directory}
 key_name: #{key_name}
+result_directory: #{result_directory}
 EOF
     end
   end
 end
 
-# TODO: Format config as a Yaml file, and permit custom server tags
 def read_config
   conf = {
     :aws_key => nil,
@@ -134,6 +137,10 @@ def start_instance
     STDERR.puts "No key_file provided.  /var/log/messages may not be readable by ec2-user."
   end
   server
+end
+
+def result_directory
+  
 end
 
 def stop_instance

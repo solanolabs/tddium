@@ -4,6 +4,7 @@ Copyright (c) 2010 tddium.com All Rights Reserved
 
 require 'helper'
 require 'fakefs'
+require 'fileutils'
 require 'mocha'
 
 class TestFileops < Test::Unit::TestCase
@@ -26,7 +27,7 @@ class TestFileops < Test::Unit::TestCase
       should "have the right contents" do
         f = FakeFS::FileSystem.find(@path)
         assert f.content.include?('abc'), "Should contain magic string"
-        %w(aws_key aws_secret test_pattern).each do |field|
+        %w(aws_key aws_secret test_pattern key_directory key_name result_directory).each do |field|
           assert f.content.include?(field), "Should contain #{field}"
         end
       end
@@ -111,4 +112,44 @@ class TestEC2 < Test::Unit::TestCase
   end
 end
 
+class TestLogRotate < Test::Unit::TestCase
+  context "calling result_directory" do
+    setup do
+      @config = {:result_directory => 'results'}
+      @latest = File.join(@config[:result_directory], 'latest')
+    end
+    context "with no results" do
+      setup do
+        FakeFS::FileSystem.clear
+      end
+      should "create results/latest/" do
+        result_directory
+        assert File.directory?(@latest)
+      end
+    end
+    
+    context "with existing <results>/latest directory" do
+      setup do
+        FileUtils.mkdir_p @latest
+      end
 
+      should "rotate latest to date-extended directory name" do
+        result_directory
+        files = Dir.glob(@config[:result_directory])
+        assert_equal 2, files.length
+      end
+
+      should "preserve contents of rotated report" do
+        fname = File.join(@latest, 'report.html')
+        File.open(fname, 'w') do |f|
+          f.write('foo')
+        end
+        result_directory
+        assert !File.exists?(fname)
+        files = Dir.glob('*/report.html')
+        assert_equal 1, files.length
+        assert_equal 'foo', File.open(files[0]).read
+      end
+    end
+  end
+end

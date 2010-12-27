@@ -22,6 +22,7 @@ GEM
       git (>= 1.2.5)
       rake
     json (1.4.6)
+    logrotate (1.2.1)
     mime-types (1.16)
     mocha (0.9.10)
       rake
@@ -40,11 +41,11 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.0.0)
-  excon (= 0.3.4)
   fakefs (>= 0.3.1)
   fog (= 0.3.31)
   highline
   jeweler (~> 1.5.1)
+  logrotate (>= 1.2.1)
   mocha
   rcov
   rspec (> 1.2.6, < 2.0.0)
