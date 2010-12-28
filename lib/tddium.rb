@@ -159,6 +159,12 @@ def result_directory
   latest
 end
 
+REPORT_FILENAME = "selenium_report.html"
+
+def default_report_path
+  File.join(read_config[:result_directory], 'latest', REPORT_FILENAME)
+end
+
 def stop_instance
   conf = read_config
   @ec2pool = Fog::AWS::Compute.new(:aws_access_key_id => conf[:aws_key],

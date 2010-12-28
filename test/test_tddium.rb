@@ -160,4 +160,16 @@ class TestLogRotate < Test::Unit::TestCase
       end
     end
   end
+
+  context "default result path" do
+    setup do
+      @config = {:result_directory => "results"}
+      stubs(:read_config => @config)
+    end
+    should "return the right path" do
+      x = default_report_path
+      expected = File.join(@config[:result_directory], 'latest', REPORT_FILENAME)
+      assert_equal expected, x
+    end
+  end
 end

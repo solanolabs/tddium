@@ -27,16 +27,21 @@ namespace :config do
   end
 end
 
-result_path = "./tmp/test_report.html"
 
 namespace :internal do
   Spec::Rake::SpecTask.new('sequential') do |t|
     conf = read_config
     t.pattern = conf[:test_pattern] || "**/*_spec.rb"
-    t.spec_opts << '--color'
-    t.spec_opts << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
-    t.spec_opts << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{result_path}"
-    t.spec_opts << "--format=progress"                
+    t.spec_opts = Proc.new do
+      # Stub out result_path in case internal:sequential is run by itself
+      @result_path ||= default_report_path
+      s = []
+      s << '--color'
+      s << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
+      s << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{@result_path}"
+      s << "--format=progress"                
+      s
+    end
     t.fail_on_error = true
     t.verbose = true
   end
@@ -56,7 +61,9 @@ namespace :test do
     begin
       puts "starting EC2 Instance"
       Rake::Task['internal:start'].execute
-      puts "Running tests. Results will be in #{result_path}"
+      latest = result_directory
+      @result_path = File.join(latest, REPORT_FILENAME)
+      puts "Running tests. Results will be in #{@result_path}"
       sleep 30
       Rake::Task['internal:sequential'].execute
     ensure
