@@ -63,6 +63,7 @@ def read_config
     :test_pattern => '**/*_test.rb',
     :key_name => nil,
     :key_directory => nil,
+    :result_directory => 'results',
   }
 
   if File.exists?(CONFIG_FILE_PATH) then
