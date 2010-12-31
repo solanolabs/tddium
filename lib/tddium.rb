@@ -19,45 +19,44 @@ tddium has already been initialized.
 
 (settings are in %s)
 
-Use 'tddium reset' to clear configuration, and then run 'tddium init' again.
+Use 'tddium config:reset' to clear configuration, and then run 'tddium config:init' again.
 EOF
 
+
 CONFIG_FILE_PATH = File.expand_path('~/.tddium')
+
+def write_config(config)
+  File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
+    YAML.dump(config, f)
+  end
+end
 
 def init_task
   if File.exists?(CONFIG_FILE_PATH) then
     puts ALREADY_CONFIGURED % CONFIG_FILE_PATH
   else
-    key = ask('Enter AWS Access Key: ')
-    secret = ask('Enter AWS Secret: ')
-    pattern = ask('Enter filepattern for tests: ') { |q|
+    conf = {}
+    conf[:aws_key] = ask('Enter AWS Access Key: ')
+    conf[:aws_secret] = ask('Enter AWS Secret: ')
+    conf[:test_pattern] = ask('Enter filepattern for tests: ') { |q|
       q.default='**/*_spec.rb'
     }
-    key_directory = ask('Enter directory for secret key(s): ') { |q|
+    conf[:key_directory] = ask('Enter directory for secret key(s): ') { |q|
       q.default='spec/secret'
     }
-    key_name = ask('Enter secret key name (excluding .pem suffix): ') { |q|
+    conf[:key_name] = ask('Enter secret key name (excluding .pem suffix): ') { |q|
       q.default='sg-keypair'
     }
-    result_directory = ask('Enter directory for result reports: ') { |q|
+    conf[:result_directory] = ask('Enter directory for result reports: ') { |q|
       q.default='results'
     }
 
-    File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
-      f.write <<EOF
-aws_key: #{key}
-aws_secret: #{secret}
-test_pattern: #{pattern}
-key_directory: #{key_directory}
-key_name: #{key_name}
-result_directory: #{result_directory}
-EOF
-    end
+    write_config conf
   end
 end
 
 def read_config
-  conf = {
+  defaults = {
     :aws_key => nil,
     :aws_secret => nil,
     :test_pattern => '**/*_test.rb',
@@ -67,7 +66,41 @@ def read_config
   }
 
   if File.exists?(CONFIG_FILE_PATH) then
-    File.open(CONFIG_FILE_PATH) do |f|
+    file_conf = YAML.load(File.read(CONFIG_FILE_PATH))
+  else
+    file_conf = {}
+  end
+  defaults.merge(file_conf)
+end
+
+# If the config file isn't YAML -- doesn't start with '---', convert it into
+# YAML.
+def convert_old_config
+  oldpath = CONFIG_FILE_PATH + '.old'
+  FileUtils.rm_f oldpath
+
+  old_data = File.readlines(CONFIG_FILE_PATH)[0]
+  unless old_data.match /^---/ then
+    oldconf = read_old_config
+
+    FileUtils.mv CONFIG_FILE_PATH, oldpath
+
+    write_config oldconf
+  end
+end
+
+#
+def read_old_config(filename=CONFIG_FILE_PATH)
+  conf = {
+    :aws_key => nil,
+    :aws_secret => nil,
+    :test_pattern => '**/*_test.rb',
+    :key_name => nil,
+    :key_directory => nil,
+    :result_directory => 'results',
+  }
+  if File.exists?(filename) then
+    File.open(filename) do |f|
       f.each do |line|
         key, val = line.split(': ')
         conf[key.to_sym] = val.chomp
@@ -76,6 +109,7 @@ def read_config
   end
   conf
 end
+  
 
 AMI_NAME = 'ami-b0a253d9'
 

@@ -31,6 +31,13 @@ class TestFileops < Test::Unit::TestCase
           assert f.content.include?(field), "Should contain #{field}"
         end
       end
+
+      should "write a YAML file" do
+        result = YAML::load_file(@path)
+        %w(aws_key aws_secret test_pattern key_directory key_name result_directory).each do |field|
+          assert result.has_key? field.to_sym
+        end
+      end 
     end
 
     context "when ~/.tddium exists" do
@@ -56,9 +63,10 @@ class TestConfigRead < Test::Unit::TestCase
       should "read config file values into a dict" do
         File.open(@path, 'w') do |f|
           f.write <<EOF
-aws_secret: abc
-aws_key: abx
-test_pattern: **/*_spec.rb
+---
+:aws_secret: abc
+:aws_key: abx
+:test_pattern: **/*_spec.rb
 EOF
         end
         conf = read_config
@@ -170,6 +178,38 @@ class TestLogRotate < Test::Unit::TestCase
       x = default_report_path
       expected = File.join(@config[:result_directory], 'latest', REPORT_FILENAME)
       assert_equal expected, x
+    end
+  end
+end
+
+class TestConvertConfig < Test::Unit::TestCase
+  context "when old configuration exists" do
+    setup do
+      FakeFS::FileSystem.clear
+      @path = File.expand_path(CONFIG_FILE_PATH)
+      @oldpath = @path + ".old"
+      @text = <<EOF
+aws_secret: abc
+aws_key: abx
+test_pattern: **/*_spec.rb
+EOF
+      File.open(@path, 'w') do |f|
+        f.write @text
+      end
+      convert_old_config
+    end
+
+    should "save old config" do
+      assert File.exists? @oldpath
+      assert File.exists?(@path)
+      f = FakeFS::FileSystem.find(@oldpath)
+      assert_equal f.content, @text
+    end
+
+    should "write YAML file" do
+      old_conf = read_old_config @oldpath
+      conf = read_config
+      assert_equal conf, old_conf
     end
   end
 end

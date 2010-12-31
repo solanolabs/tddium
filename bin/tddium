@@ -25,6 +25,10 @@ namespace :config do
   task :reset do
     rm CONFIG_FILE_PATH, :force => true
   end
+
+  task :upgrade do
+    convert_old_config
+  end
 end
 
 
