@@ -23,10 +23,12 @@ namespace :config do
   end
 
   task :reset do
+    STDERR.puts "Old configuration:"
+    STDERR.puts File.read(CONFIG_FILE_PATH)
     rm CONFIG_FILE_PATH, :force => true
   end
 
-  task :upgrade do
+  task :convert do
     convert_old_config
   end
 end
@@ -77,8 +79,15 @@ namespace :test do
 end
 
 begin
-  Rake::Task[ARGV.first].execute
-rescue RuntimeError
+  arg = ARGV.shift
+  if arg == '-M' then
+    Fog.mock!
+    arg = ARGV.shift
+  end
+  Rake::Task[arg].execute
+rescue RuntimeError => e
+  puts e.message
+  puts e.backtrace
   puts "Error running '#{ARGV.first}'.  Try one of:"
   puts
   Rake::Task.tasks.each do |t|
@@ -86,5 +95,4 @@ rescue RuntimeError
   end
   puts
 end
-
 

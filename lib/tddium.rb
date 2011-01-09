@@ -12,6 +12,7 @@ require 'highline/import'
 require 'fog'
 require 'net/http'
 require 'uri'
+require 'yaml'
 
 ALREADY_CONFIGURED =<<'EOF'
 
@@ -50,6 +51,7 @@ def init_task
     conf[:result_directory] = ask('Enter directory for result reports: ') { |q|
       q.default='results'
     }
+    conf[:server_tag] = ask("(optional) Enter tag=value to give instances: ") 
 
     write_config conf
   end
@@ -136,12 +138,18 @@ def start_instance
                        :value => @tddium_session,
                        :resource_id => server.id)
 
+  server_tag = conf[:server_tag].split('=')
+
+  @ec2pool.tags.create(:key => server_tag[0],
+                       :value => server_tag[1],
+                       :resource_id => server.id)
+
   server.wait_for { ready? }
   server.reload
 
   puts "started instance #{server.id} #{server.dns_name} in group #{server.groups} with tags #{server.tags.inspect}"
 
-  uri = URI.parse("http://#{server.dns_name}:4444/console")
+  uri = URI.parse("http://#{server.dns_name}:4445/console")
   http = Net::HTTP.new(uri.host, uri.port)
   http.open_timeout = 60
   http.read_timeout = 60
@@ -154,6 +162,7 @@ def start_instance
       rc_up = true
     rescue Errno::ECONNREFUSED
       sleep 5
+    rescue Timeout::Error
     ensure
       tries += 1
     end

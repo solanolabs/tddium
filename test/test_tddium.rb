@@ -17,6 +17,7 @@ class TestFileops < Test::Unit::TestCase
       setup do
         FakeFS::FileSystem.clear
         HighLine.any_instance.stubs(:ask).returns('abc', 'def', 'ghi')
+        @keys = %w(aws_key aws_secret test_pattern key_directory key_name result_directory server_tag)
         init_task
       end
     
@@ -27,15 +28,15 @@ class TestFileops < Test::Unit::TestCase
       should "have the right contents" do
         f = FakeFS::FileSystem.find(@path)
         assert f.content.include?('abc'), "Should contain magic string"
-        %w(aws_key aws_secret test_pattern key_directory key_name result_directory).each do |field|
+        @keys.each do |field|
           assert f.content.include?(field), "Should contain #{field}"
         end
       end
 
-      should "write a YAML file" do
+      should "write a YAML file with the right fields" do
         result = YAML::load_file(@path)
-        %w(aws_key aws_secret test_pattern key_directory key_name result_directory).each do |field|
-          assert result.has_key? field.to_sym
+        @keys.each do |field|
+          assert result.has_key?(field.to_sym), "Should contain #{field}"
         end
       end 
     end
@@ -100,11 +101,14 @@ class TestEC2 < Test::Unit::TestCase
       getmock = mock()
       Net::HTTP::Get.stubs(:new).returns(getmock)
     end
+
     should "create new EC2 instance with configured key" do
       c = Fog::AWS::Compute.new
       server = start_instance
       assert_equal server.image_id, AMI_NAME
     end
+
+    should "not crash if keyfile is not provided"
   end
   
   context "stop instances" do
@@ -213,3 +217,4 @@ EOF
     end
   end
 end
+
