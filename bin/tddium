@@ -53,8 +53,7 @@ namespace :internal do
   end
 
   task :start do
-    server = start_instance
-    ENV['SELENIUM_RC_HOST'] = server.dns_name
+    start_instance
   end
 
   task :stop do

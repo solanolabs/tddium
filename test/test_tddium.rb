@@ -7,32 +7,54 @@ require 'fakefs'
 require 'fileutils'
 require 'mocha'
 
+class FakeFS::File::Stat
+  attr_accessor :mode
+end
+
 class TestEC2 < Test::Unit::TestCase
   context "start instances" do
     setup do
       Fog.mock!
       @config = {:aws_key => 'abc', :aws_secret => 'def'}
       stubs(:read_config => @config)
+      stubs(:system => 0)
       mockstart
     end
 
     should "create new EC2 instance with configured key" do
       server = start_instance
       assert_equal server.image_id, AMI_NAME
+      assert_equal nil, $tunnel_pid
     end
 
     should "not crash if keyfile is not provided"
 
+    should "set SELENIUM_RC_HOST environment variable" do
+      server = start_instance
+      assert_equal server.dns_name, ENV['SELENIUM_RC_HOST']
+    end
+
     context "if ssh_tunnel is needed" do
       setup do
-        @config[:ssh_tunnel] = true
+        @config[:ssh_tunnel] = 1
+        @config[:key_name] = 'sg-keypair'
+        @config[:key_directory] = '.'
+        FakeFS::FileSystem.clear
+        File.open(key_file_name(@config), 'w', 0600) do |f|
+          f.write('foo')
+        end
+        @testpid = 10000
+        Process.stubs(:fork => @testpid)
       end
 
-      should "set up an ssh tunnel" do
-        pid = 10
-        stubs(:start_ssh_tunnel => true)
-        Process.stubs(:fork).returns(pid)
+      should "set up an ssh tunnel and save its pid" do
         server = start_instance
+        assert_equal @testpid,  $tunnel_pid
+      end
+
+      should "set the SELENIUM_RC_HOST environment variable to localhost" do
+        server = start_instance
+        assert_equal 'localhost', ENV['SELENIUM_RC_HOST']
       end
     end
   end
@@ -52,7 +74,20 @@ class TestEC2 < Test::Unit::TestCase
       assert server.terminated?
     end
 
-    should "destroy ssh tunnel"
+    should "kill tunnel process if it was created" do
+      @testpid = 10000
+      $tunnel_pid = @testpid
+      Process.expects(:kill).with(@testpid)
+      server = start_instance
+      stop_instance
+    end
+
+    should "not kill tunnel pid if it wasn't set" do
+      $tunnel_pid = nil
+      Process.expects(:kill).never
+      server = start_instance
+      stop_instance
+    end
   end
 
   private
@@ -66,6 +101,13 @@ class TestEC2 < Test::Unit::TestCase
       getmock = mock()
       Net::HTTP::Get.stubs(:new).returns(getmock)
     end
+end
+
+class TestSshTunnel < Test::Unit::TestCase
+  should "have ssh tunnel method" do
+    stubs(:system => true)
+    ssh_tunnel('abc', 'def')
+  end
 end
 
 class TestLogRotate < Test::Unit::TestCase
@@ -99,7 +141,6 @@ class TestLogRotate < Test::Unit::TestCase
       should "rotate latest to date-extended directory name" do
         result_directory
         files = Dir.glob("#{@config[:result_directory]}/*")
-        puts files
         assert_equal 2, files.length
       end
 
@@ -129,3 +170,4 @@ class TestLogRotate < Test::Unit::TestCase
     end
   end
 end
+
