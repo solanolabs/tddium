@@ -77,7 +77,8 @@ class TestEC2 < Test::Unit::TestCase
     should "kill tunnel process if it was created" do
       @testpid = 10000
       $tunnel_pid = @testpid
-      Process.expects(:kill).with(@testpid)
+      Process.expects(:kill).with("TERM", @testpid)
+      Process.expects(:waitpid).with(@testpid)
       server = start_instance
       stop_instance
     end

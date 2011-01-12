@@ -56,6 +56,11 @@ namespace :internal do
     start_instance
   end
 
+  task :startstop do
+    start_instance
+    stop_instance
+  end
+
   task :stop do
     stop_instance
   end

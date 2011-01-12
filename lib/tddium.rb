@@ -149,8 +149,8 @@ def stop_instance
                               :aws_secret_access_key => conf[:aws_secret])
 
   if !$tunnel_pid.nil?
-    kill($tunnel_pid)
-    waitpid($tunnel_pid)
+    Process.kill("TERM", $tunnel_pid)
+    Process.waitpid($tunnel_pid)
     $tunnel_pid = nil
   end
 
