@@ -1,16 +1,15 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    builder (2.1.2)
-    excon (0.3.4)
+    builder (3.0.0)
+    excon (0.3.8)
     fakefs (0.3.1)
-    fog (0.3.31)
+    fog (0.4.0)
       builder
-      excon (>= 0.3.3)
+      excon (>= 0.3.7)
       formatador (>= 0.0.16)
       json
       mime-types
-      named-parameters (>= 0.0.17)
       net-ssh (>= 2.0.23)
       nokogiri (>= 1.4.4)
       ruby-hmac
@@ -25,7 +24,6 @@ GEM
     mime-types (1.16)
     mocha (0.9.10)
       rake
-    named-parameters (0.0.22)
     net-ssh (2.0.23)
     nokogiri (1.4.4)
     rake (0.8.7)
@@ -41,7 +39,7 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.0.0)
   fakefs (>= 0.3.1)
-  fog (= 0.3.31)
+  fog (> 0.3.31)
   highline
   jeweler (~> 1.5.1)
   mocha

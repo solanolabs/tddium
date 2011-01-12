@@ -52,6 +52,9 @@ def init_task
       q.default='results'
     }
     conf[:server_tag] = ask("(optional) Enter tag=value to give instances: ") 
+    conf[:ssh_tunnel] = ask("Create ssh tunnel to hub at localhost:4444:") { |q|
+      q.default=false
+    }
 
     write_config conf
   end
@@ -65,6 +68,7 @@ def read_config
     :key_name => nil,
     :key_directory => nil,
     :result_directory => 'results',
+    :ssh_tunnel => false,
   }
 
   if File.exists?(CONFIG_FILE_PATH) then
@@ -100,6 +104,7 @@ def read_old_config(filename=CONFIG_FILE_PATH)
     :key_name => nil,
     :key_directory => nil,
     :result_directory => 'results',
+    :ssh_tunnel => false,
   }
   if File.exists?(filename) then
     File.open(filename) do |f|
@@ -138,18 +143,20 @@ def start_instance
                        :value => @tddium_session,
                        :resource_id => server.id)
 
-  server_tag = conf[:server_tag].split('=')
+  if conf.include?(:server_tag) then
+    server_tag = conf[:server_tag].split('=')
 
-  @ec2pool.tags.create(:key => server_tag[0],
-                       :value => server_tag[1],
-                       :resource_id => server.id)
+    @ec2pool.tags.create(:key => server_tag[0],
+                         :value => server_tag[1],
+                         :resource_id => server.id)
+  end
 
   server.wait_for { ready? }
   server.reload
 
   puts "started instance #{server.id} #{server.dns_name} in group #{server.groups} with tags #{server.tags.inspect}"
 
-  uri = URI.parse("http://#{server.dns_name}:4445/console")
+  uri = URI.parse("http://#{server.dns_name}:4444/console")
   http = Net::HTTP.new(uri.host, uri.port)
   http.open_timeout = 60
   http.read_timeout = 60
@@ -179,6 +186,10 @@ def start_instance
   else
     # TODO: Remove when /var/log/messages bug is fixed
     STDERR.puts "No key_file provided.  /var/log/messages may not be readable by ec2-user."
+  end
+
+  if conf[:ssh_tunnel] then
+    
   end
   server
 end
