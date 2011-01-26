@@ -52,6 +52,9 @@ def start_instance
                                    :name => 'sg-server',
                                    :key_name => conf[:key_name])
 
+  server.wait_for { ready? }
+  server.reload
+
   @ec2pool.tags.create(:key => 'tddium_session', 
                        :value => @tddium_session,
                        :resource_id => server.id)
@@ -64,8 +67,6 @@ def start_instance
                          :resource_id => server.id)
   end
 
-  server.wait_for { ready? }
-  server.reload
 
   puts "started instance #{server.id} #{server.dns_name} in group #{server.groups} with tags #{server.tags.inspect}"
 
