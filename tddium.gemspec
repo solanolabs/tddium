@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tddium}
-  s.version = "0.3.0"
+  s.version = "0.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jay Moorthi"]
-  s.date = %q{2011-01-13}
+  s.date = %q{2011-01-26}
   s.default_executable = %q{tddium}
   s.description = %q{tddium gets your rspec tests into the cloud by running them on your VMs}
   s.email = %q{jaymoorthi@me.com}
@@ -55,7 +55,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<highline>, [">= 0"])
       s.add_runtime_dependency(%q<rspec>, ["> 1.2.6", "< 2.0.0"])
       s.add_runtime_dependency(%q<selenium-client>, [">= 1.2.18"])
-      s.add_runtime_dependency(%q<fog>, ["> 0.3.31"])
+      s.add_runtime_dependency(%q<fog>, ["= 0.4.0"])
       s.add_development_dependency(%q<shoulda>, [">= 0"])
       s.add_development_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.5.1"])
@@ -66,7 +66,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<highline>, [">= 0"])
       s.add_dependency(%q<rspec>, ["> 1.2.6", "< 2.0.0"])
       s.add_dependency(%q<selenium-client>, [">= 1.2.18"])
-      s.add_dependency(%q<fog>, ["> 0.3.31"])
+      s.add_dependency(%q<fog>, ["= 0.4.0"])
       s.add_dependency(%q<shoulda>, [">= 0"])
       s.add_dependency(%q<bundler>, ["~> 1.0.0"])
       s.add_dependency(%q<jeweler>, ["~> 1.5.1"])
@@ -78,7 +78,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<highline>, [">= 0"])
     s.add_dependency(%q<rspec>, ["> 1.2.6", "< 2.0.0"])
     s.add_dependency(%q<selenium-client>, [">= 1.2.18"])
-    s.add_dependency(%q<fog>, ["> 0.3.31"])
+    s.add_dependency(%q<fog>, ["= 0.4.0"])
     s.add_dependency(%q<shoulda>, [">= 0"])
     s.add_dependency(%q<bundler>, ["~> 1.0.0"])
     s.add_dependency(%q<jeweler>, ["~> 1.5.1"])
