@@ -107,7 +107,9 @@ def read_old_config(filename=CONFIG_FILE_PATH)
     File.open(filename) do |f|
       f.each do |line|
         key, val = line.split(': ')
-        conf[key.to_sym] = val.chomp
+        if !key.nil? && !val.nil? then
+          conf[key.to_sym] = val.chomp
+        end
       end
     end
   end

@@ -97,6 +97,7 @@ class TestConvertConfig < Test::Unit::TestCase
 aws_secret: abc
 aws_key: abx
 test_pattern: **/*_spec.rb
+
 EOF
       File.open(@path, 'w') do |f|
         f.write @text

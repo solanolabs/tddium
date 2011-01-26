@@ -5,7 +5,7 @@ source "http://rubygems.org"
 gem "highline"
 gem "rspec", ">1.2.6", "<2.0.0"
 gem "selenium-client", ">=1.2.18"
-gem "fog", ">0.3.31"
+gem "fog", "=0.4.0"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
