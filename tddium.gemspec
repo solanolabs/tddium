@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tddium}
-  s.version = "0.3.1"
+  s.version = "0.3.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jay Moorthi"]
@@ -42,6 +42,37 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{tddium Cloud Test Runner}
   s.test_files = [
+    "spec/selenium/RC 000 - Smoke test - Run through all the pages.rb",
+    "spec/selenium/RC 001 - Sign In page - Empty field validation.rb",
+    "spec/selenium/RC 007 - Sharing - Add T4 as manager - Check remaining characters - Stop sharing with a manager (T4).rb",
+    "spec/selenium/RC 009 - Accounts - Add and delete an account with T0.rb",
+    "spec/selenium/RC 010 - Sharing - Checking numbers.rb",
+    "spec/selenium/RC 011 - Sharing - all groups with All Groups checkbox turned off and adding a new account.rb",
+    "spec/selenium/RC 012 - Sharing - Add a new account to a shared group, verify and then delete it.rb",
+    "spec/selenium/RC 013 - Accounts - Add an invalid account with Test0 and check the go back functionality.rb",
+    "spec/selenium/RC 014 - Sharing - Only all accounts.rb",
+    "spec/selenium/RC 016 - Profile.rb",
+    "spec/selenium/RC 019 - Sharing - All groups with All groups checkbox turned ON and adding a new group.rb",
+    "spec/selenium/RC 020 - Planning.rb",
+    "spec/selenium/RC 021 - Sharing - Manager access.rb",
+    "spec/selenium/RC 022 - Side bar.rb",
+    "spec/selenium/aob.rb",
+    "spec/selenium/aob_happy_path.rb",
+    "spec/selenium/aob_slow.rb",
+    "spec/selenium/data/account_data.rb",
+    "spec/selenium/helpers/accounts.rb",
+    "spec/selenium/helpers/allocation.rb",
+    "spec/selenium/helpers/friendships.rb",
+    "spec/selenium/helpers/helper.rb",
+    "spec/selenium/helpers/holdings.rb",
+    "spec/selenium/helpers/login.rb",
+    "spec/selenium/helpers/nav.rb",
+    "spec/selenium/helpers/planning.rb",
+    "spec/selenium/helpers/profile.rb",
+    "spec/selenium/helpers/sidebar.rb",
+    "spec/selenium/test2.rb",
+    "spec/selenium/test_spec.rb",
+    "spec/selenium/tools/se_rspec_fix.rb",
     "test/helper.rb",
     "test/test_config.rb",
     "test/test_tddium.rb"
