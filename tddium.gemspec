@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
   s.authors = ["Jay Moorthi"]
   s.date = %q{2011-01-26}
   s.default_executable = %q{tddium}
-  s.description = %q{tddium gets your rspec tests into the cloud by running them on your VMs}
-  s.email = %q{jaymoorthi@me.com}
+  s.description = %q{tddium gets your rspec+selenium tests into the cloud by running them on your VMs}
+  s.email = %q{info@tddium.com}
   s.executables = ["tddium"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
@@ -32,13 +32,12 @@ Gem::Specification.new do |s|
     "doc/aws-secgroup-example.tiff",
     "lib/config.rb",
     "lib/tddium.rb",
-    "tddium-0.3.2.gem",
     "tddium.gemspec",
     "test/helper.rb",
     "test/test_config.rb",
     "test/test_tddium.rb"
   ]
-  s.homepage = %q{http://github.com/semipermeable/tddium}
+  s.homepage = %q{http://www.tddium.com/}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{tddium Cloud Test Runner}
