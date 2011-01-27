@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tddium}
-  s.version = "0.3.4"
+  s.version = "0.3.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jay Moorthi"]
-  s.date = %q{2011-01-26}
+  s.date = %q{2011-01-27}
   s.default_executable = %q{tddium}
   s.description = %q{tddium gets your rspec+selenium tests into the cloud by running them on your VMs}
   s.email = %q{info@tddium.com}
