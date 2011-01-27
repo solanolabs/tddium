@@ -88,15 +88,18 @@ begin
     Fog.mock!
     arg = ARGV.shift
   end
-  Rake::Task[arg].execute
-rescue RuntimeError => e
-  puts e.message
-  puts e.backtrace
-  puts "Error running '#{ARGV.first}'.  Try one of:"
-  puts
-  Rake::Task.tasks.each do |t|
-    puts t
+  unless Rake::Task.tasks.index{|x| x.to_s==arg}
+    STDERR.puts "Unknown command '#{arg}'.  Try one of the following:"
+    Rake::Task.tasks.each do |t|
+      STDERR.puts t
+    end
+    puts
+  else
+    Rake::Task[arg].execute
   end
-  puts
+rescue RuntimeError => e
+  STDERR.puts "Error running #{arg}"
+  STDERR.puts e.message
+  STDERR.puts e.backtrace
 end
 
