@@ -16,6 +16,7 @@ require 'config'
 
 AMI_NAME = 'ami-b0a253d9'
 
+# Compute the name of the ssh private key file from configured parameters
 def key_file_name(config)
   if config[:key_name].nil? || config[:key_directory].nil?
     return nil
@@ -24,6 +25,10 @@ def key_file_name(config)
   File.join(config[:key_directory], "#{config[:key_name]}.pem")
 end
 
+# Create an ssh tunnel to hostname for selenium, binding remote:4444 to
+# local:4444. Authenticate with the private key in key_file.
+# 
+# The ssh tunnel will auto-accept the remote host key.
 def ssh_tunnel(key_file, hostname)
   ssh_up = false
   tries = 0
@@ -34,6 +39,7 @@ def ssh_tunnel(key_file, hostname)
   end
 end
 
+# Start and setup an EC2 instance to run a selenium-grid node.
 def start_instance
   conf = read_config
   @tddium_session = rand(2**64-1).to_s(36)
@@ -146,27 +152,56 @@ def default_report_path
   File.join(read_config[:result_directory], 'latest', REPORT_FILENAME)
 end
 
-def stop_instance
+# Find all instances running the tddium AMI
+def find_instances
   conf = read_config
   @ec2pool = Fog::AWS::Compute.new(:aws_access_key_id => conf[:aws_key],
                               :aws_secret_access_key => conf[:aws_secret])
 
+  @ec2pool.servers.select{|s| s.image_id == AMI_NAME}
+end
+
+def session_instances
+  servers = find_instances
+  if servers.nil?
+    return nil
+  else
+    session_servers = []
+    servers.each do |s|
+      # in Fog 0.3.33, :filters is buggy and won't accept resourceId or resource_id
+      tags = @ec2pool.tags(:filters => {:key => 'tddium_session'}).select{|t| t.resource_id == s.id}
+      if tags.first and tags.first.value == @tddium_session then
+        STDERR.puts "selecting instance #{s.id} #{s.dns_name} from our session"
+        session_servers << s
+      else
+        STDERR.puts "skipping instance #{s.id} #{s.dns_name} created in another session"
+      end
+    end
+    return session_servers
+  end
+end
+
+def stop_all_instances
+  servers = find_instances
+  servers.each do |s|
+    STDERR.puts "stopping instance #{s.id} #{s.dns_name}"
+    s.destroy
+  end
+end
+
+# Stop the instance created by start_instance
+def stop_instance
+  conf = read_config
   if !$tunnel_pid.nil?
     Process.kill("TERM", $tunnel_pid)
     Process.waitpid($tunnel_pid)
     $tunnel_pid = nil
   end
 
-  # TODO: The logic here is a bit convoluted now
-  @ec2pool.servers.select{|s| s.image_id == AMI_NAME}.each do |s|
-    # in Fog 0.3.33, :filters is buggy and won't accept resourceId or resource_id
-    tags = @ec2pool.tags(:filters => {:key => 'tddium_session'}).select{|t| t.resource_id == s.id}
-    if tags.first and tags.first.value == @tddium_session then
-      STDERR.puts "stopping instance #{s.id} #{s.dns_name} from our session"
-      s.destroy
-    else
-      STDERR.puts "skipping instance #{s.id} #{s.dns_name} created in another session"
-    end
+  servers = session_instances
+  servers.each do |s|
+    STDERR.puts "stopping instance #{s.id} #{s.dns_name} from our session"
+    s.destroy
   end
   nil
 end

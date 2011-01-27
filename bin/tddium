@@ -64,6 +64,10 @@ namespace :internal do
   task :stop do
     stop_instance
   end
+
+  task :stopall do
+    stop_all_instances
+  end
 end
 
 namespace :test do

@@ -64,7 +64,7 @@ class TestEC2 < Test::Unit::TestCase
     end
   end
   
-  context "stop instances" do
+  context "stop instance" do
     setup do
       Fog.mock!
       config = {:aws_key => 'abc', :aws_secret => 'def'}
@@ -93,6 +93,76 @@ class TestEC2 < Test::Unit::TestCase
       Process.expects(:kill).never
       server = start_instance
       stop_instance
+    end
+  end
+
+  context "find_instances" do
+    setup do
+      Fog.mock!
+      config = {:aws_key => 'abc', :aws_secret => 'def'}
+      stub(:read_config => config)
+    end
+
+    should "exist as a method" do
+      find_instances
+    end
+
+    should "not find any instances" do
+      result = find_instances
+      assert_nil result
+    end
+
+    should "find an instance" do
+      mockstart
+      server = start_instance
+      result = find_instances
+      assert_equal server.id, result[0].id
+    end
+
+    should "not filter by tag"
+  end
+
+  context "session_instances" do
+    setup do
+      Fog.mock!
+      config = {:aws_key => 'abc', :aws_secret => 'def'}
+      stub(:read_config => config)
+      stop_all_instances
+    end
+
+    should "exist as a method" do
+      session_instances
+    end
+
+    should "not find any instances" do
+      result = session_instances
+      assert_nil result
+    end
+
+    should "find an instance" do
+      mockstart
+      server = start_instance
+      result = session_instances
+      assert_equal server.id, result[0].id
+    end
+  end
+
+  context "stopall instances" do
+    setup do
+      Fog.mock!
+      config = {:aws_key => 'abc', :aws_secret => 'def'}
+      stub(:read_config => config)
+    end
+
+    should "exist as a method" do
+      stop_all_instances
+    end
+
+    should "destroy all instances" do
+      instancemock = mock().expects(:destroy)
+      instances = [instancemock, instancemock]
+      stub(:find_instances => instances)
+      stop_all_instances
     end
   end
 
