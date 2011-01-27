@@ -13,10 +13,10 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "tddium"
-  gem.homepage = "http://github.com/semipermeable/tddium"
+  gem.homepage = "http://www.tddium.com/"
   gem.summary = "tddium Cloud Test Runner"
-  gem.description = "tddium gets your rspec tests into the cloud by running them on your VMs"
-  gem.email = "jaymoorthi@me.com"
+  gem.description = "tddium gets your rspec+selenium tests into the cloud by running them on your VMs"
+  gem.email = "info@tddium.com"
   gem.authors = ["Jay Moorthi"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
   # and development dependencies are only needed for development (ie running rake tasks, tests, etc)
