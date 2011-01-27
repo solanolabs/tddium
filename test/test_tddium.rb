@@ -34,6 +34,11 @@ class TestEC2 < Test::Unit::TestCase
       assert_equal server.dns_name, ENV['SELENIUM_RC_HOST']
     end
 
+    should "set TDDIUM environment variable" do
+      server = start_instance
+      assert_equal '1', ENV['TDDIUM']
+    end
+
     context "if ssh_tunnel is needed" do
       setup do
         @config[:ssh_tunnel] = 1

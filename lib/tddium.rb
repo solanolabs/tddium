@@ -82,6 +82,8 @@ def start_instance
     ENV['SELENIUM_RC_HOST'] = server.dns_name
   end
 
+  ENV['TDDIUM'] = '1'
+
 
   uri = URI.parse("http://#{ENV['SELENIUM_RC_HOST']}:4444/console")
   http = Net::HTTP.new(uri.host, uri.port)
@@ -159,7 +161,7 @@ def stop_instance
   @ec2pool.servers.select{|s| s.image_id == AMI_NAME}.each do |s|
     # in Fog 0.3.33, :filters is buggy and won't accept resourceId or resource_id
     tags = @ec2pool.tags(:filters => {:key => 'tddium_session'}).select{|t| t.resource_id == s.id}
-    if tags.first.value == @tddium_session then
+    if tags.first and tags.first.value == @tddium_session then
       STDERR.puts "stopping instance #{s.id} #{s.dns_name} from our session"
       s.destroy
     else
