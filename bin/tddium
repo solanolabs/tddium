@@ -37,7 +37,11 @@ end
 namespace :internal do
   Spec::Rake::SpecTask.new('sequential') do |t|
     conf = read_config
-    t.pattern = conf[:test_pattern] || "**/*_spec.rb"
+    if @testname
+      t.pattern = @testname
+    else
+      t.pattern = conf[:test_pattern] || "**/*_spec.rb"
+    end
     t.spec_opts = Proc.new do
       # Stub out result_path in case internal:sequential is run by itself
       @result_path ||= default_report_path
@@ -84,26 +88,33 @@ namespace :test do
       Rake::Task['internal:stop'].execute
     end
   end
+
+  task :dev do
+    checkstart_dev_instance
+    latest = result_directory
+    @result_path = File.join(latest, REPORT_FILENAME)
+    puts "Running tests. Results will be in #{@result_path}"
+    @testname = ARGV.shift
+    Rake::Task['internal:sequential'].execute
+  end
+
+  task :stopdev do
+    stop_instance('dev')
+  end
 end
 
-begin
+arg = ARGV.shift
+if arg == '-M' then
+  Fog.mock!
   arg = ARGV.shift
-  if arg == '-M' then
-    Fog.mock!
-    arg = ARGV.shift
+end
+unless Rake::Task.tasks.index{|x| x.to_s==arg}
+  STDERR.puts "Unknown command '#{arg}'.  Try one of the following:"
+  Rake::Task.tasks.each do |t|
+    STDERR.puts t
   end
-  unless Rake::Task.tasks.index{|x| x.to_s==arg}
-    STDERR.puts "Unknown command '#{arg}'.  Try one of the following:"
-    Rake::Task.tasks.each do |t|
-      STDERR.puts t
-    end
-    puts
-  else
-    Rake::Task[arg].execute
-  end
-rescue RuntimeError => e
-  STDERR.puts "Error running #{arg}"
-  STDERR.puts e.message
-  STDERR.puts e.backtrace
+  puts
+else
+  Rake::Task[arg].execute
 end
 

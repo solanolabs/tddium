@@ -55,11 +55,13 @@ class TestEC2 < Test::Unit::TestCase
       should "set up an ssh tunnel and save its pid" do
         server = start_instance
         assert_equal @testpid,  $tunnel_pid
+        $tunnel_pid = nil
       end
 
       should "set the SELENIUM_RC_HOST environment variable to localhost" do
         server = start_instance
         assert_equal 'localhost', ENV['SELENIUM_RC_HOST']
+        $tunnel_pid = nil
       end
     end
   end
@@ -77,22 +79,6 @@ class TestEC2 < Test::Unit::TestCase
       assert server.ready?
       stop_instance
       assert server.terminated?
-    end
-
-    should "kill tunnel process if it was created" do
-      @testpid = 10000
-      $tunnel_pid = @testpid
-      Process.expects(:kill).with("TERM", @testpid)
-      Process.expects(:waitpid).with(@testpid)
-      server = start_instance
-      stop_instance
-    end
-
-    should "not kill tunnel pid if it wasn't set" do
-      $tunnel_pid = nil
-      Process.expects(:kill).never
-      server = start_instance
-      stop_instance
     end
   end
 
@@ -131,18 +117,18 @@ class TestEC2 < Test::Unit::TestCase
     end
 
     should "exist as a method" do
-      session_instances
+      session_instances('a')
     end
 
     should "not find any instances" do
-      result = session_instances
+      result = session_instances('b')
       assert_nil result
     end
 
     should "find an instance" do
       mockstart
       server = start_instance
-      result = session_instances
+      result = session_instances(@tddium_session)
       assert_equal server.id, result[0].id
     end
   end
@@ -159,10 +145,30 @@ class TestEC2 < Test::Unit::TestCase
     end
 
     should "destroy all instances" do
-      instancemock = mock().expects(:destroy)
-      instances = [instancemock, instancemock]
+      instancemock1 = mock().expects(:destroy)
+      instancemock2 = mock().expects(:destroy)
+      instances = [instancemock1, instancemock2]
       stub(:find_instances => instances)
       stop_all_instances
+    end
+  end
+
+  context "checkstart dev instance" do
+    setup do
+      Fog.mock!
+      config = {:aws_key => 'abc', :aws_secret => 'def'}
+      stub(:read_config => config)
+      mockstart
+    end
+
+    should "exist as a method" do
+      checkstart_dev_instance
+    end
+
+    should "only start 1 instance" do
+      server1 = checkstart_dev_instance
+      server2 = checkstart_dev_instance
+      assert_equal server1.id, server2.id
     end
   end
 
@@ -183,6 +189,48 @@ class TestSshTunnel < Test::Unit::TestCase
   should "have ssh tunnel method" do
     stubs(:system => true)
     ssh_tunnel('abc', 'def')
+  end
+
+  context "kill_tunnel" do
+    should "kill tunnel" do
+      @testpid = 10000
+      $tunnel_pid = @testpid
+      Process.expects(:kill).with("TERM", @testpid)
+      Process.expects(:waitpid).with(@testpid)
+      kill_tunnel
+    end
+
+    should "not kill if no tunnel" do
+      $tunnel_pid = nil
+      Process.expects(:kill).never
+      kill_tunnel
+    end
+  end
+end
+
+class TestEnvSet < Test::Unit::TestCase
+  context "setup_environment" do
+    setup do
+      @smock = mock()
+      @smock.stubs(:dns_name => 'a')
+    end
+
+    should "always set TDDIUM environment" do
+      setup_environment(@smock)
+      assert_equal ENV['TDDIUM'], '1'
+    end
+
+    should "set RC_HOST to remote if no tunnel" do
+      setup_environment(@smock)
+      assert_equal ENV['SELENIUM_RC_HOST'], @smock.dns_name
+    end
+
+    should "set RC_HOST to localhost if tunnel" do
+      $tunnel_pid = 1
+      setup_environment(@smock)
+      assert_equal ENV['SELENIUM_RC_HOST'], 'localhost'
+      $tunnel_pid = nil
+    end
   end
 end
 

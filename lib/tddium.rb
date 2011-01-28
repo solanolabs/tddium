@@ -25,8 +25,8 @@ def key_file_name(config)
   File.join(config[:key_directory], "#{config[:key_name]}.pem")
 end
 
-# Create an ssh tunnel to hostname for selenium, binding remote:4444 to
-# local:4444. Authenticate with the private key in key_file.
+# Subprocess main body to create an ssh tunnel to hostname for selenium, binding
+# remote:4444 to local:4444. Authenticate with the private key in key_file.
 # 
 # The ssh tunnel will auto-accept the remote host key.
 def ssh_tunnel(key_file, hostname)
@@ -39,10 +39,53 @@ def ssh_tunnel(key_file, hostname)
   end
 end
 
-# Start and setup an EC2 instance to run a selenium-grid node.
-def start_instance
+def make_ssh_tunnel(key_file, server)
+  $tunnel_pid = nil
+  if !key_file.nil? then
+    $tunnel_pid = Process.fork do
+      ssh_tunnel(key_file, server.dns_name)
+    end
+
+    STDERR.puts "Created ssh tunnel to #{server.dns_name}:4444 at localhost:4444 [pid #{$tunnel_pid}]"
+  end
+end
+
+def setup_environment(server)
+  if !$tunnel_pid.nil?
+    ENV['SELENIUM_RC_HOST'] = 'localhost'
+  else
+    ENV['SELENIUM_RC_HOST'] = server.dns_name
+  end
+  ENV['TDDIUM'] = '1'
+end
+
+DEV_SESSION_KEY='dev'
+
+def checkstart_dev_instance
   conf = read_config
-  @tddium_session = rand(2**64-1).to_s(36)
+  dev_servers = session_instances(DEV_SESSION_KEY)
+  if dev_servers.length > 0
+    STDERR.puts "Using existing server #{dev_servers[0].dns_name}."
+    setup_environment(dev_servers[0])
+    return dev_servers[0]
+  else
+    STDERR.puts "Starting EC2 Instance"
+    return start_instance(DEV_SESSION_KEY)
+    sleep 30
+  end
+end
+
+
+# Start and setup an EC2 instance to run a selenium-grid node.  Set the
+# tddium_session tag to session_key, if it's specified.
+def start_instance(session_key=nil)
+  conf = read_config
+
+  if session_key.nil?
+    @tddium_session = rand(2**64-1).to_s(36)
+  else
+    @tddium_session = session_key
+  end
 
   key_file = key_file_name(conf)
   if !key_file.nil?
@@ -76,20 +119,11 @@ def start_instance
 
   puts "started instance #{server.id} #{server.dns_name} in group #{server.groups} with tags #{server.tags.inspect}"
 
-  $tunnel_pid = nil
-  if conf[:ssh_tunnel] && !key_file.nil? then
-    $tunnel_pid = Process.fork do
-      ssh_tunnel(key_file, server.dns_name)
-    end
-
-    STDERR.puts "Created ssh tunnel to #{server.dns_name}:4444 at localhost:4444 [pid #{$tunnel_pid}]"
-    ENV['SELENIUM_RC_HOST'] = 'localhost'
-  else
-    ENV['SELENIUM_RC_HOST'] = server.dns_name
+  if conf[:ssh_tunnel]
+    make_ssh_tunnel(key_file, server)
   end
 
-  ENV['TDDIUM'] = '1'
-
+  setup_environment(server)
 
   uri = URI.parse("http://#{ENV['SELENIUM_RC_HOST']}:4444/console")
   http = Net::HTTP.new(uri.host, uri.port)
@@ -161,7 +195,7 @@ def find_instances
   @ec2pool.servers.select{|s| s.image_id == AMI_NAME}
 end
 
-def session_instances
+def session_instances(session_key)
   servers = find_instances
   if servers.nil?
     return nil
@@ -170,7 +204,7 @@ def session_instances
     servers.each do |s|
       # in Fog 0.3.33, :filters is buggy and won't accept resourceId or resource_id
       tags = @ec2pool.tags(:filters => {:key => 'tddium_session'}).select{|t| t.resource_id == s.id}
-      if tags.first and tags.first.value == @tddium_session then
+      if tags.first and tags.first.value == session_key then
         STDERR.puts "selecting instance #{s.id} #{s.dns_name} from our session"
         session_servers << s
       else
@@ -189,16 +223,21 @@ def stop_all_instances
   end
 end
 
-# Stop the instance created by start_instance
-def stop_instance
-  conf = read_config
+def kill_tunnel
   if !$tunnel_pid.nil?
     Process.kill("TERM", $tunnel_pid)
     Process.waitpid($tunnel_pid)
     $tunnel_pid = nil
   end
+end
 
-  servers = session_instances
+# Stop the instance created by start_instance
+def stop_instance(session_key=nil)
+  conf = read_config
+
+  kill_tunnel
+
+  servers = session_instances(session_key ? session_key : @tddium_session)
   servers.each do |s|
     STDERR.puts "stopping instance #{s.id} #{s.dns_name} from our session"
     s.destroy
