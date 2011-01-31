@@ -8,7 +8,14 @@ require 'fileutils'
 require 'mocha'
 
 class FakeFS::File::Stat
-  attr_accessor :mode
+  @@themode = 0600
+  def mode
+    return @@themode
+  end
+
+  def self.mode=(newmode)
+    @@themode = newmode
+  end
 end
 
 class TestEC2 < Test::Unit::TestCase
@@ -295,3 +302,30 @@ class TestLogRotate < Test::Unit::TestCase
   end
 end
 
+class TestCollectLogs < Test::Unit::TestCase
+  context "normal mode" do
+    context "no host started" do
+      setup do
+        stubs(:system => true).never
+      end
+      should "fail gracefully" do
+        collect_syslog
+      end
+    end
+
+    context "host started" do
+      setup do
+        @host = 'host'
+        ENV['SELENIUM_RC_HOST'] = @host
+      end
+      should "scp from host" do
+        stubs(:system).once.with() { |cmd| cmd =~ /#{@host}/ && /^scp/ =~ cmd }
+        collect_syslog
+      end
+    end
+  end
+
+  context "dev mode" do
+    should "use dev mode host"
+  end
+end

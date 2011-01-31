@@ -72,6 +72,10 @@ namespace :internal do
   task :stopall do
     stop_all_instances
   end
+
+  task :collectlogs do
+    collect_logs
+  end
 end
 
 namespace :test do

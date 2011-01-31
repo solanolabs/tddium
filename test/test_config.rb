@@ -120,3 +120,44 @@ EOF
   end
 end
 
+class TestKeyFile < Test::Unit::TestCase
+  context "get_keyfile" do
+    setup do
+      @config = {:key_directory => 'dir', :key_name => 'key'}
+      stubs(:read_config => @config).once
+      FakeFS::FileSystem.clear
+    end
+
+    context "no keyfile present" do
+      should "return nil" do
+        STDERR.expects(:puts).once
+        assert_nil get_keyfile
+      end
+    end
+
+    context "keyfile wrong perms" do
+      should "return nil" do
+        FileUtils.mkdir_p @config[:key_directory]
+        File.open(key_file_name(@config), 'w') do |f|
+          f.write 'abc'
+        end
+        FakeFS::File::Stat.mode=0644
+        STDERR.expects(:puts).once
+        assert_nil get_keyfile
+      end
+    end
+
+    context "keyfile OK" do
+      should "return keyfile name" do
+        @name = key_file_name(@config)
+        FileUtils.mkdir_p @config[:key_directory]
+        File.open(@name, 'w') do |f|
+          f.write 'abc'
+        end
+        FakeFS::File::Stat.mode=0600
+        STDERR.expects(:puts).never
+        assert_equal @name, get_keyfile
+      end
+    end
+  end
+end

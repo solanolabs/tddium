@@ -116,3 +116,28 @@ def read_old_config(filename=CONFIG_FILE_PATH)
   conf
 end
   
+# Compute the name of the ssh private key file from configured parameters
+def key_file_name(config)
+  if config[:key_name].nil? || config[:key_directory].nil?
+    return nil
+  end
+
+  File.join(config[:key_directory], "#{config[:key_name]}.pem")
+end
+
+def get_keyfile
+  conf = read_config
+  key_file = key_file_name(conf)
+  if key_file.nil?
+    return nil
+  elsif !File.exists?(key_file)
+    STDERR.puts "No key file #{key_file} present"
+    return nil
+  elsif (File.stat(key_file).mode & "77".to_i(8) != 0)
+    mode =File.stat(key_file).mode 
+    STDERR.puts "Keyfile has wrong perms: #{mode.to_s}. should be x00"
+    return nil
+  else
+    return key_file
+  end
+end

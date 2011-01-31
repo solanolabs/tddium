@@ -16,15 +16,6 @@ require 'config'
 
 AMI_NAME = 'ami-b0a253d9'
 
-# Compute the name of the ssh private key file from configured parameters
-def key_file_name(config)
-  if config[:key_name].nil? || config[:key_directory].nil?
-    return nil
-  end
-
-  File.join(config[:key_directory], "#{config[:key_name]}.pem")
-end
-
 # Subprocess main body to create an ssh tunnel to hostname for selenium, binding
 # remote:4444 to local:4444. Authenticate with the private key in key_file.
 # 
@@ -243,4 +234,7 @@ def stop_instance(session_key=nil)
     s.destroy
   end
   nil
+end
+
+def collect_syslog
 end
