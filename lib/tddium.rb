@@ -250,6 +250,7 @@ def collect_syslog(target_directory='.')
   end
   instances = session_instances(@tddium_session ? @tddium_session : DEV_SESSION_KEY)
   instances.each do |inst|
-    remote_cp(inst.dns_name, '/var/log/messages', File.join(target_directory, 'worker_syslog'))
+    remote_cp(inst.dns_name, '/var/log/messages', 
+              File.join(target_directory, "syslog.#{inst.dns_name}"))
   end
 end

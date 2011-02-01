@@ -80,26 +80,31 @@ end
 
 namespace :test do
   task :sequential do
+    latest = result_directory
     begin
       puts "starting EC2 Instance"
       Rake::Task['internal:start'].execute
-      latest = result_directory
       @result_path = File.join(latest, REPORT_FILENAME)
       puts "Running tests. Results will be in #{@result_path}"
       sleep 30
       Rake::Task['internal:sequential'].execute
     ensure
+      collect_syslog(latest)
       Rake::Task['internal:stop'].execute
     end
   end
 
   task :dev do
-    checkstart_dev_instance
     latest = result_directory
-    @result_path = File.join(latest, REPORT_FILENAME)
-    puts "Running tests. Results will be in #{@result_path}"
-    @testname = ARGV.shift
-    Rake::Task['internal:sequential'].execute
+    begin
+      checkstart_dev_instance
+      @result_path = File.join(latest, REPORT_FILENAME)
+      puts "Running tests. Results will be in #{@result_path}"
+      @testname = ARGV.shift
+      Rake::Task['internal:sequential'].execute
+    ensure
+      collect_syslog(latest)
+    end
   end
 
   task :stopdev do

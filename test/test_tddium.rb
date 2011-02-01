@@ -337,9 +337,20 @@ class TestCollectLogs < Test::Unit::TestCase
       end
       should "scp from host" do
         stubs(:system).once.with() do |cmd| 
-          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/ && cmd =~ /\.\/worker_syslog/
+          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/ && cmd =~ /\.\/syslog.#{@host}/
         end
         collect_syslog
+      end
+
+      should "let target directory be specified" do
+        target = 'targetdir'
+        stubs(:system).once.with() do |cmd| 
+          cmd =~ /#{@host}/ && 
+          cmd =~ /^scp/ && 
+          cmd =~ /#{@keyfile}/ && 
+          cmd =~ /#{target}\/syslog.#{@host}$/
+        end
+        collect_syslog(target)
       end
     end
   end
