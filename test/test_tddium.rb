@@ -337,7 +337,7 @@ class TestCollectLogs < Test::Unit::TestCase
       end
       should "scp from host" do
         stubs(:system).once.with() do |cmd| 
-          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/
+          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/ && cmd =~ /\.\/worker_syslog/
         end
         collect_syslog
       end
