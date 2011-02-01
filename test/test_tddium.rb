@@ -336,19 +336,30 @@ class TestCollectLogs < Test::Unit::TestCase
         stubs(:get_keyfile => @keyfile)
       end
       should "scp from host" do
-        stubs(:system).once.with() do |cmd| 
-          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/ && cmd =~ /\.\/syslog.#{@host}/
+        stubs(:system).twice.with() do |cmd| 
+          (cmd =~ /#{@host}/ && 
+           cmd =~ /^scp/ && 
+           cmd =~ /#{@keyfile}/ && 
+           cmd =~ /\.\/selenium-rc.#{@host}/) ||
+          (cmd =~ /#{@host}/ && 
+           cmd =~ /^scp/ && 
+           cmd =~ /#{@keyfile}/ && 
+           cmd =~ /\.\/selenium-hub.#{@host}/)
         end
         collect_syslog
       end
 
       should "let target directory be specified" do
         target = 'targetdir'
-        stubs(:system).once.with() do |cmd| 
-          cmd =~ /#{@host}/ && 
-          cmd =~ /^scp/ && 
-          cmd =~ /#{@keyfile}/ && 
-          cmd =~ /#{target}\/syslog.#{@host}$/
+        stubs(:system).twice.with() do |cmd| 
+          (cmd =~ /#{@host}/ && 
+           cmd =~ /^scp/ && 
+           cmd =~ /#{@keyfile}/ && 
+           cmd =~ /#{target}\/selenium-rc.#{@host}/) ||
+          (cmd =~ /#{@host}/ && 
+           cmd =~ /^scp/ && 
+           cmd =~ /#{@keyfile}/ && 
+           cmd =~ /#{target}\/selenium-hub.#{@host}/)
         end
         collect_syslog(target)
       end

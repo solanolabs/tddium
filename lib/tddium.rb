@@ -14,7 +14,7 @@ require 'uri'
 
 require 'config'
 
-AMI_NAME = 'ami-b0a253d9'
+AMI_NAME = 'ami-da13e3b3'
 
 # Subprocess main body to create an ssh tunnel to hostname for selenium, binding
 # remote:4444 to local:4444. Authenticate with the private key in key_file.
@@ -250,7 +250,9 @@ def collect_syslog(target_directory='.')
   end
   instances = session_instances(@tddium_session ? @tddium_session : DEV_SESSION_KEY)
   instances.each do |inst|
-    remote_cp(inst.dns_name, '/var/log/messages', 
-              File.join(target_directory, "syslog.#{inst.dns_name}"))
+    %w(selenium-hub selenium-rc).each do |log|
+      remote_cp(inst.dns_name, "/var/log/#{log}.log",
+                File.join(target_directory, "#{log}.#{inst.dns_name}"))
+    end
   end
 end
