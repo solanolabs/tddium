@@ -195,7 +195,7 @@ end
 class TestSshTunnel < Test::Unit::TestCase
   should "have ssh tunnel method" do
     stubs(:system => true)
-    ssh_tunnel('abc', 'def')
+    ssh_tunnel('abc')
   end
 
   context "kill_tunnel" do
@@ -303,10 +303,23 @@ class TestLogRotate < Test::Unit::TestCase
 end
 
 class TestCollectLogs < Test::Unit::TestCase
+  context "no keyfile" do
+    setup do
+      stubs(:get_keyfile => nil)
+    end
+    should "raise an error" do
+      assert_raise RuntimeError do
+        collect_syslog
+      end
+    end
+  end
+
   context "normal mode" do
     context "no host started" do
       setup do
         stubs(:system => true).never
+        stubs(:session_instances => [])
+        stubs(:get_keyfile => 'a')
       end
       should "fail gracefully" do
         collect_syslog
@@ -315,11 +328,17 @@ class TestCollectLogs < Test::Unit::TestCase
 
     context "host started" do
       setup do
-        @host = 'host'
-        ENV['SELENIUM_RC_HOST'] = @host
+        @host = 'somehost'
+        mockinst = mock()
+        mockinst.stubs(:dns_name => @host)
+        stubs(:session_instances => [mockinst])
+        @keyfile = 'keyfile'
+        stubs(:get_keyfile => @keyfile)
       end
       should "scp from host" do
-        stubs(:system).once.with() { |cmd| cmd =~ /#{@host}/ && /^scp/ =~ cmd }
+        stubs(:system).once.with() do |cmd| 
+          cmd =~ /#{@host}/ && cmd =~ /^scp/ && cmd =~ /#{@keyfile}/
+        end
         collect_syslog
       end
     end

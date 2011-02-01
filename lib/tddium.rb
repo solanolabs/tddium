@@ -20,12 +20,12 @@ AMI_NAME = 'ami-b0a253d9'
 # remote:4444 to local:4444. Authenticate with the private key in key_file.
 # 
 # The ssh tunnel will auto-accept the remote host key.
-def ssh_tunnel(key_file, hostname)
+def ssh_tunnel(hostname)
   ssh_up = false
   tries = 0
   while !ssh_up && tries < 3
     sleep 3
-    ssh_up = system("ssh -o 'StrictHostKeyChecking no' -i #{key_file} ec2-user@#{hostname} -L 4444:#{hostname}:4444 -N")
+    ssh_up = remote_cmd(hostname, "-L 4444:#{hostname}:4444 -N")
     tries += 1
   end
 end
@@ -34,7 +34,7 @@ def make_ssh_tunnel(key_file, server)
   $tunnel_pid = nil
   if !key_file.nil? then
     $tunnel_pid = Process.fork do
-      ssh_tunnel(key_file, server.dns_name)
+      ssh_tunnel(server.dns_name)
     end
 
     STDERR.puts "Created ssh tunnel to #{server.dns_name}:4444 at localhost:4444 [pid #{$tunnel_pid}]"
@@ -66,6 +66,16 @@ def checkstart_dev_instance
   end
 end
 
+def remote_cmd(host, cmd)
+  key_file = get_keyfile
+
+  system("ssh -o 'StrictHostKeyChecking no' -i #{key_file} ec2-user@#{host} '#{cmd}'")
+end
+
+def remote_cp(host, remote_file, local_file)
+  key_file = get_keyfile
+  system("scp -o 'StrictHostKeyChecking no' -i #{key_file} ec2-user@#{host}:#{remote_file} #{local_file}")
+end
 
 # Start and setup an EC2 instance to run a selenium-grid node.  Set the
 # tddium_session tag to session_key, if it's specified.
@@ -78,10 +88,7 @@ def start_instance(session_key=nil)
     @tddium_session = session_key
   end
 
-  key_file = key_file_name(conf)
-  if !key_file.nil?
-    STDERR.puts "No key file #{key_file} with x00 permissions present" unless File.exists?(key_file) && (File.stat(key_file).mode & "77".to_i(8) == 0)
-  end
+  key_file = get_keyfile
 
   @ec2pool = Fog::AWS::Compute.new(:aws_access_key_id => conf[:aws_key],
                                    :aws_secret_access_key => conf[:aws_secret])
@@ -142,7 +149,7 @@ def start_instance(session_key=nil)
   if !key_file.nil?
     STDERR.puts "You can login via \"ssh -i #{key_file} ec2-user@#{server.dns_name}\""
     STDERR.puts "Making /var/log/messages world readable"
-    system "ssh -o 'StrictHostKeyChecking no' -i #{key_file} ec2-user@#{server.dns_name} 'sudo chmod 644 /var/log/messages'"
+    remote_cmd(server.dns_name, "sudo chmod 644 /var/log/messages")
   else
     # TODO: Remove when /var/log/messages bug is fixed
     STDERR.puts "No key_file provided.  /var/log/messages may not be readable by ec2-user."
@@ -236,5 +243,13 @@ def stop_instance(session_key=nil)
   nil
 end
 
-def collect_syslog
+def collect_syslog(target_directory='.')
+  keyfile = get_keyfile
+  if keyfile.nil?
+    raise "No ssh keyfile configured.  Can't connect to remote"
+  end
+  instances = session_instances(@tddium_session ? @tddium_session : DEV_SESSION_KEY)
+  instances.each do |inst|
+    remote_cp(inst.dns_name, '/var/log/messages', File.join(target_directory, 'worker_syslog'))
+  end
 end
