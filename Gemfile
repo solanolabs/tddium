@@ -4,6 +4,7 @@ source "http://rubygems.org"
 #   gem "activesupport", ">= 2.3.5"
 gem "highline"
 gem "rspec", ">1.2.6", "<2.0.0"
+gem "parallel"
 gem "selenium-client", ">=1.2.18"
 gem "fog", "=0.4.0"
 
@@ -16,4 +17,5 @@ group :development do
   gem "rcov", ">= 0"
   gem "mocha"
   gem "fakefs", ">=0.3.1"
+  gem "rails", "=2.3.8"
 end

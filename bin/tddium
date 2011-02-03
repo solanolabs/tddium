@@ -42,6 +42,7 @@ namespace :internal do
     else
       t.pattern = conf[:test_pattern] || "**/*_spec.rb"
     end
+    STDERR.puts "Using test pattern #{t.pattern}"
     t.spec_opts = Proc.new do
       # Stub out result_path in case internal:sequential is run by itself
       @result_path ||= default_report_path
@@ -55,7 +56,7 @@ namespace :internal do
     t.fail_on_error = true
     t.verbose = true
   end
-
+  
   task :start do
     start_instance
   end
