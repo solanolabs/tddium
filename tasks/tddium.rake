@@ -112,19 +112,3 @@ namespace :test do
     stop_instance('dev')
   end
 end
-
-arg = ARGV.shift
-if arg == '-M' then
-  Fog.mock!
-  arg = ARGV.shift
-end
-unless Rake::Task.tasks.index{|x| x.to_s==arg}
-  STDERR.puts "Unknown command '#{arg}'.  Try one of the following:"
-  Rake::Task.tasks.each do |t|
-    STDERR.puts t
-  end
-  puts
-else
-  Rake::Task[arg].execute
-end
-

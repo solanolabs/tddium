@@ -66,6 +66,7 @@ namespace :ss do
     puts args.inspect
 
     tests = find_spec_files(args.prefix)
+    puts "\t#{tests.size} test files"
 
     # RSpec formatting options
     color = ($stdout.tty? ? 'export RSPEC_COLOR=1 ;' : '') # Display color when we are in a terminal
@@ -75,14 +76,16 @@ namespace :ss do
     until tests.empty?
       Parallel.in_threads(args.threads.to_i) do |i|
         test = tests.shift
-        cmd = "export RAILS_ENV=#{args.environment}; #{color} spec -O spec/spec.opts #{test}"
-        output.merge!({"#{test}" => execute_command( cmd )})
-        #puts "Running results: #{output.inspect}"
+        if test
+          cmd = "export RAILS_ENV=#{args.environment}; #{color} spec -O spec/spec.opts #{test}"
+          output.merge!({"#{test}" => execute_command( cmd )})
+          #puts "Running results: #{output.inspect}"
+        end
       end
     end
 
     output.each do |key, value|
-      puts "#{key}"
+      puts ">>>>>>>> #{key}"
       puts value
     end
   end
