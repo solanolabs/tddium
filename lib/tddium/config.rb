@@ -21,17 +21,32 @@ Use 'tddium config:reset' to clear configuration, and then run 'tddium config:in
 EOF
 
 
-CONFIG_FILE_PATH = File.expand_path('~/.tddium')
+def get_config_paths
+  paths = []
+  if ENV['RAILS_ROOT']
+    paths << File.join(ENV['RAILS_ROOT'], '.tddium')
+  end
+  paths << File.expand_path('~/.tddium')
+  paths << '.tddium'
+  paths
+end
 
 def write_config(config)
-  File.open(CONFIG_FILE_PATH, 'w', 0600) do |f|
+  File.open(get_config_paths[0], 'w', 0600) do |f|
     YAML.dump(config, f)
   end
 end
 
+def find_config
+  get_config_paths.each {|f| return f if File.exists?(f)}
+  nil
+end
+
+
 def init_task
-  if File.exists?(CONFIG_FILE_PATH) then
-    puts ALREADY_CONFIGURED % CONFIG_FILE_PATH
+  path = find_config
+  if path
+    puts ALREADY_CONFIGURED % path
   else
     conf = {}
     conf[:aws_key] = ask('Enter AWS Access Key: ')
@@ -68,52 +83,10 @@ def read_config
     :ssh_tunnel => false,
   }
 
-  if File.exists?(CONFIG_FILE_PATH) then
-    file_conf = YAML.load(File.read(CONFIG_FILE_PATH))
-  else
-    file_conf = {}
-  end
+
+  path = find_config
+  file_conf = path ? YAML.load(File.read(path)) : {}
   defaults.merge(file_conf)
-end
-
-# If the config file isn't YAML -- doesn't start with '---', convert it into
-# YAML.
-def convert_old_config
-  oldpath = CONFIG_FILE_PATH + '.old'
-  FileUtils.rm_f oldpath
-
-  old_data = File.readlines(CONFIG_FILE_PATH)[0]
-  unless old_data.match /^---/ then
-    oldconf = read_old_config
-
-    FileUtils.mv CONFIG_FILE_PATH, oldpath
-
-    write_config oldconf
-  end
-end
-
-#
-def read_old_config(filename=CONFIG_FILE_PATH)
-  conf = {
-    :aws_key => nil,
-    :aws_secret => nil,
-    :test_pattern => '**/*_test.rb',
-    :key_name => nil,
-    :key_directory => nil,
-    :result_directory => 'results',
-    :ssh_tunnel => false,
-  }
-  if File.exists?(filename) then
-    File.open(filename) do |f|
-      f.each do |line|
-        key, val = line.split(': ')
-        if !key.nil? && !val.nil? then
-          conf[key.to_sym] = val.chomp
-        end
-      end
-    end
-  end
-  conf
 end
   
 # Compute the name of the ssh private key file from configured parameters

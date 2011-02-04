@@ -10,7 +10,7 @@ require 'mocha'
 class TestFileops < Test::Unit::TestCase
   context "init task" do
     setup do
-      @path = File.expand_path(CONFIG_FILE_PATH)
+      @path = File.expand_path(get_config_paths[0])
     end
 
     context "when ~/.tddium doesn't exist" do
@@ -58,7 +58,7 @@ class TestConfigRead < Test::Unit::TestCase
   context "read config" do
     context "file exists" do
       setup do
-        @path = File.expand_path(CONFIG_FILE_PATH)
+        @path = File.expand_path(get_config_paths[0])
       end
 
       should "read config file values into a dict" do
@@ -85,37 +85,26 @@ EOF
       end
     end
   end
-end
 
-class TestConvertConfig < Test::Unit::TestCase
-  context "when old configuration exists" do
-    setup do
-      FakeFS::FileSystem.clear
-      @path = File.expand_path(CONFIG_FILE_PATH)
-      @oldpath = @path + ".old"
-      @text = <<EOF
-aws_secret: abc
-aws_key: abx
-test_pattern: **/*_spec.rb
-
-EOF
-      File.open(@path, 'w') do |f|
-        f.write @text
-      end
-      convert_old_config
+  context "find_config" do
+    should "check rails root if it's set" do
+      oldroot = ENV['RAILS_ROOT']
+      ENV['RAILS_ROOT'] = '/home/rails'
+      File.expects(:exists?).with('/home/rails/.tddium')
+      File.expects(:exists?).with(File.expand_path('~/.tddium'))
+      File.expects(:exists?).with('.tddium')
+      assert_nil find_config
+      ENV['RAILS_ROOT'] = oldroot
     end
 
-    should "save old config" do
-      assert File.exists? @oldpath
-      assert File.exists?(@path)
-      f = FakeFS::FileSystem.find(@oldpath)
-      assert_equal f.content, @text
-    end
-
-    should "write YAML file" do
-      old_conf = read_old_config @oldpath
-      conf = read_config
-      assert_equal conf, old_conf
+    should "find rails root file if it's there" do
+      oldroot = ENV['RAILS_ROOT']
+      ENV['RAILS_ROOT'] = '/home/rails'
+      path = get_config_paths[0]
+      assert_equal '/home/rails/.tddium', path
+      File.open(path, 'w') {|f| f.write('a')}
+      assert_equal path, find_config
+      ENV['RAILS_ROOT'] = oldroot
     end
   end
 end

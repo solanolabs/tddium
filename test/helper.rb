@@ -16,3 +16,16 @@ require 'tddium'
 
 class Test::Unit::TestCase
 end
+
+require 'fakefs'
+class FakeFS::File::Stat
+  @@themode = 0600
+  def mode
+    return @@themode
+  end
+
+  def self.mode=(newmode)
+    @@themode = newmode
+  end
+end
+
