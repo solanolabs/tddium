@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tddium}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jay Moorthi"]
-  s.date = %q{2011-02-03}
+  s.date = %q{2011-02-04}
   s.default_executable = %q{tddium}
   s.description = %q{tddium gets your rspec+selenium tests into the cloud by running them on your VMs}
   s.email = %q{info@tddium.com}
@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
   ]
   s.files = [
     ".document",
-    ".tddium",
     "CHANGELOG",
     "Gemfile",
     "Gemfile.lock",
@@ -41,12 +40,12 @@ Gem::Specification.new do |s|
     "lib/tddium/rails.rb",
     "lib/tddium/reporting.rb",
     "lib/tddium/ssh.rb",
+    "lib/tddium/taskalias.rb",
     "lib/tddium/tasks.rb",
     "lib/tddium_helper.rb",
     "lib/tddium_loader.rb",
     "parallelrun",
     "rails/init.rb",
-    "tasks/tddium.rake",
     "tddium.gemspec",
     "test/helper.rb",
     "test/test_config.rb",
