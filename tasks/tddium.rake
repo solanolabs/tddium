@@ -19,19 +19,17 @@ require "selenium/rake/tasks"
 
 namespace :tddium do
   namespace :config do
+    desc "Initialize tddium configuration file"
     task :init do
       init_task
     end
 
+    desc "Reset tddium configuration file"
     task :reset do
       STDERR.puts "Old configuration:"
       STDERR.puts File.read(CONFIG_FILE_PATH)
       rm CONFIG_FILE_PATH, :force => true
     end
-  end
-
-
-  namespace :ss do
   end
 
   namespace :internal do
@@ -55,8 +53,7 @@ namespace :tddium do
       t.verbose = true
     end
 
-    desc "Launch selenium specs concurrently"
-    task :parallel, :threads, :environment do |t,args|
+    task :parallel, :threads, :environment do |t, args|
       parallel_task(args)
     end
     
@@ -81,64 +78,64 @@ namespace :tddium do
       collect_logs
     end
 
-    desc "Setup initial selenium environment"
     task :setup, :environment do |t, args|
       setup_task(args)
     end
 
-    desc "Prepare database with namespaces for concurrent rspec tests in path"
     task :prepare, :environment do |t,args|
       prepare_task(args)
     end
-
   end
 
-  namespace :test do
-    task :sequential do
-      latest = result_directory
-      begin
-        puts "starting EC2 Instance"
-        Rake::Task['internal:start'].execute
-        $result_path = File.join(latest, REPORT_FILENAME)
-        puts "Running tests. Results will be in #{$result_path}"
-        sleep 30
-        Rake::Task['internal:sequential'].execute
-      ensure
-        collect_syslog(latest)
-        Rake::Task['internal:stop'].execute
-      end
+  desc "Run spec tests on EC2 sequentially"
+  task :sequential do
+    latest = result_directory
+    begin
+      puts "starting EC2 Instance"
+      Rake::Task['internal:start'].execute
+      $result_path = File.join(latest, REPORT_FILENAME)
+      puts "Running tests. Results will be in #{$result_path}"
+      sleep 30
+      Rake::Task['internal:sequential'].execute
+    ensure
+      collect_syslog(latest)
+      Rake::Task['internal:stop'].execute
     end
+  end
 
-    task :parallel do
-      latest = result_directory
-      begin
-        puts "starting EC2 Instance"
-        Rake::Task['internal:start'].execute
-        @result_path = File.join(latest, REPORT_FILENAME)
-        puts "Running tests. Results will be in #{@result_path}"
-        sleep 30
-        Rake::Task['internal:parallel'].execute
-      ensure
-        collect_syslog(latest)
-        Rake::Task['internal:stop'].execute
-      end
+  desc "Run spec tests on EC2 concurrently"
+  task :parallel do
+    latest = result_directory
+    begin
+      puts "starting EC2 Instance"
+      Rake::Task['internal:start'].execute
+      @result_path = File.join(latest, REPORT_FILENAME)
+      puts "Running tests. Results will be in #{@result_path}"
+      sleep 30
+      Rake::Task['internal:parallel'].execute
+    ensure
+      collect_syslog(latest)
+      Rake::Task['internal:stop'].execute
     end
+  end
 
-    task :dev do
-      latest = result_directory
-      begin
-        checkstart_dev_instance
-        @result_path = File.join(latest, REPORT_FILENAME)
-        puts "Running tests. Results will be in #{@result_path}"
-        @testname = ARGV.shift
-        Rake::Task['internal:sequential'].execute
-      ensure
-        collect_syslog(latest)
-      end
+  desc "Run spec tests on EC2 sequentially, leaving the EC2 instance up"
+  task :dev, :testname do |t, args|
+    args.with_defaults(:testname => nil)
+    latest = result_directory
+    begin
+      checkstart_dev_instance
+      @result_path = File.join(latest, REPORT_FILENAME)
+      puts "Running tests. Results will be in #{@result_path}"
+      @testname = args.testname
+      Rake::Task['internal:sequential'].execute
+    ensure
+      collect_syslog(latest)
     end
+  end
 
-    task :stopdev do
-      stop_instance('dev')
-    end
+  desc "Stop EC2 dev instance"
+  task :stopdev do
+    stop_instance('dev')
   end
 end
