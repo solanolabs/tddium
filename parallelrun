@@ -1,0 +1,295 @@
+jmoorthi-mac:blueleaf moorthi$ rake tddium:parallel
+(in /Users/moorthi/work/blueleaf)
+Using test pattern /Users/moorthi/work/blueleaf/spec/**/RC_0*.rb
+starting EC2 Instance
+started instance i-4f049723 ec2-50-16-183-132.compute-1.amazonaws.com in group selenium-grid with tags {}
+Selenium Console:
+http://ec2-50-16-183-132.compute-1.amazonaws.com:4444/console
+You can login via "ssh -i /Users/moorthi/.ec2/sg-keypair.pem ec2-user@ec2-50-16-183-132.compute-1.amazonaws.com"
+Making /var/log/messages world readable
+Warning: Permanently added 'ec2-50-16-183-132.compute-1.amazonaws.com,50.16.183.132' (RSA) to the list of known hosts.
+{:result_directory=>"results/latest", :threads=>5, :environment=>"selenium"}
+Running tests. Results will be in results/latest
+        14 test files
+[["/Users/moorthi/work/blueleaf/spec/selenium/RC_001_spec.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_015_-_OnlyAllAccountsPlusAnEmptyGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_017_-_Password.rb"], ["/Users/moorthi/work/blueleaf/spec/selenium/RC_023_-_invitations_validation.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_024_-_message_validation.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_025_-_Verify_sharing_checkbox_behaviour.rb"], ["/Users/moorthi/work/blueleaf/spec/selenium/RC_026_-_SharingAnEmptyGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_027_-_SharingAGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_028_-_HideAccounts.rb"], ["/Users/moorthi/work/blueleaf/spec/selenium/RC_029_-_HideAccountsVerifyHoldings.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts_spec.rb"], ["/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations_spec.rb"]]
+Running 'env RAILS_ENV=selenium RSPEC_COLOR=1 spec --color --require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' --format=Selenium::RSpec::SeleniumTestReportFormatter:results/latest/0-selenium_report.html --format=progress /Users/moorthi/work/blueleaf/spec/selenium/RC_001_spec.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_015_-_OnlyAllAccountsPlusAnEmptyGroup.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_017_-_Password.rb '
+Running 'env RAILS_ENV=selenium RSPEC_COLOR=1 spec --color --require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' --format=Selenium::RSpec::SeleniumTestReportFormatter:results/latest/1-selenium_report.html --format=progress /Users/moorthi/work/blueleaf/spec/selenium/RC_023_-_invitations_validation.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_024_-_message_validation.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_025_-_Verify_sharing_checkbox_behaviour.rb '
+Running 'env RAILS_ENV=selenium RSPEC_COLOR=1 spec --color --require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' --format=Selenium::RSpec::SeleniumTestReportFormatter:results/latest/2-selenium_report.html --format=progress /Users/moorthi/work/blueleaf/spec/selenium/RC_026_-_SharingAnEmptyGroup.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_027_-_SharingAGroup.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_028_-_HideAccounts.rb '
+Running 'env RAILS_ENV=selenium RSPEC_COLOR=1 spec --color --require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' --format=Selenium::RSpec::SeleniumTestReportFormatter:results/latest/3-selenium_report.html --format=progress /Users/moorthi/work/blueleaf/spec/selenium/RC_029_-_HideAccountsVerifyHoldings.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts_spec.rb '
+Running 'env RAILS_ENV=selenium RSPEC_COLOR=1 spec --color --require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' --format=Selenium::RSpec::SeleniumTestReportFormatter:results/latest/4-selenium_report.html --format=progress /Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations.rb /Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations_spec.rb '
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+*Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+*
+
+Pending:
+
+031 - Planning (Validations) test 031 - planning (empty fields, using 0) (Pivotal bug 8640447/Exception when someone tries to add a college plan with a tuition of $0)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations.rb:7
+
+031 - Planning (Validations) test 031 - planning (empty fields, using 0) (Pivotal bug 8640447/Exception when someone tries to add a college plan with a tuition of $0)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations_spec.rb:7
+
+Finished in 19.367002 seconds
+
+2 examples, 0 failures, 2 pending
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.com, port=4444
+*Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F.
+
+Pending:
+
+024 - Messages validation test 024 - Messages validation (Pivotal bug 5465006/'Message' page exception: 'To' must be mandatory)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_024_-_message_validation.rb:7
+
+1)
+'023 - Invitations test_023 - Invitations' FAILED
+expected false to be true
+/Users/moorthi/work/blueleaf/spec/selenium/RC_023_-_invitations_validation.rb:16:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+'025 - Sharing - Verify checkbox behaviour test 025 - Sharing - Verify checkbox behaviour on the modal window' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:25:in `people_is_checked_modal_window'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_025_-_Verify_sharing_checkbox_behaviour.rb:21:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 132.643672 seconds
+
+4 examples, 2 failures, 1 pending
+com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F
+
+1)
+'026 - Sharing  an empty group 026 - Sharing  an empty group' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_026_-_SharingAnEmptyGroup.rb:28:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+'027 - Sharing a group 027 - Sharing a group' FAILED
+expected eql?(false) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_027_-_SharingAGroup.rb:27:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+3)
+RuntimeError in '028 - Hide accounts 028 - Hide accounts'
+Could not find account='NORTH AMERICAN' with balance='$8,083': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'NORTH AMERICAN') and @class='name']/../span[contains(text(),'$8,083') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_028_-_HideAccounts.rb:20:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 135.960699 seconds
+
+3 examples, 3 failures
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.
+
+1)
+'015 - Sharing - Only all accounts Plus an empty group 015 - Sharing - Only all accounts Plus an empty group' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_015_-_OnlyAllAccountsPlusAnEmptyGroup.rb:27:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 153.525276 seconds
+
+3 examples, 1 failure
+com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F
+
+1)
+RuntimeError in '030 - Edit accounts 030 - Edit accounts'
+Could not find account='Short-term savings' with balance='$9,090': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'Short-term savings') and @class='name']/../span[contains(text(),'$9,090') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts.rb:33:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+RuntimeError in '030 - Edit accounts 030 - Edit accounts'
+Could not find account='Short-term savings' with balance='$9,090': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'Short-term savings') and @class='name']/../span[contains(text(),'$9,090') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts_spec.rb:22:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 174.589804 seconds
+
+3 examples, 2 failures
+>>>>>>>> ["/Users/moorthi/work/blueleaf/spec/selenium/RC_029_-_HideAccountsVerifyHoldings.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts_spec.rb"]
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F
+
+1)
+RuntimeError in '030 - Edit accounts 030 - Edit accounts'
+Could not find account='Short-term savings' with balance='$9,090': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'Short-term savings') and @class='name']/../span[contains(text(),'$9,090') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts.rb:33:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+RuntimeError in '030 - Edit accounts 030 - Edit accounts'
+Could not find account='Short-term savings' with balance='$9,090': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'Short-term savings') and @class='name']/../span[contains(text(),'$9,090') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_030_-_EditAccounts_spec.rb:22:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 174.589804 seconds
+
+3 examples, 2 failures
+>>>>>>>> ["/Users/moorthi/work/blueleaf/spec/selenium/RC_026_-_SharingAnEmptyGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_027_-_SharingAGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_028_-_HideAccounts.rb"]
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F
+
+1)
+'026 - Sharing  an empty group 026 - Sharing  an empty group' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_026_-_SharingAnEmptyGroup.rb:28:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+'027 - Sharing a group 027 - Sharing a group' FAILED
+expected eql?(false) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_027_-_SharingAGroup.rb:27:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+3)
+RuntimeError in '028 - Hide accounts 028 - Hide accounts'
+Could not find account='NORTH AMERICAN' with balance='$8,083': //section[@id='selector-section']//a[@class='selector']/span[contains(text(),'NORTH AMERICAN') and @class='name']/../span[contains(text(),'$8,083') and @class='value']/..
+./spec/selenium/helpers/sidebar.rb:22:in `validate_sidebar'
+./spec/selenium/helpers/sidebar.rb:19:in `each'
+./spec/selenium/helpers/sidebar.rb:19:in `validate_sidebar'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_028_-_HideAccounts.rb:20:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 135.960699 seconds
+
+3 examples, 3 failures
+>>>>>>>> ["/Users/moorthi/work/blueleaf/spec/selenium/RC_023_-_invitations_validation.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_024_-_message_validation.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_025_-_Verify_sharing_checkbox_behaviour.rb"]
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+*Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+F.
+
+Pending:
+
+024 - Messages validation test 024 - Messages validation (Pivotal bug 5465006/'Message' page exception: 'To' must be mandatory)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_024_-_message_validation.rb:7
+
+1)
+'023 - Invitations test_023 - Invitations' FAILED
+expected false to be true
+/Users/moorthi/work/blueleaf/spec/selenium/RC_023_-_invitations_validation.rb:16:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+2)
+'025 - Sharing - Verify checkbox behaviour test 025 - Sharing - Verify checkbox behaviour on the modal window' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:25:in `people_is_checked_modal_window'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_025_-_Verify_sharing_checkbox_behaviour.rb:21:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 132.643672 seconds
+
+4 examples, 2 failures, 1 pending
+>>>>>>>> ["/Users/moorthi/work/blueleaf/spec/selenium/RC_001_spec.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_015_-_OnlyAllAccountsPlusAnEmptyGroup.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_017_-_Password.rb"]
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+FSelenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+.
+
+1)
+'015 - Sharing - Only all accounts Plus an empty group 015 - Sharing - Only all accounts Plus an empty group' FAILED
+expected eql?(true) to return true, got false
+./spec/selenium/helpers/friendships.rb:20:in `people_is_checked'
+/Users/moorthi/work/blueleaf/spec/selenium/RC_015_-_OnlyAllAccountsPlusAnEmptyGroup.rb:27:
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `instance_eval'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:39:in `execute'
+/Users/moorthi/.rvm/gems/ruby-1.8.7-p302@tddium/gems/selenium-client-1.2.18/lib/selenium/rspec/rspec_extensions.rb:36:in `execute'
+
+Finished in 153.525276 seconds
+
+3 examples, 1 failure
+>>>>>>>> ["/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations.rb", "/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations_spec.rb"]
+Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+*Selenium is configured to use Jay's secure env against https://build.blueleaf.com/ with timeout 300, Browser:*firefox, Host: ec2-50-16-183-132.compute-1.amazonaws.com, port=4444
+*
+
+Pending:
+
+031 - Planning (Validations) test 031 - planning (empty fields, using 0) (Pivotal bug 8640447/Exception when someone tries to add a college plan with a tuition of $0)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations.rb:7
+
+031 - Planning (Validations) test 031 - planning (empty fields, using 0) (Pivotal bug 8640447/Exception when someone tries to add a college plan with a tuition of $0)
+/Users/moorthi/work/blueleaf/spec/selenium/RC_031_-_PlanningValidations_spec.rb:7
+
+Finished in 19.367002 seconds
+
+2 examples, 0 failures, 2 pending
+skipping instance i-97f262fb ec2-174-129-121-204.compute-1.amazonaws.com created in another session
+skipping instance i-bf0192d3  created in another session
+skipping instance i-f107949d  created in another session
+selecting instance i-4f049723 ec2-50-16-183-132.compute-1.amazonaws.com from our session
+selenium-hub.log                                                                                                                                                                                                                         100%  361KB 180.7KB/s   00:02    
+selenium-rc.log                                                                                                                                                                                                                          100%  703KB 175.8KB/s   00:04    
+skipping instance i-97f262fb ec2-174-129-121-204.compute-1.amazonaws.com created in another session
+skipping instance i-bf0192d3  created in another session
+skipping instance i-f107949d  created in another session
+selecting instance i-4f049723 ec2-50-16-183-132.compute-1.amazonaws.com from our session
+stopping instance i-4f049723 ec2-50-16-183-132.compute-1.amazonaws.com from our session
+jmoorthi-mac:blueleaf moorthi$ rake tddium:dev
+

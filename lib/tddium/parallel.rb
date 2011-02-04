@@ -14,11 +14,11 @@ def make_spec_cmd(tests, environment, result_path)
   env_str = environ.map{|k,v| "#{k}=#{v}" if v}.join(' ')
   cmd = "env #{env_str} "
   cmd << "spec "
+  cmd << "#{tests.map{|x| "\"#{x}\""}.join(' ')} "
   cmd << '--color '
   cmd << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter' "
   cmd << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{result_path} "
   cmd << "--format=progress "                
-  cmd << "#{tests.join(' ')} "
   cmd
 end
 
