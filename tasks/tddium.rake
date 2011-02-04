@@ -75,7 +75,7 @@ namespace :tddium do
     end
 
     task :collectlogs do
-      collect_logs
+      collect_syslog
     end
 
     task :setup, :environment do |t, args|
@@ -92,27 +92,29 @@ namespace :tddium do
     latest = result_directory
     begin
       puts "starting EC2 Instance"
-      Rake::Task['internal:start'].execute
+      Rake::Task['tddium:internal:start'].execute
       $result_path = File.join(latest, REPORT_FILENAME)
       puts "Running tests. Results will be in #{$result_path}"
       sleep 30
-      Rake::Task['internal:sequential'].execute
+      Rake::Task['tddium:internal:sequential'].execute
     ensure
       collect_syslog(latest)
-      Rake::Task['internal:stop'].execute
+      Rake::Task['tddium:internal:stop'].execute
     end
   end
 
   desc "Run spec tests on EC2 concurrently"
   task :parallel do
+    latest = result_directory
     begin
       puts "starting EC2 Instance"
-      Rake::Task['internal:start'].execute
+      Rake::Task['tddium:internal:start'].execute
       sleep 30
-      Rake::Task['internal:parallel'].execute
+      args = Rake::TaskArguments.new([:result_directory], [latest])
+      Rake::Task['tddium:internal:parallel'].execute(args)
     ensure
       collect_syslog(latest)
-      Rake::Task['internal:stop'].execute
+      Rake::Task['tddium:internal:stop'].execute
     end
   end
 
@@ -125,7 +127,7 @@ namespace :tddium do
       @result_path = File.join(latest, REPORT_FILENAME)
       puts "Running tests. Results will be in #{@result_path}"
       @testname = args.testname
-      Rake::Task['internal:sequential'].execute
+      Rake::Task['tddium:internal:sequential'].execute
     ensure
       collect_syslog(latest)
     end

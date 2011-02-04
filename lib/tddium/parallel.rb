@@ -42,12 +42,12 @@ def test_batches(num_batches)
 end
 
 def parallel_task(args)
-  args.with_defaults(:threads => 5, :environment => "selenium")
+  args.with_defaults(:threads => 5, :environment => "selenium", :result_directory => '.')
   threads = args.threads.to_i
 
   STDERR.puts args.inspect
 
-  latest = result_directory
+  latest = args.result_directory
   puts "Running tests. Results will be in #{latest}"
 
   output = {}
