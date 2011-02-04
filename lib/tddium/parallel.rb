@@ -55,7 +55,7 @@ def parallel_task(args)
   batches = test_batches(threads)
 
   Parallel.in_threads(threads) do |i|
-    if batches[i]
+    if batches[i].size > 0
       result_path = File.join(latest, "#{i}-#{REPORT_FILENAME}")
       cmd = make_spec_cmd(batches[i], args.environment, result_path)
       output.merge!({"#{batches[i].inspect}" => execute_command( cmd )})

@@ -115,8 +115,9 @@ def checkstart_dev_instance
     return dev_servers[0]
   else
     STDERR.puts "Starting EC2 Instance"
-    return start_instance(DEV_SESSION_KEY)
+    server = start_instance(DEV_SESSION_KEY)
     sleep 30
+    return server
   end
 end
 
