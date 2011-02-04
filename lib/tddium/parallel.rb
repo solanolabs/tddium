@@ -49,6 +49,7 @@ def parallel_task(args)
 
   latest = args.result_directory
   puts "Running tests. Results will be in #{latest}"
+  puts "Started at #{Time.now.inspect}"
 
   output = {}
 
@@ -63,10 +64,12 @@ def parallel_task(args)
     end
   end
 
+  puts "Results:"
   output.each do |key, value|
     puts ">>>>>>>> #{key}"
     puts value
   end
+  puts "Finished at #{Time.now.inspect}"
 end
 
 def self.execute_command(cmd)

@@ -107,7 +107,7 @@ namespace :tddium do
   task :parallel do
     latest = result_directory
     begin
-      puts "starting EC2 Instance"
+      puts "starting EC2 Instance at #{Time.now.inspect}"
       Rake::Task['tddium:internal:start'].execute
       sleep 30
       args = Rake::TaskArguments.new([:result_directory], [latest])
