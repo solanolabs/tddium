@@ -105,12 +105,9 @@ namespace :tddium do
 
   desc "Run spec tests on EC2 concurrently"
   task :parallel do
-    latest = result_directory
     begin
       puts "starting EC2 Instance"
       Rake::Task['internal:start'].execute
-      @result_path = File.join(latest, REPORT_FILENAME)
-      puts "Running tests. Results will be in #{@result_path}"
       sleep 30
       Rake::Task['internal:parallel'].execute
     ensure
