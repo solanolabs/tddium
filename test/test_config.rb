@@ -161,3 +161,17 @@ class TestKeyFile < Test::Unit::TestCase
     end
   end
 end
+
+class TestFiles < Test::Unit::TestCase
+  context "find_test_files" do
+    setup do
+      @config = {:test_pattern => 'a'}
+      stubs(:read_config => @config)
+    end
+    
+    should "be callable" do
+      assert find_test_files
+    end
+  end
+end
+

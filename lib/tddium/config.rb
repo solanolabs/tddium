@@ -141,3 +141,10 @@ def get_keyfile
     return key_file
   end
 end
+
+def find_test_files(pattern=nil)
+  conf = read_config
+  pattern ||= conf[:test_pattern]
+  Dir[pattern].sort
+end
+
