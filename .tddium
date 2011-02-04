@@ -1,8 +1,0 @@
---- 
-:aws_secret: hq/DpwWW7h9BmwSq0j9DLmYsy6HoGnXcglg0tPKM
-:result_directory: results
-:key_directory: /Users/moorthi/.ec2
-:key_name: sg-keypair
-:test_pattern: "/Users/moorthi/work/blueleaf/spec/**/RC*.rb"
-:aws_key: AKIAIJLHJCMEG7YZAPQQ
-

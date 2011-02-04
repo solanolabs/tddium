@@ -42,6 +42,17 @@ def find_config
   nil
 end
 
+def reset_task
+  config_path = find_config
+  config = read_config
+  if config_path
+    puts "Deleting old configuration in #{config_path}:"
+    puts config.inspect
+    rm config_path, :force => true
+  end
+end
+    
+
 
 def init_task
   path = find_config
@@ -67,13 +78,13 @@ def init_task
     conf[:ssh_tunnel] = ask("Create ssh tunnel to hub at localhost:4444:") { |q|
       q.default=false
     }
+    conf[:require_files] = ask("(optional) Filenames (comma-separated) for spec to require:") 
 
     write_config conf
   end
 end
 
-def read_config
-  defaults = {
+CONFIG_DEFAULTS = {
     :aws_key => nil,
     :aws_secret => nil,
     :test_pattern => '**/*_test.rb',
@@ -81,12 +92,13 @@ def read_config
     :key_directory => nil,
     :result_directory => 'results',
     :ssh_tunnel => false,
+    :require_files => nil,
   }
 
-
+def read_config
   path = find_config
   file_conf = path ? YAML.load(File.read(path)) : {}
-  defaults.merge(file_conf)
+  CONFIG_DEFAULTS.merge(file_conf)
 end
   
 # Compute the name of the ssh private key file from configured parameters
@@ -121,3 +133,13 @@ def find_test_files(pattern=nil)
   Dir[pattern].sort
 end
 
+def spec_opts(result_path)
+  conf = read_config
+  s = []
+  s << '--color'
+  s << "--require '#{conf[:require_files]}'" if conf[:require_files]
+  s << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
+  s << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{result_path}"
+  s << "--format=progress"                
+  s
+end

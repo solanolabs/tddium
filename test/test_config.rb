@@ -164,3 +164,20 @@ class TestFiles < Test::Unit::TestCase
   end
 end
 
+class TestSpecOpts < Test::Unit::TestCase
+  context "spec_opts" do
+    should "return a list" do
+      stubs(:read_config => CONFIG_DEFAULTS)
+      opts = spec_opts('a')
+      assert opts.is_a?(Array)
+      assert_equal 1, opts.select{|x| /require/.match(x)}.size
+    end
+
+    should "include require_files" do
+      stubs(:read_config => {:require_files => 'a.rb'})
+      opts = spec_opts('a')
+      assert opts.is_a?(Array)
+      assert_equal 2, opts.select{|x| /require/.match(x)}.size
+    end
+  end
+end
