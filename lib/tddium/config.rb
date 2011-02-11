@@ -141,5 +141,6 @@ def spec_opts(result_path)
   s << "--require 'rubygems,selenium/rspec/reporting/selenium_test_report_formatter'"
   s << "--format=Selenium::RSpec::SeleniumTestReportFormatter:#{result_path}"
   s << "--format=progress"                
+  s << ENV['TDDIUM_SPEC_OPTS'] if ENV['TDDIUM_SPEC_OPTS']
   s
 end

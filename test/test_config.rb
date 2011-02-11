@@ -179,5 +179,16 @@ class TestSpecOpts < Test::Unit::TestCase
       assert opts.is_a?(Array)
       assert_equal 2, opts.select{|x| /require/.match(x)}.size
     end
+
+    should "read TDDIUM_SPEC_OPTS environment" do
+      stubs(:read_config => CONFIG_DEFAULTS)
+      specopts = 'abcdefgh'
+      oldenv = ENV['TDDIUM_SPEC_OPTS']
+      ENV['TDDIUM_SPEC_OPTS'] = specopts
+      opts = spec_opts('a')
+      ENV['TDDIUM_SPEC_OPTS'] = oldenv
+      assert opts.is_a?(Array)
+      assert_equal 1, opts.select{|x| /#{specopts}/.match(x)}.size
+    end
   end
 end
