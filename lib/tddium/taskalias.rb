@@ -1,3 +1,6 @@
+=begin
+Copyright (c) 2010 tddium.com All Rights Reserved
+=end
 require 'tddium/tasks'
 
 taskmap = {
