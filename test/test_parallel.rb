@@ -40,7 +40,7 @@ class TestParallel < Test::Unit::TestCase
     should "run with defaults" do
       args = mock()
       args.expects(:with_defaults)
-      args.stubs(:threads => 5, :inspect => 'args', :environment => 'selenium')
+      args.stubs(:threads => 5, :inspect => 'args', :environment => 'selenium', :result_directory => '.')
       parallel_task(args)
     end
   end

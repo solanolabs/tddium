@@ -23,8 +23,6 @@ def setup_environment(server)
   ENV['TDDIUM'] = '1'
 end
 
-
-
 # Start and setup an EC2 instance to run a selenium-grid node.  Set the
 # tddium_session tag to session_key, if it's specified.
 def start_instance(session_key=nil)

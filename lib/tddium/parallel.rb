@@ -55,8 +55,9 @@ def parallel_task(args)
   output = {}
 
   batches = test_batches(threads)
+  num_threads = batches.size
 
-  Parallel.in_threads(threads) do |i|
+  Parallel.in_threads(num_threads) do |i|
     if batches[i].size > 0
       result_path = File.join(latest, "#{i}-#{REPORT_FILENAME}")
       cmd = make_spec_cmd(batches[i], args.environment, result_path)
