@@ -10,7 +10,7 @@ gem "fog", "=0.4.0"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
-group :development do
+group :development, :test do
   gem "shoulda", ">= 0"
   gem "bundler", "~> 1.0.0"
   gem "jeweler", "~> 1.5.1"
@@ -18,4 +18,7 @@ group :development do
   gem "mocha"
   gem "fakefs", ">=0.3.1"
   gem "rails", "=2.3.8"
+  gem "cucumber", ">=0.8.5"
+  gem "gherkin", "2.1.5"
+  gem "aruba"
 end

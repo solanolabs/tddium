@@ -11,8 +11,16 @@ GEM
     activeresource (2.3.8)
       activesupport (= 2.3.8)
     activesupport (2.3.8)
-    builder (3.0.0)
-    excon (0.3.8)
+    aruba (0.2.2)
+    builder (2.1.2)
+    cucumber (0.8.5)
+      builder (~> 2.1.2)
+      diff-lcs (~> 1.1.2)
+      gherkin (~> 2.1.4)
+      json_pure (~> 1.4.3)
+      term-ansicolor (~> 1.0.4)
+    diff-lcs (1.1.2)
+    excon (0.5.6)
     fakefs (0.3.1)
     fog (0.4.0)
       builder
@@ -24,19 +32,21 @@ GEM
       nokogiri (>= 1.4.4)
       ruby-hmac
     formatador (0.0.16)
+    gherkin (2.1.5)
+      trollop (~> 1.16.2)
     git (1.2.5)
     highline (1.6.1)
     jeweler (1.5.2)
       bundler (~> 1.0.0)
       git (>= 1.2.5)
       rake
-    json (1.4.6)
+    json (1.5.1)
+    json_pure (1.4.6)
     mime-types (1.16)
-    mocha (0.9.10)
-      rake
-    net-ssh (2.0.23)
+    mocha (0.9.12)
+    net-ssh (2.1.0)
     nokogiri (1.4.4)
-    parallel (0.5.1)
+    parallel (0.5.2)
     rack (1.1.0)
     rails (2.3.8)
       actionmailer (= 2.3.8)
@@ -51,14 +61,19 @@ GEM
     ruby-hmac (0.4.0)
     selenium-client (1.2.18)
     shoulda (2.11.3)
+    term-ansicolor (1.0.5)
+    trollop (1.16.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  aruba
   bundler (~> 1.0.0)
+  cucumber (>= 0.8.5)
   fakefs (>= 0.3.1)
   fog (= 0.4.0)
+  gherkin (= 2.1.5)
   highline
   jeweler (~> 1.5.1)
   mocha
