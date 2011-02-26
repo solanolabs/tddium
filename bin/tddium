@@ -6,11 +6,24 @@ Copyright (c) 2010 tddium.com All Rights Reserved
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 
-require 'rubygems'
-require 'rake'
+STDERR.puts <<EOF
+Usage:
 
-Rake.application.init('tddium')
+tddium suite    # Register the suite for this rails app, or manage its settings
+tddium spec     # Run the test suite
+tddium status   # Display information about this suite, and any open dev
+                #   sessions
 
-require 'tddium/taskalias'
+tddium login    # Log your unix user in to a tddium account
+tddium logout   # Log out
 
-Rake.application.top_level
+tddium account  # View/Manage account information
+
+tddium dev      # Enter "dev" mode, for single-test quick-turnaround debugging.
+tddium stopdev  # Leave "dev" mode.
+
+tddium clean    # Clean up test results, especially large objects like videos
+
+tddium help     # Print this usage message
+EOF
+

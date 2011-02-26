@@ -1,4 +1,4 @@
-When /^I run tddium "([^"]*)"$/ do |cmd|
-  run_simple(unescape("bin/tddium #{cmd}"), false)
+When /^I run "tddium (.*)"$/ do |cmd|
+  run(unescape("tddium #{cmd}"))
 end
 
