@@ -7,4 +7,5 @@ group :test do
   gem "fakefs"
   gem "fakeweb"
   gem "rspec"
+  gem "rack-test"
 end

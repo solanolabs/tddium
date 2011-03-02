@@ -14,10 +14,11 @@ doc
 # jeweler generated
 pkg
 
-spec
 spec_test_data
 tmp
 results
+nbproject
+.rvmrc
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
