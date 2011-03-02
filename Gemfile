@@ -8,4 +8,7 @@ group :test do
   gem "fakeweb"
   gem "rspec"
   gem "rack-test"
+  gem "rake"
+  gem "jeweler"
+  gem "rcov"
 end
