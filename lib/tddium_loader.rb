@@ -19,13 +19,12 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-puts "Parsing SpecStorm loader"
 module SpecStorm
   class SpecStormError < StandardError; end #:nodoc
   class NoDBPrefixSpecified < SpecStormError; end #:nodoc
 
   if SpecStorm.const_defined?("USE_NAMESPACE_HACK") and SpecStorm::USE_NAMESPACE_HACK == true
-    puts 'Loading SpecStorm patches...'
+    puts 'Loading Tddium patches...'
 
     # Used for creating/migrating the databases (if we don't have any urls to get db_prefix token from)
     ActiveRecord::Base.table_name_prefix = ENV['DB_PREFIX'] unless ENV['DB_PREFIX'].nil?
@@ -34,6 +33,6 @@ module SpecStorm
     require 'spec_storm/action_controller_ext'
     require 'spec_storm/action_view_ext'
 
-    puts 'Finished loading SpecStorm patches'
+    puts 'Finished loading Tddium patches'
   end
 end

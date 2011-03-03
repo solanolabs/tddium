@@ -82,6 +82,8 @@ namespace :tddium do
   task :sequential do
     latest = result_directory
     begin
+      puts "Stopping stale instances"
+      Rake::Task['tddium:internal:stopall'].execute
       puts "starting EC2 Instance"
       Rake::Task['tddium:internal:start'].execute
       $result_path = File.join(latest, REPORT_FILENAME)
@@ -98,6 +100,8 @@ namespace :tddium do
   task :parallel do
     latest = result_directory
     begin
+      puts "Stopping stale instances"
+      Rake::Task['tddium:internal:stopall'].execute
       puts "starting EC2 Instance at #{Time.now.inspect}"
       Rake::Task['tddium:internal:start'].execute
       sleep 30
