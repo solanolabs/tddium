@@ -1,0 +1,13 @@
+HTTP/1.1 269 Duplicated
+Date: Thu, 03 Mar 2011 10:00:32 GMT
+Server: Apache
+X-Powered-By: Phusion Passenger (mod_rails/mod_rack) 3.0.3
+Cache-Control: no-cache
+X-UA-Compatible: IE=Edge
+X-Runtime: 0.045332
+Set-Cookie: _tddium_site_session=BAh7BkkiD3Nlc3Npb25faWQGOgZFRiIlOGZiMTgxZjM0ZGIwMmJlMzI2ZWQwMmFkYzUwZGEzZDU%3D--287be8a7de3c8535fc4d958d2fc036110e64e5b6; path=/; HttpOnly
+Status: 269
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+
+{"status":1,"explanation":"{:suite_name=>[\"has already been taken\"]}"}
