@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{tddium}
-  s.version = "0.4.2"
+  s.version = "0.4.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Jay Moorthi"]
-  s.date = %q{2011-02-11}
+  s.date = %q{2011-03-03}
   s.default_executable = %q{tddium}
   s.description = %q{tddium gets your rspec+selenium tests into the cloud by running them on your VMs}
   s.email = %q{info@tddium.com}
@@ -54,7 +54,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = %q{http://www.tddium.com/}
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.rubygems_version = %q{1.5.2}
   s.summary = %q{tddium Cloud Test Runner}
   s.test_files = [
     "test/helper.rb",
@@ -64,7 +64,6 @@ Gem::Specification.new do |s|
   ]
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
