@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+# TODO: Test what happens if an error occurs in the POST and GET requests
 describe Tddium do
   include FakeFS::SpecHelpers
 
@@ -49,15 +50,27 @@ describe Tddium do
     end
   end
 
-  def stub_http_response(method, path, options = {})
-    fake_web_options = {:body => options[:body], :status => options[:status]}
-    if options[:response]
-      FakeFS.deactivate!
-      response = File.open(options[:response]) { |f| f.read }
-      FakeFS.activate!
-      fake_web_options.merge!(:response => response)
+  def register_uri_options(options = {})
+    if options.is_a?(Array)
+      options_array = []
+      options.each do |sub_options|
+        options_array << register_uri_options(sub_options)
+      end
+      options_array
+    else
+      options_for_fake_web = {:body => options[:body], :status => options[:status]}
+      if options[:response]
+        FakeFS.deactivate!
+        response = File.open(options[:response]) { |f| f.read }
+        FakeFS.activate!
+        options_for_fake_web.merge!(:response => response)
+      end
+      options_for_fake_web
     end
-    FakeWeb.register_uri(method, URI.join(Tddium::API_HOST, "#{Tddium::API_VERSION}/#{path}").to_s, fake_web_options)
+  end
+
+  def stub_http_response(method, path, options = {})    
+    FakeWeb.register_uri(method, URI.join(Tddium::API_HOST, "#{Tddium::API_VERSION}/#{path}").to_s, register_uri_options(options))
   end
 
   def stub_defaults
@@ -300,10 +313,10 @@ describe Tddium do
       end
 
       context "'POST #{Tddium::SESSIONS_PATH}' is successful" do
+        let(:session_id) {7} # from the fixture 'post_sessions_201.json'
         before do
           stub_http_response(:post, "#{Tddium::SESSIONS_PATH}", :response => fixture_path("post_sessions_201.json"))
-          # session_id '7' comes from the fixture
-          stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}")
+          stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}")
         end
 
         it "should send a 'POST' request to '#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}'" do
@@ -324,8 +337,8 @@ describe Tddium do
 
         context "'POST #{Tddium::REGISTER_TEST_EXECUTIONS_PATH}' is successful" do
           before do
-            stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_register_test_executions_200.json"))
-            stub_http_response(:post, "sessions/7/#{Tddium::START_TEST_EXECUTIONS_PATH}")
+            stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_register_test_executions_200.json"))
+            stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::START_TEST_EXECUTIONS_PATH}")
           end
 
           it "should send a 'POST' request to '#{Tddium::START_TEST_EXECUTIONS_PATH}'" do
@@ -333,23 +346,62 @@ describe Tddium do
             FakeWeb.last_request.method.should == "POST"
             FakeWeb.last_request.path.should =~ /#{Tddium::START_TEST_EXECUTIONS_PATH}$/
           end
-        end
 
-        context "'POST #{Tddium::START_TEST_EXECUTIONS_PATH}' is successful" do
-          before do
-            stub_http_response(:post, "sessions/7/#{Tddium::START_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_start_test_executions_200.json"))
-            stub_http_response(:get, "sessions/7/#{Tddium::TEST_EXECUTIONS_PATH}")
-          end
+          context "'POST #{Tddium::START_TEST_EXECUTIONS_PATH}' is successful" do
+            before do
+              stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::START_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_start_test_executions_200.json"))
+              stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}")
+            end
 
-          it "should send a 'GET' request to '#{Tddium::TEST_EXECUTIONS_PATH}'" do
-            run_spec(tddium)
-            FakeWeb.last_request.method.should == "GET"
-            FakeWeb.last_request.path.should =~ /#{Tddium::TEST_EXECUTIONS_PATH}$/
+            it "should send a 'GET' request to '#{Tddium::TEST_EXECUTIONS_PATH}'" do
+              run_spec(tddium)
+              FakeWeb.last_request.method.should == "GET"
+              FakeWeb.last_request.path.should =~ /#{Tddium::TEST_EXECUTIONS_PATH}$/
+            end
+
+            context "'GET #{Tddium::TEST_EXECUTIONS_PATH}' is successful" do
+              before do
+                stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}", [{:response => fixture_path("get_test_executions_200.json")}, {:response => fixture_path("get_test_executions_200_all_finished.json")}])
+              end
+
+              it "should display a green '.'" do
+                tddium.should_receive(:say).with(".", :green)
+                run_spec(tddium)
+              end
+
+              it "should display a red 'F'" do
+                tddium.should_receive(:say).with("F", :red)
+                run_spec(tddium)
+              end
+
+              it "should display a yellow '*'" do
+                tddium.should_receive(:say).with("*", :yellow)
+                run_spec(tddium)
+              end
+
+              it "should display 'E' with no color" do
+                tddium.should_receive(:say).with("E", nil)
+                run_spec(tddium)
+              end
+
+              it "should display the time taken" do
+                tddium.should_receive(:say).with(/^Finished in [\d\.]+ seconds$/)
+                run_spec(tddium)
+              end
+
+              it "should display a summary of all the tests" do
+                tddium.should_receive(:say).with("4 examples, 1 failures, 1 errors, 1 pending")
+                run_spec(tddium)
+              end
+
+              it "should display a link to the report" do
+                tddium.should_receive(:say).with("You can check out the test report details at http://api.tddium.com/1/sessions/7/test_executions/report")
+                run_spec(tddium)
+              end
+            end
           end
-        end
-        
+        end        
       end
-
     end
   end
 end

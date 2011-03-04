@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Date: Fri, 04 Mar 2011 05:58:52 GMT
+Server: Apache
+X-Powered-By: Phusion Passenger (mod_rails/mod_rack) 3.0.3
+ETag: "6f1f75f9653abfa85b807ea9a90c91dc"
+Cache-Control: max-age=0, private, must-revalidate
+X-UA-Compatible: IE=Edge
+X-Runtime: 0.051654
+Status: 200
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+
+{"suite":{"created_at":"2011-03-04T04:21:00Z","id":24,"ruby_version":"1.8.7","ssh_key":"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA3YO0EJKUJsdrrqptMqXWhDLetOIqwnhSw3NDEXDEs699JjIx7y7dEYVISWnmW63fdlD5piKfByhbn/dL1T9oPfAV+o56tFZMBHI4UdZu9cEWqnbEZDnCzoSj7K3M5m7pQmG9K9MHjlAnPNL1oD8hykBQOIkR0hzG6TvIte6arkhvDGEcm3SoS2yykIRY8s6t/3u97FmlIoUjJnsMmx6GP9aO7YeZi70gySeVJQW4xvhb+qVIyCvIknXtZcmSenmy0fStzz8UX6HLczX0/U9MvAMpPi97gT6CsiGAkVmUTdiAXDktqQ1OO+GiadqaNFnQlt9Kb/wVAV56tAqqvSNjlQ== dwilkie@gmail.com\n","suite_name":"tddium/demo","test_pattern":"**/*_spec.rb","updated_at":"2011-03-04T04:21:00Z","user_id":null},"status":0}

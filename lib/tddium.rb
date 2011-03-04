@@ -83,7 +83,9 @@ class Tddium < Thor
 
   desc "spec", "Run the test suite"
   def spec
-     # Require git initialization
+    start_time = Time.now
+
+    # Require git initialization
     unless File.exists?(".tddium")
       say "tddium suite must be initialized. Try 'tddium suite'."
       return
@@ -101,29 +103,49 @@ class Tddium < Thor
     # Call the API to get the suite and its tests
     call_api(:get, "#{SUITES_PATH}/#{suite_id}") do |api_response|
       test_pattern = api_response["suite"]["test_pattern"]
-      test_names = Dir.glob(test_pattern).collect {|file_path| {:test_name => File.basename(file_path)}}
+      test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
       # Create a session
       call_api(:post, SESSIONS_PATH) do |api_response|
         session_id = api_response["session"]["id"]
 
         # Call the API to register the tests
-        call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{REGISTER_TEST_EXECUTIONS_PATH}", {:suite_id => suite_id, :tests => test_names}) do |api_response|
-          p api_response
-
+        call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{REGISTER_TEST_EXECUTIONS_PATH}", {:suite_id => suite_id, :tests => test_files}) do |api_response|
           # Start the tests
           call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{START_TEST_EXECUTIONS_PATH}") do |api_response|
-            p api_response
+            say "Ctrl-C to terminate the process"
+            tests_not_finished_yet = true
+            finished_tests = {}
+            test_statuses = Hash.new(0)
+            api_call_successful = true
+            while tests_not_finished_yet && api_call_successful do
+              # Poll the API to check the status (with timeout)
+              api_call_successful = call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{TEST_EXECUTIONS_PATH}") do |api_response|
+                # Print out the progress of running tests
+                api_response["tests"].each do |test_name, result_params|
+                  test_status = result_params["status"]
+                  if result_params["end_time"] && !finished_tests[test_name]
+                    message = case test_status
+                            when "passed" then [".", :green]
+                            when "failed" then ["F", :red]
+                            when "error" then ["E"]
+                            when "pending" then ["*", :yellow]
+                          end
+                    finished_tests[test_name] = test_status
+                    test_statuses[test_status] += 1
+                    say message[0], message[1]
+                  end
+                end
 
-            # Poll the API to check the status (with timeout)
-            call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{TEST_EXECUTIONS_PATH}") do |api_response|
-              p api_response
-
-              # Get the report
-              call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{REPORT_TEST_EXECUTIONS_PATH}") do |api_response|
-                p api_response
+                # If all tests finished, exit the loop
+                tests_not_finished_yet = false if finished_tests.size == api_response["tests"].size
               end
             end
+
+            # Print out the result
+            say "Finished in #{Time.now - start_time} seconds"
+            say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+            say "You can check out the test report details at #{api_response["report"]}"
           end
         end
       end
@@ -146,7 +168,8 @@ class Tddium < Thor
       message = "An error occured: #{http.response.header.msg}"
       message << " #{response["explanation"]}" if response["status"].to_i > 0
     end
-    say message
+    say message if message
+    message.nil?
   end
 
   def git_push
