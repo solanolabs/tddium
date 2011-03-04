@@ -43,7 +43,7 @@ describe Tddium do
   end
 
   def create_file(path = "~/.ssh/id_rsa.pub", content = "ssh-rsa blah")
-    FileUtils.mkdir_p(File.dirname(File.expand_path(path)))
+    FileUtils.mkdir_p(File.dirname(path))
     File.open(path, 'w') do |f|
       f.write(content)
     end
@@ -274,7 +274,7 @@ describe Tddium do
     end
 
     it "should push the latest code to tddium" do
-      tddium.should_receive(:`).with("git push tddium #{DEFAULT_BRANCH_NAME}")
+      tddium.should_receive(:`).with("git push #{Tddium::GIT_REMOTE_NAME} #{DEFAULT_BRANCH_NAME}")
       run_spec(tddium)
     end
 
@@ -303,7 +303,7 @@ describe Tddium do
         before do
           stub_http_response(:post, "#{Tddium::SESSIONS_PATH}", :response => fixture_path("post_sessions_201.json"))
           # session_id '7' comes from the fixture
-          stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}")
+          stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}")
         end
 
         it "should send a 'POST' request to '#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}'" do
@@ -315,12 +315,16 @@ describe Tddium do
         it "should POST the names of the file names extracted from the suite's test_pattern" do
           run_spec(tddium)
           request_params = parse_request_params
-          request_params.should include({"suite_id" => DEFAULT_SUITE_ID, "tests" => [{"test_name" => "cat_spec.rb"}, {"test_name" => "dog_spec.rb"}, {"test_name" => "mouse_spec.rb"}]})
+          request_params.should include({"suite_id" => DEFAULT_SUITE_ID})
+          request_params["tests"][0]["test_name"].should =~ /spec\/cat_spec.rb$/
+          request_params["tests"][1]["test_name"].should =~ /spec\/dog_spec.rb$/
+          request_params["tests"][2]["test_name"].should =~ /spec\/mouse_spec.rb$/
+          request_params["tests"].size.should == 3
         end
 
         context "'POST #{Tddium::REGISTER_TEST_EXECUTIONS_PATH}' is successful" do
           before do
-            stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_test_executions_register_201.json"))
+            stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_register_test_executions_200.json"))
             stub_http_response(:post, "sessions/7/#{Tddium::START_TEST_EXECUTIONS_PATH}")
           end
 
@@ -328,6 +332,19 @@ describe Tddium do
             run_spec(tddium)
             FakeWeb.last_request.method.should == "POST"
             FakeWeb.last_request.path.should =~ /#{Tddium::START_TEST_EXECUTIONS_PATH}$/
+          end
+        end
+
+        context "'POST #{Tddium::START_TEST_EXECUTIONS_PATH}' is successful" do
+          before do
+            stub_http_response(:post, "sessions/7/#{Tddium::START_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_start_test_executions_200.json"))
+            stub_http_response(:get, "sessions/7/#{Tddium::TEST_EXECUTIONS_PATH}")
+          end
+
+          it "should send a 'GET' request to '#{Tddium::TEST_EXECUTIONS_PATH}'" do
+            run_spec(tddium)
+            FakeWeb.last_request.method.should == "GET"
+            FakeWeb.last_request.path.should =~ /#{Tddium::TEST_EXECUTIONS_PATH}$/
           end
         end
         
