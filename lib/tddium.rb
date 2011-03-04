@@ -71,7 +71,7 @@ class Tddium < Thor
         # Manage git
         `git remote rm #{GIT_REMOTE_NAME}`
         `git remote add #{GIT_REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
-        `git push #{GIT_REMOTE_NAME} #{current_git_branch}:master`
+        `git push #{GIT_REMOTE_NAME} #{current_git_branch}`
 
         # Save the created suite
         File.open(".tddium", "w") do |file|
@@ -94,10 +94,11 @@ class Tddium < Thor
   end
 
   def tddium_git_repo_uri(suite_name)
+    repo_name = suite_name.split("/").first
     git_uri = URI.parse(API_HOST)
     git_uri.scheme = GIT_REMOTE_SCHEME
     git_uri.userinfo = GIT_REMOTE_USER
-    git_uri.path = "#{GIT_REMOTE_ABSOLUTE_PATH}/#{suite_name}"
+    git_uri.path = "#{GIT_REMOTE_ABSOLUTE_PATH}/#{repo_name}"
     git_uri.to_s
   end
 

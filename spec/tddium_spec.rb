@@ -175,7 +175,7 @@ describe Tddium do
 
       it "should add a new remote called 'tddium'" do
         stub_default_suite_name(tddium)
-        tddium.should_receive(:`).with("git remote add tddium ssh://git@api.tddium.com/home/git/repo/#{default_suite_name}")
+        tddium.should_receive(:`).with("git remote add tddium ssh://git@api.tddium.com/home/git/repo/#{DEFAULT_APP_NAME}")
         run_suite(tddium)
       end
 
@@ -185,7 +185,7 @@ describe Tddium do
         end
 
         it "should push the current git branch to tddium:master" do
-          tddium.should_receive(:`).with("git push tddium oaktree:master")
+          tddium.should_receive(:`).with("git push tddium oaktree")
           run_suite(tddium)
         end
 
