@@ -11,8 +11,7 @@ require "json"
 #
 #      tddium suite    # Register the suite for this rails app, or manage its settings
 #      tddium spec     # Run the test suite
-#      tddium status   # Display information about this suite, and any open dev
-#                      #   sessions
+#      tddium status   # Display information about this suite, and any open dev sessions
 #
 #      tddium login    # Log your unix user in to a tddium account
 #      tddium logout   # Log out
@@ -29,6 +28,12 @@ require "json"
 class Tddium < Thor
   API_HOST = "http://api.tddium.com"
   API_VERSION = "1"
+  SUITES_PATH = "suites"
+  SESSIONS_PATH = "sessions"
+  TEST_EXECUTIONS_PATH = "test_executions"
+  REGISTER_TEST_EXECUTIONS_PATH = "#{TEST_EXECUTIONS_PATH}/register"
+  START_TEST_EXECUTIONS_PATH = "#{TEST_EXECUTIONS_PATH}/start"
+  REPORT_TEST_EXECUTIONS_PATH = "#{TEST_EXECUTIONS_PATH}/report"
   GIT_REMOTE_NAME = "tddium"
   GIT_REMOTE_SCHEME = "ssh"
   GIT_REMOTE_USER = "git"
@@ -63,20 +68,77 @@ class Tddium < Thor
 
     params[:ruby_version] = `ruby -v`.match(/^ruby ([\d\.]+)/)[1]
 
-    http = HTTParty.post(tddium_uri("suites"), :body => {:suite => params})
+    call_api(:post, SUITES_PATH, {:suite => params}) do |api_response|
+      # Manage git
+      `git remote rm #{GIT_REMOTE_NAME}`
+      `git remote add #{GIT_REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
+      git_push
+
+      # Save the created suite
+      File.open(".tddium", "w") do |file|
+        file.write({current_git_branch => api_response["suite"]["id"]}.to_json)
+      end
+    end
+  end
+
+  desc "spec", "Run the test suite"
+  def spec
+     # Require git initialization
+    unless File.exists?(".tddium")
+      say "tddium suite must be initialized. Try 'tddium suite'."
+      return
+    end
+
+    # Push the latest code to git
+    git_push
+
+    # Get the registered suite_id from the file
+    tddium_config = File.open(".tddium") do |file|
+      file.read
+    end
+    suite_id = JSON.parse(tddium_config)[current_git_branch]
+
+    # Call the API to get the suite and its tests
+    call_api(:get, "#{SUITES_PATH}/#{suite_id}") do |api_response|
+      test_pattern = api_response["suite"]["test_pattern"]
+      test_names = Dir.glob(test_pattern).collect {|file_path| {:test_name => File.basename(file_path)}}
+
+      # Create a session
+      call_api(:post, SESSIONS_PATH) do |api_response|
+        session_id = api_response["session"]["id"]
+
+        # Call the API to register the tests
+        call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{REGISTER_TEST_EXECUTIONS_PATH}", {:suite_id => suite_id, :tests => test_names}) do |api_response|
+          p api_response
+
+          # Start the tests
+          call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{START_TEST_EXECUTIONS_PATH}") do |api_response|
+            p api_response
+
+            # Poll the API to check the status (with timeout)
+            call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{TEST_EXECUTIONS_PATH}") do |api_response|
+              p api_response
+
+              # Get the report
+              call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{REPORT_TEST_EXECUTIONS_PATH}") do |api_response|
+                p api_response
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+
+  private
+
+  def call_api(method, api_path, params = {}, &block)
+    http = HTTParty.send(method, tddium_uri(api_path), :body => params)
     response = JSON.parse(http.body) rescue {}
 
     if http.success?
       if response["status"] == 0
-        # Manage git
-        `git remote rm #{GIT_REMOTE_NAME}`
-        `git remote add #{GIT_REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
-        `git push #{GIT_REMOTE_NAME} #{current_git_branch}`
-
-        # Save the created suite
-        File.open(".tddium", "w") do |file|
-          file.write({current_git_branch => response["suite"]["id"]}.to_json)
-        end
+        yield response
       else
         message = "An error occured: #{response["explanation"]}"
       end
@@ -87,7 +149,9 @@ class Tddium < Thor
     say message
   end
 
-  private
+  def git_push
+    `git push #{GIT_REMOTE_NAME} #{current_git_branch}`
+  end
 
   def tddium_uri(path, api_version = API_VERSION)
     URI.join(API_HOST, "#{api_version}/#{path}").to_s

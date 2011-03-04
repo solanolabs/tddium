@@ -7,10 +7,14 @@ describe Tddium do
   TEST_PATTERN_PROMPT = "Enter a test pattern or press 'Return'. Using **/*_spec.rb by default:"
   DEFAULT_APP_NAME = "tddelicious"
   DEFAULT_BRANCH_NAME = "test"
-  TDDIUM_API_HOST = "http://api.tddium.com/1/suites"
+  DEFAULT_SUITE_ID = "66"
 
   def run_suite(tddium)
     tddium.suite
+  end
+
+  def run_spec(tddium)
+    tddium.spec
   end
 
   def suite_name_prompt(default = default_suite_name)
@@ -18,7 +22,7 @@ describe Tddium do
   end
 
   def default_suite_name
-    File.join(DEFAULT_APP_NAME, DEFAULT_BRANCH_NAME)
+    "#{DEFAULT_APP_NAME}/#{DEFAULT_BRANCH_NAME}"
   end
 
   def stub_default_suite_name(tddium, default_app_name = DEFAULT_APP_NAME, default_branch_name = DEFAULT_BRANCH_NAME)
@@ -34,8 +38,8 @@ describe Tddium do
     tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
   end
 
-  def parse_request_params(raw_params = FakeWeb.last_request.body)
-    Rack::Utils.parse_nested_query(raw_params)["suite"]
+  def parse_request_params
+    Rack::Utils.parse_nested_query(FakeWeb.last_request.body)
   end
 
   def create_file(path = "~/.ssh/id_rsa.pub", content = "ssh-rsa blah")
@@ -45,7 +49,7 @@ describe Tddium do
     end
   end
 
-  def stub_http_response(options = {})
+  def stub_http_response(method, path, options = {})
     fake_web_options = {:body => options[:body], :status => options[:status]}
     if options[:response]
       FakeFS.deactivate!
@@ -53,18 +57,26 @@ describe Tddium do
       FakeFS.activate!
       fake_web_options.merge!(:response => response)
     end
-    FakeWeb.register_uri(:post, "http://api.tddium.com/1/suites", fake_web_options)
+    FakeWeb.register_uri(method, URI.join(Tddium::API_HOST, "#{Tddium::API_VERSION}/#{path}").to_s, fake_web_options)
   end
 
+  def stub_defaults
+    FakeWeb.clean_registry
+    tddium.stub(:say)
+    stub_git_branch(tddium)
+  end
+
+  def stub_git_push(tddium)
+    tddium.stub(:`).with(/^git push/)
+  end
+  
   let(:tddium) { Tddium.new }
   describe "#suite" do
     before do
-      FakeWeb.clean_registry
+      stub_defaults
       tddium.stub(:ask).and_return("")
-      tddium.stub(:say)
-      stub_http_response
+      stub_http_response(:post, Tddium::SUITES_PATH)
       stub_ruby_version(tddium)
-      stub_git_branch(tddium)
       create_file
       create_file(".git/something", "something")
     end
@@ -85,16 +97,16 @@ describe Tddium do
       run_suite(tddium)
     end
 
-    it "should send a 'POST' request to the tddium API" do
+    it "should send a 'POST' request to '#{Tddium::SUITES_PATH}'" do
       run_suite(tddium)
       FakeWeb.last_request.method.should == "POST"
-      FakeWeb.last_request.path.should == "/1/suites"
+      FakeWeb.last_request.path.should =~ /\/#{Tddium::SUITES_PATH}$/
     end
 
     it "should post the current ruby version to the API" do
       stub_ruby_version(tddium, "1.9.2")
       run_suite(tddium)
-      request_params = parse_request_params
+      request_params = parse_request_params["suite"]
       request_params.should include("ruby_version" => "1.9.2")
     end
 
@@ -116,7 +128,7 @@ describe Tddium do
 
       it "should POST the default values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params
+        request_params = parse_request_params["suite"]
         request_params.should include("ssh_key" => "ssh-rsa blah", "suite_name" => default_suite_name,
                                       "test_pattern" => "**/*_spec.rb")
       end
@@ -136,7 +148,7 @@ describe Tddium do
 
       it "should POST the passed in values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params
+        request_params = parse_request_params["suite"]
         request_params.should include("ssh_key" => "ssh-rsa 1234", "suite_name" => "my_suite_name",
                                       "test_pattern" => "**/*_test.rb")
       end
@@ -155,7 +167,7 @@ describe Tddium do
 
       it "should POST the passed in values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params
+        request_params = parse_request_params["suite"]
         request_params.should include("ssh_key" => "ssh-rsa 65431", "suite_name" => "foobar",
                                       "test_pattern" => "**/*_selenium.rb")
       end
@@ -163,9 +175,9 @@ describe Tddium do
 
     context "API response successful" do
       before do
-        stub_http_response(:response => fixture_path("post_suites_201.json"))
+        stub_http_response(:post, Tddium::SUITES_PATH, :response => fixture_path("post_suites_201.json"))
         tddium.stub(:`).with(/^git remote/)
-        tddium.stub(:`).with(/^git push/)
+        stub_git_push(tddium)
       end
 
       it "should remove any existing remotes named 'tddium'" do
@@ -184,7 +196,7 @@ describe Tddium do
           tddium.stub(:current_git_branch).and_return("oaktree")
         end
 
-        it "should push the current git branch to tddium:master" do
+        it "should push the current git branch to tddium oaktree" do
           tddium.should_receive(:`).with("git push tddium oaktree")
           run_suite(tddium)
         end
@@ -199,7 +211,7 @@ describe Tddium do
 
     context "API response successful but JSON status not 0" do
       before do
-        stub_http_response(:response => fixture_path("post_suites_201_json_status_1.json"))
+        stub_http_response(:post, Tddium::SUITES_PATH, :response => fixture_path("post_suites_201_json_status_1.json"))
       end
 
       it "should do show the explaination" do
@@ -210,7 +222,7 @@ describe Tddium do
 
     context "API response unsuccessful" do
       before do
-        stub_http_response(:status => ["501", "Internal Server Error"])
+        stub_http_response(:post, Tddium::SUITES_PATH, :status => ["501", "Internal Server Error"])
       end
 
       it "should show that there was an error" do
@@ -220,7 +232,7 @@ describe Tddium do
 
       context "API status code != 0" do
         before do
-          stub_http_response(:response => fixture_path("post_suites_409.json"))
+          stub_http_response(:post, Tddium::SUITES_PATH, :response => fixture_path("post_suites_409.json"))
         end
 
         it "should show the error message" do
@@ -231,7 +243,7 @@ describe Tddium do
 
       context "501 Error" do
         before do
-          stub_http_response(:status => ["501", "Internal Server Error"])
+          stub_http_response(:post, Tddium::SUITES_PATH, :status => ["501", "Internal Server Error"])
         end
 
         it "should show the HTTP error message" do
@@ -239,6 +251,88 @@ describe Tddium do
           run_suite(tddium)
         end
       end
+    end
+  end
+
+  describe "#spec" do
+    before do
+      stub_defaults
+      stub_git_push(tddium)
+      create_file(".tddium", {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}.to_json)
+      stub_http_response(:get, "#{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}")
+    end
+    
+    context "tddium suite has not been run" do
+      before do
+        FileUtils.rm_rf(".tddium")
+      end
+
+      it "should suggest ths user to run 'tddim suite'" do
+        tddium.should_receive(:say).with("tddium suite must be initialized. Try 'tddium suite'.")
+        run_spec(tddium)
+      end
+    end
+
+    it "should push the latest code to tddium" do
+      tddium.should_receive(:`).with("git push tddium #{DEFAULT_BRANCH_NAME}")
+      run_spec(tddium)
+    end
+
+    it "should send a 'GET' request to '#{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}'" do
+      run_spec(tddium)
+      FakeWeb.last_request.method.should == "GET"
+      FakeWeb.last_request.path.should =~ /#{Tddium::SUITES_PATH}\/#{DEFAULT_SUITE_ID}$/
+    end
+
+    context "'GET #{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}' is successful" do
+      before do
+        stub_http_response(:get, "#{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
+        stub_http_response(:post, Tddium::SESSIONS_PATH)
+        create_file("spec/mouse_spec.rb")
+        create_file("spec/cat_spec.rb")
+        create_file("spec/dog_spec.rb")
+      end
+
+      it "should send a 'POST' request to '#{Tddium::SESSIONS_PATH}'" do
+        run_spec(tddium)
+        FakeWeb.last_request.method.should == "POST"
+        FakeWeb.last_request.path.should =~ /#{Tddium::SESSIONS_PATH}$/
+      end
+
+      context "'POST #{Tddium::SESSIONS_PATH}' is successful" do
+        before do
+          stub_http_response(:post, "#{Tddium::SESSIONS_PATH}", :response => fixture_path("post_sessions_201.json"))
+          # session_id '7' comes from the fixture
+          stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}")
+        end
+
+        it "should send a 'POST' request to '#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}'" do
+          run_spec(tddium)
+          FakeWeb.last_request.method.should == "POST"
+          FakeWeb.last_request.path.should =~ /#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}$/
+        end
+
+        it "should POST the names of the file names extracted from the suite's test_pattern" do
+          run_spec(tddium)
+          request_params = parse_request_params
+          request_params.should include({"suite_id" => DEFAULT_SUITE_ID, "tests" => [{"test_name" => "cat_spec.rb"}, {"test_name" => "dog_spec.rb"}, {"test_name" => "mouse_spec.rb"}]})
+        end
+
+        context "'POST #{Tddium::REGISTER_TEST_EXECUTIONS_PATH}' is successful" do
+          before do
+            stub_http_response(:post, "sessions/7/#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_test_executions_register_201.json"))
+            stub_http_response(:post, "sessions/7/#{Tddium::START_TEST_EXECUTIONS_PATH}")
+          end
+
+          it "should send a 'POST' request to '#{Tddium::START_TEST_EXECUTIONS_PATH}'" do
+            run_spec(tddium)
+            FakeWeb.last_request.method.should == "POST"
+            FakeWeb.last_request.path.should =~ /#{Tddium::START_TEST_EXECUTIONS_PATH}$/
+          end
+        end
+        
+      end
+
     end
   end
 end
