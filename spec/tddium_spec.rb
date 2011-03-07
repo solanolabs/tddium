@@ -362,6 +362,12 @@ describe Tddium do
             context "'GET #{Tddium::TEST_EXECUTIONS_PATH}' is successful" do
               before do
                 stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}", [{:response => fixture_path("get_test_executions_200.json")}, {:response => fixture_path("get_test_executions_200_all_finished.json")}])
+                tddium.stub(:sleep).with(Tddium::SLEEP_TIME_BETWEEN_POLLS)
+              end
+
+              it "should sleep for #{Tddium::SLEEP_TIME_BETWEEN_POLLS} seconds" do
+                tddium.should_receive(:sleep).exactly(1).times.with(Tddium::SLEEP_TIME_BETWEEN_POLLS)
+                run_spec(tddium)
               end
 
               it "should display a green '.'" do

@@ -26,7 +26,7 @@ require "json"
 #      tddium help     # Print this usage message
 
 class Tddium < Thor
-  API_HOST = "http://api.tddium.com"
+  API_HOST = "https://api.tddium.com"
   API_VERSION = "1"
   SUITES_PATH = "suites"
   SESSIONS_PATH = "sessions"
@@ -38,6 +38,7 @@ class Tddium < Thor
   GIT_REMOTE_SCHEME = "ssh"
   GIT_REMOTE_USER = "git"
   GIT_REMOTE_ABSOLUTE_PATH = "/home/git/repo"
+  SLEEP_TIME_BETWEEN_POLLS = 2
 
   desc "suite", "Register the suite for this rails app, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
@@ -119,7 +120,7 @@ class Tddium < Thor
             test_statuses = Hash.new(0)
             api_call_successful = true
             while tests_not_finished_yet && api_call_successful do
-              # Poll the API to check the status (with timeout)
+              # Poll the API to check the status
               api_call_successful = call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{TEST_EXECUTIONS_PATH}") do |api_response|
                 # Print out the progress of running tests
                 api_response["tests"].each do |test_name, result_params|
@@ -137,8 +138,8 @@ class Tddium < Thor
                   end
                 end
 
-                # If all tests finished, exit the loop
-                tests_not_finished_yet = false if finished_tests.size == api_response["tests"].size
+                # If all tests finished, exit the loop else sleep
+                finished_tests.size == api_response["tests"].size ? tests_not_finished_yet = false : sleep(SLEEP_TIME_BETWEEN_POLLS)
               end
             end
 
