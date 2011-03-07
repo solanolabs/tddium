@@ -19,6 +19,7 @@ tmp
 results
 nbproject
 .rvmrc
+.tddium
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
