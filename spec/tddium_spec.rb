@@ -82,6 +82,10 @@ describe Tddium do
   def stub_git_push(tddium)
     tddium.stub(:`).with(/^git push/)
   end
+
+  def stub_sleep(tddium)
+    tddium.stub(:sleep).with(Tddium::SLEEP_TIME_BETWEEN_POLLS)
+  end
   
   let(:tddium) { Tddium.new }
   describe "#suite" do
@@ -353,16 +357,53 @@ describe Tddium do
               stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}")
             end
 
+            it "should tell the user to '#{Tddium::TERMINATE_PROCESS_INSTRUCTIONS}'" do
+              tddium.should_receive(:say).with(Tddium::TERMINATE_PROCESS_INSTRUCTIONS)
+              run_spec(tddium)
+            end
+
             it "should send a 'GET' request to '#{Tddium::TEST_EXECUTIONS_PATH}'" do
               run_spec(tddium)
               FakeWeb.last_request.method.should == "GET"
               FakeWeb.last_request.path.should =~ /#{Tddium::TEST_EXECUTIONS_PATH}$/
             end
 
+            shared_examples_for("test output summary") do
+              it "should display a link to the report" do
+                tddium.should_receive(:say).with("You can check out the test report details at http://api.tddium.com/1/sessions/7/test_executions/report")
+                run_spec(tddium)
+              end
+
+              it "should display the time taken" do
+                tddium.should_receive(:say).with(/^Finished in [\d\.]+ seconds$/)
+                run_spec(tddium)
+              end
+            end
+
+            context "user presses 'Ctrl-C' during the process" do
+              before do
+                stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}", :response => fixture_path("get_test_executions_200.json"))
+                Signal.stub(:trap).with(:INT).and_yield
+                stub_sleep(tddium)
+              end
+
+              it "should display '#{Tddium::INTERRUPT_TEXT}'" do
+                tddium.should_receive(:say).with(Tddium::INTERRUPT_TEXT)
+                run_spec(tddium)
+              end
+
+              it "should display a summary of all the tests" do
+                tddium.should_receive(:say).with("3 examples, 1 failures, 0 errors, 1 pending")
+                run_spec(tddium)
+              end
+
+              it_should_behave_like("test output summary")
+            end
+
             context "'GET #{Tddium::TEST_EXECUTIONS_PATH}' is successful" do
               before do
                 stub_http_response(:get, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::TEST_EXECUTIONS_PATH}", [{:response => fixture_path("get_test_executions_200.json")}, {:response => fixture_path("get_test_executions_200_all_finished.json")}])
-                tddium.stub(:sleep).with(Tddium::SLEEP_TIME_BETWEEN_POLLS)
+                stub_sleep(tddium)
               end
 
               it "should sleep for #{Tddium::SLEEP_TIME_BETWEEN_POLLS} seconds" do
@@ -390,20 +431,13 @@ describe Tddium do
                 run_spec(tddium)
               end
 
-              it "should display the time taken" do
-                tddium.should_receive(:say).with(/^Finished in [\d\.]+ seconds$/)
-                run_spec(tddium)
-              end
-
               it "should display a summary of all the tests" do
                 tddium.should_receive(:say).with("4 examples, 1 failures, 1 errors, 1 pending")
                 run_spec(tddium)
               end
 
-              it "should display a link to the report" do
-                tddium.should_receive(:say).with("You can check out the test report details at http://api.tddium.com/1/sessions/7/test_executions/report")
-                run_spec(tddium)
-              end
+              it_should_behave_like("test output summary")
+
             end
           end
         end        

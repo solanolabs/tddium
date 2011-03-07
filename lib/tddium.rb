@@ -39,6 +39,8 @@ class Tddium < Thor
   GIT_REMOTE_USER = "git"
   GIT_REMOTE_ABSOLUTE_PATH = "/home/git/repo"
   SLEEP_TIME_BETWEEN_POLLS = 2
+  TERMINATE_PROCESS_INSTRUCTIONS = "Ctrl-C to terminate the process"
+  INTERRUPT_TEXT = "Interrupted"
 
   desc "suite", "Register the suite for this rails app, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
@@ -114,14 +116,18 @@ class Tddium < Thor
         call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{REGISTER_TEST_EXECUTIONS_PATH}", {:suite_id => suite_id, :tests => test_files}) do |api_response|
           # Start the tests
           call_api(:post, "#{SESSIONS_PATH}/#{session_id}/#{START_TEST_EXECUTIONS_PATH}") do |api_response|
-            say "Ctrl-C to terminate the process"
             tests_not_finished_yet = true
             finished_tests = {}
             test_statuses = Hash.new(0)
             api_call_successful = true
+            say TERMINATE_PROCESS_INSTRUCTIONS
             while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
               api_call_successful = call_api(:get, "#{SESSIONS_PATH}/#{session_id}/#{TEST_EXECUTIONS_PATH}") do |api_response|
+                Signal.trap(:INT) do
+                  say INTERRUPT_TEXT
+                  tests_not_finished_yet = false
+                end
                 # Print out the progress of running tests
                 api_response["tests"].each do |test_name, result_params|
                   test_status = result_params["status"]
