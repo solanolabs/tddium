@@ -28,6 +28,7 @@ require "json"
 class Tddium < Thor
   API_HOST = "https://api.tddium.com"
   API_VERSION = "1"
+  API_KEY_HEADER = "X-tddium-api-key"
   SUITES_PATH = "suites"
   SESSIONS_PATH = "sessions"
   TEST_EXECUTIONS_PATH = "test_executions"
@@ -41,18 +42,16 @@ class Tddium < Thor
   SLEEP_TIME_BETWEEN_POLLS = 2
   TERMINATE_PROCESS_INSTRUCTIONS = "Ctrl-C to terminate the process"
   INTERRUPT_TEXT = "Interrupted"
+  NOT_INITIALIZED_ERROR = "tddium must be initialized. Try 'tddium login'"
+  INVALID_TDDIUM_FILE = ".tddium config file is corrupt. Try 'tddium login'"
 
   desc "suite", "Register the suite for this rails app, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
   def suite
-    # Require git initialization
-    unless File.exists?(".git")
-      say "git repo must be initialized. Try 'git init'."
-      return
-    end
-
+    return unless git_repo? && tddium_settings
+    
     # Inputs for API call
     params = {}
 
@@ -78,8 +77,10 @@ class Tddium < Thor
       git_push
 
       # Save the created suite
+      branches = tddium_settings["branches"] || {}
+      branches.merge!({current_git_branch => api_response["suite"]["id"]})
       File.open(".tddium", "w") do |file|
-        file.write({current_git_branch => api_response["suite"]["id"]}.to_json)
+        file.write(tddium_settings.merge({:branches => branches}).to_json)
       end
     end
   end
@@ -88,20 +89,11 @@ class Tddium < Thor
   def spec
     start_time = Time.now
 
-    # Require git initialization
-    unless File.exists?(".tddium")
-      say "tddium suite must be initialized. Try 'tddium suite'."
-      return
-    end
+    return unless git_repo? && tddium_settings
+    suite_id = tddium_settings["branches"][current_git_branch]
 
     # Push the latest code to git
     git_push
-
-    # Get the registered suite_id from the file
-    tddium_config = File.open(".tddium") do |file|
-      file.read
-    end
-    suite_id = JSON.parse(tddium_config)[current_git_branch]
 
     # Call the API to get the suite and its tests
     call_api(:get, "#{SUITES_PATH}/#{suite_id}") do |api_response|
@@ -162,7 +154,8 @@ class Tddium < Thor
   private
 
   def call_api(method, api_path, params = {}, &block)
-    http = HTTParty.send(method, tddium_uri(api_path), :body => params)
+    headers = { API_KEY_HEADER => tddium_settings(false)["api_key"] } if tddium_settings(false) && tddium_settings(false)["api_key"]
+    http = HTTParty.send(method, tddium_uri(api_path), :body => params, :headers => headers)
     response = JSON.parse(http.body) rescue {}
 
     if http.success?
@@ -198,5 +191,28 @@ class Tddium < Thor
 
   def current_git_branch
     @current_git_branch ||= File.basename(`git symbolic-ref HEAD`.gsub("\n", ""))
+  end
+
+  def tddium_settings(fail_with_message = true)
+    unless @tddium_settings
+      if File.exists?(".tddium")
+        tddium_config = File.open(".tddium") do |file|
+          file.read
+        end
+        @tddium_settings = JSON.parse(tddium_config) rescue nil
+        say INVALID_TDDIUM_FILE if @tddium_settings.nil? && fail_with_message
+      else
+        say NOT_INITIALIZED_ERROR if fail_with_message
+      end
+    end
+    @tddium_settings
+  end
+
+  def git_repo?
+    unless File.exists?(".git")
+      message =  "git repo must be initialized. Try 'git init'."
+      say message
+    end
+    message.nil?
   end
 end

@@ -9,6 +9,11 @@ describe Tddium do
   DEFAULT_APP_NAME = "tddelicious"
   DEFAULT_BRANCH_NAME = "test"
   DEFAULT_SUITE_ID = "66"
+  DEFAULT_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
+
+  def run(tddium)
+    send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium)
+  end
 
   def run_suite(tddium)
     tddium.suite
@@ -43,7 +48,7 @@ describe Tddium do
     Rack::Utils.parse_nested_query(FakeWeb.last_request.body)
   end
 
-  def create_file(path = "~/.ssh/id_rsa.pub", content = "ssh-rsa blah")
+  def create_file(path, content = "blah")
     FileUtils.mkdir_p(File.dirname(path))
     File.open(path, 'w') do |f|
       f.write(content)
@@ -77,6 +82,8 @@ describe Tddium do
     FakeWeb.clean_registry
     tddium.stub(:say)
     stub_git_branch(tddium)
+    create_file(".git/something", "something")
+    create_file(".tddium", {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}, :api_key => DEFAULT_API_KEY}.to_json)
   end
 
   def stub_git_push(tddium)
@@ -88,14 +95,58 @@ describe Tddium do
   end
   
   let(:tddium) { Tddium.new }
+
+  shared_examples_for "git repo has not been initialized" do
+    context "git repo has not been initialized" do
+      before do
+        FileUtils.rm_rf(".git")
+      end
+
+      it "should return git is uninitialized" do
+        tddium.should_receive(:say).with("git repo must be initialized. Try 'git init'.")
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for ".tddium file is missing or corrupt" do
+    context ".tddium file is missing" do
+      before do
+        FileUtils.rm_rf(".tddium")
+      end
+
+      it "should tell the user '#{Tddium::NOT_INITIALIZED_ERROR}'" do
+        tddium.should_receive(:say).with(Tddium::NOT_INITIALIZED_ERROR)
+        run(tddium)
+      end
+    end
+
+    context ".tddium file is corrupt" do
+      before do
+        create_file(".tddium", "corrupt file")
+      end
+
+      it "should tell the user '#{Tddium::NOT_INITIALIZED_ERROR}'" do
+        tddium.should_receive(:say).with(Tddium::INVALID_TDDIUM_FILE)
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for "sending the api key" do
+    it "should include the api key in the headers" do
+      run(tddium)
+      FakeWeb.last_request[Tddium::API_KEY_HEADER].should == DEFAULT_API_KEY
+    end
+  end
+
   describe "#suite" do
     before do
       stub_defaults
       tddium.stub(:ask).and_return("")
       stub_http_response(:post, Tddium::SUITES_PATH)
       stub_ruby_version(tddium)
-      create_file
-      create_file(".git/something", "something")
+      create_file("~/.ssh/id_rsa.pub", "ssh-rsa blah")
     end
 
     it "should ask the user for their ssh key" do
@@ -123,20 +174,13 @@ describe Tddium do
     it "should post the current ruby version to the API" do
       stub_ruby_version(tddium, "1.9.2")
       run_suite(tddium)
-      request_params = parse_request_params["suite"]
-      request_params.should include("ruby_version" => "1.9.2")
+      parse_request_params["suite"].should include("ruby_version" => "1.9.2")
     end
 
-    context "git repo has not been initialized" do
-      before do
-        FileUtils.rm_rf(".git")
-      end
-
-      it "should return git is uninitialized" do
-        tddium.should_receive(:say).with("git repo must be initialized. Try 'git init'.")
-        run_suite(tddium)
-      end
-    end
+    it_should_behave_like "sending the api key"
+    
+    it_should_behave_like "git repo has not been initialized"
+    it_should_behave_like ".tddium file is missing or corrupt"
     
     context "using defaults" do
       before do
@@ -145,8 +189,7 @@ describe Tddium do
 
       it "should POST the default values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params["suite"]
-        request_params.should include("ssh_key" => "ssh-rsa blah", "suite_name" => default_suite_name,
+        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa blah", "suite_name" => default_suite_name,
                                       "test_pattern" => "**/*_spec.rb")
       end
 
@@ -165,8 +208,7 @@ describe Tddium do
 
       it "should POST the passed in values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params["suite"]
-        request_params.should include("ssh_key" => "ssh-rsa 1234", "suite_name" => "my_suite_name",
+        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa 1234", "suite_name" => "my_suite_name",
                                       "test_pattern" => "**/*_test.rb")
       end
 
@@ -184,8 +226,7 @@ describe Tddium do
 
       it "should POST the passed in values to the API" do
         run_suite(tddium)
-        request_params = parse_request_params["suite"]
-        request_params.should include("ssh_key" => "ssh-rsa 65431", "suite_name" => "foobar",
+        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa 65431", "suite_name" => "foobar",
                                       "test_pattern" => "**/*_selenium.rb")
       end
     end
@@ -221,7 +262,7 @@ describe Tddium do
         it "should create '.tddium' and write the suite_id and branch name" do
           run_suite(tddium)
           tddium_file = File.open(".tddium") { |file| file.read }
-          JSON.parse(tddium_file)["oaktree"].should == 19 # From response
+          JSON.parse(tddium_file)["branches"]["oaktree"].should == 19 # From response
         end
       end
     end
@@ -275,20 +316,11 @@ describe Tddium do
     before do
       stub_defaults
       stub_git_push(tddium)
-      create_file(".tddium", {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}.to_json)
       stub_http_response(:get, "#{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}")
     end
     
-    context "tddium suite has not been run" do
-      before do
-        FileUtils.rm_rf(".tddium")
-      end
-
-      it "should suggest ths user to run 'tddim suite'" do
-        tddium.should_receive(:say).with("tddium suite must be initialized. Try 'tddium suite'.")
-        run_spec(tddium)
-      end
-    end
+    it_should_behave_like "git repo has not been initialized"
+    it_should_behave_like ".tddium file is missing or corrupt"
 
     it "should push the latest code to tddium" do
       tddium.should_receive(:`).with("git push #{Tddium::GIT_REMOTE_NAME} #{DEFAULT_BRANCH_NAME}")
@@ -300,6 +332,8 @@ describe Tddium do
       FakeWeb.last_request.method.should == "GET"
       FakeWeb.last_request.path.should =~ /#{Tddium::SUITES_PATH}\/#{DEFAULT_SUITE_ID}$/
     end
+
+    it_should_behave_like "sending the api key"
 
     context "'GET #{Tddium::SUITES_PATH}/#{DEFAULT_SUITE_ID}' is successful" do
       before do
@@ -316,6 +350,8 @@ describe Tddium do
         FakeWeb.last_request.path.should =~ /#{Tddium::SESSIONS_PATH}$/
       end
 
+      it_should_behave_like "sending the api key"
+
       context "'POST #{Tddium::SESSIONS_PATH}' is successful" do
         let(:session_id) {7} # from the fixture 'post_sessions_201.json'
         before do
@@ -328,6 +364,8 @@ describe Tddium do
           FakeWeb.last_request.method.should == "POST"
           FakeWeb.last_request.path.should =~ /#{Tddium::REGISTER_TEST_EXECUTIONS_PATH}$/
         end
+
+        it_should_behave_like "sending the api key"
 
         it "should POST the names of the file names extracted from the suite's test_pattern" do
           run_spec(tddium)
@@ -351,6 +389,8 @@ describe Tddium do
             FakeWeb.last_request.path.should =~ /#{Tddium::START_TEST_EXECUTIONS_PATH}$/
           end
 
+          it_should_behave_like "sending the api key"
+
           context "'POST #{Tddium::START_TEST_EXECUTIONS_PATH}' is successful" do
             before do
               stub_http_response(:post, "#{Tddium::SESSIONS_PATH}/#{session_id}/#{Tddium::START_TEST_EXECUTIONS_PATH}", :response => fixture_path("post_start_test_executions_200.json"))
@@ -367,6 +407,8 @@ describe Tddium do
               FakeWeb.last_request.method.should == "GET"
               FakeWeb.last_request.path.should =~ /#{Tddium::TEST_EXECUTIONS_PATH}$/
             end
+
+            it_should_behave_like "sending the api key"
 
             shared_examples_for("test output summary") do
               it "should display a link to the report" do
@@ -445,4 +487,3 @@ describe Tddium do
     end
   end
 end
-
