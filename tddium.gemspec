@@ -3,7 +3,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "tddium/version"
 
 Gem::Specification.new do |s|
-  s.name        = "tddium"
+  s.name        = "tddium-preview"
   s.version     = Tddium::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Jay Moorthi"]
