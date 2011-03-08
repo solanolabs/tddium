@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Date: Fri, 04 Mar 2011 06:52:49 GMT
+Server: Apache
+X-Powered-By: Phusion Passenger (mod_rails/mod_rack) 3.0.3
+ETag: "c0ef16e8f392ddfc29848e2dd3818743"
+Cache-Control: max-age=0, private, must-revalidate
+X-UA-Compatible: IE=Edge
+X-Runtime: 0.078775
+Set-Cookie: _tddium_site_session=BAh7BkkiD3Nlc3Npb25faWQGOgZFRiIlYzA5MjAzMTU5ZGZlYTZmYjljNzczNWFkNmMwYTQ2ZDk%3D--cd9dca3bf0a93adac3a9ac5e1ea60bd2cd66cba4; path=/; HttpOnly
+Status: 200
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+
+{"added":0,"errors":3,"existing":0,"explanation":["Unrecognized script: cat_spec.rb","Unrecognized script: dog_spec.rb","Unrecognized script: mouse_spec.rb"],"status":1}

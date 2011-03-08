@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Date: Fri, 04 Mar 2011 09:58:45 GMT
+Server: Apache
+X-Powered-By: Phusion Passenger (mod_rails/mod_rack) 3.0.3
+ETag: "0b921ebe813ca52c08b8f852cb81c0ed"
+Cache-Control: max-age=0, private, must-revalidate
+X-UA-Compatible: IE=Edge
+X-Runtime: 0.146704
+Set-Cookie: _tddium_site_session=BAh7BkkiD3Nlc3Npb25faWQGOgZFRiIlYzk2OTZkYjI4OWViNTE4MDIxMDg1OTIyNmY1NTVjZTA%3D--f05ccc3fd61da38d791ad69dc635c9bbb1c0eeac; path=/; HttpOnly
+Status: 200
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=utf-8
+
+{"started":1,"status":0}
