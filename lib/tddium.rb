@@ -50,23 +50,30 @@ class Tddium < Thor
     test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN)
     params[:test_pattern] = test_pattern.empty? ? Default::TEST_PATTERN : test_pattern
 
-    default_suite_name = "#{File.basename(Dir.pwd)}/#{current_git_branch}"
-    suite_name = options[:name] || ask(Text::Prompt::SUITE_NAME % default_suite_name)
-    params[:suite_name] = suite_name.empty? ? default_suite_name : suite_name
+    if current_suite_id.nil?
+      default_suite_name = "#{File.basename(Dir.pwd)}/#{current_git_branch}"
+      suite_name = options[:name] || ask(Text::Prompt::SUITE_NAME % default_suite_name)
+      params[:suite_name] = suite_name.empty? ? default_suite_name : suite_name
+      params[:ruby_version] = `ruby -v`.match(/^ruby ([\d\.]+)/)[1]
+    end
 
-    params[:ruby_version] = `ruby -v`.match(/^ruby ([\d\.]+)/)[1]
+    if current_suite_id
+      # Update the current suite if it exists already
+      call_api(:put, "#{Api::Path::SUITE}/#{current_suite_id}", {:suite => params})
+    else
+      # Create new suite if it does not exist yet
+      call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
+        # Manage git
+        `git remote rm #{Git::REMOTE_NAME}`
+        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
+        git_push
 
-    call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
-      # Manage git
-      `git remote rm #{Git::REMOTE_NAME}`
-      `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
-      git_push
-
-      # Save the created suite
-      branches = tddium_settings["branches"] || {}
-      branches.merge!({current_git_branch => api_response["suite"]["id"]})
-      File.open(tddium_file_name, "w") do |file|
-        file.write(tddium_settings.merge({"branches" => branches}).to_json)
+        # Save the created suite
+        branches = tddium_settings["branches"] || {}
+        branches.merge!({current_git_branch => api_response["suite"]["id"]})
+        File.open(tddium_file_name, "w") do |file|
+          file.write(tddium_settings.merge({"branches" => branches}).to_json)
+        end
       end
     end
   end
@@ -78,7 +85,7 @@ class Tddium < Thor
     return unless git_repo? && tddium_settings
 
     start_time = Time.now
-    suite_id = tddium_settings["branches"][current_git_branch]
+    suite_id = current_suite_id
 
     # Push the latest code to git
     git_push
@@ -116,14 +123,14 @@ class Tddium < Thor
                   test_status = result_params["status"]
                   if result_params["end_time"] && !finished_tests[test_name]
                     message = case test_status
-                                when "passed" then [".", :green]
-                                when "failed" then ["F", :red]
-                                when "error" then ["E"]
-                                when "pending" then ["*", :yellow]
+                                when "passed" then [".", :green, false]
+                                when "failed" then ["F", :red, false]
+                                when "error" then ["E", nil, false]
+                                when "pending" then ["*", :yellow, false]
                               end
                     finished_tests[test_name] = test_status
                     test_statuses[test_status] += 1
-                    say message[0], message[1]
+                    say *message
                   end
                 end
 
@@ -185,9 +192,12 @@ class Tddium < Thor
     git_uri.to_s
   end
 
-
   def current_git_branch
     @current_git_branch ||= File.basename(`git symbolic-ref HEAD`.gsub("\n", ""))
+  end
+
+  def current_suite_id
+    tddium_settings["branches"][current_git_branch] if tddium_settings["branches"]
   end
 
   def tddium_file_name

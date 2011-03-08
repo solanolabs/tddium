@@ -14,6 +14,7 @@ module TddiumConstant
     KEY_HEADER = "X-tddium-api-key"
 
     module Path
+      SUITE = "suite"
       SUITES = "suites"
       SESSIONS = "sessions"
       TEST_EXECUTIONS = "test_executions"
