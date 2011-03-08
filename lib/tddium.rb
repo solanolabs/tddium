@@ -35,11 +35,11 @@ class Tddium < Thor
   method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
-  method_option :environment, :default => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => Default::ENVIRONMENT
   def suite
     self.environment = options[:environment]
     return unless git_repo? && tddium_settings
-    
+
     # Inputs for API call
     params = {}
 
@@ -65,7 +65,7 @@ class Tddium < Thor
       # Save the created suite
       branches = tddium_settings["branches"] || {}
       branches.merge!({current_git_branch => api_response["suite"]["id"]})
-      File.open(".tddium.#{environment}", "w") do |file|
+      File.open(tddium_file_name, "w") do |file|
         file.write(tddium_settings.merge({"branches" => branches}).to_json)
       end
     end
@@ -100,7 +100,7 @@ class Tddium < Thor
             finished_tests = {}
             test_statuses = Hash.new(0)
             api_call_successful = true
-            
+
             say Text::Process::TERMINATE_INSTRUCTION
             while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
@@ -190,10 +190,15 @@ class Tddium < Thor
     @current_git_branch ||= File.basename(`git symbolic-ref HEAD`.gsub("\n", ""))
   end
 
+  def tddium_file_name
+    extension = ".#{environment}" unless environment == "production"
+    ".tddium#{extension}"
+  end
+
   def tddium_settings(fail_with_message = true)
     unless @tddium_settings
-      if File.exists?(".tddium.#{environment}")
-        tddium_config = File.open(".tddium.#{environment}") do |file|
+      if File.exists?(tddium_file_name)
+        tddium_config = File.open(tddium_file_name) do |file|
           file.read
         end
         @tddium_settings = JSON.parse(tddium_config) rescue nil

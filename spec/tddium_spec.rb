@@ -115,7 +115,7 @@ describe Tddium do
   def stub_sleep(tddium)
     tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
   end
-  
+
   let(:tddium) { Tddium.new }
 
   shared_examples_for "git repo has not been initialized" do
@@ -200,10 +200,10 @@ describe Tddium do
     end
 
     it_should_behave_like "sending the api key"
-    
+
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
-    
+
     context "using defaults" do
       before do
         stub_default_suite_name(tddium)
@@ -335,7 +335,7 @@ describe Tddium do
       stub_git_push(tddium)
       stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
     end
-    
+
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
 
@@ -499,7 +499,7 @@ describe Tddium do
 
             end
           end
-        end        
+        end
       end
     end
   end
