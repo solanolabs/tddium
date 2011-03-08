@@ -155,7 +155,18 @@ class Tddium < Thor
 
   def call_api(method, api_path, params = {}, &block)
     headers = { API_KEY_HEADER => tddium_settings(false)["api_key"] } if tddium_settings(false) && tddium_settings(false)["api_key"]
-    http = HTTParty.send(method, tddium_uri(api_path), :body => params, :headers => headers)
+    done = false
+    tries = 0
+    while tries < 5 && !done
+      begin
+        http = HTTParty.send(method, tddium_uri(api_path), :body => params, :headers => headers)
+        done = true
+      rescue Timeout::Error
+      ensure
+        tries += 5
+      end
+    end
+
     response = JSON.parse(http.body) rescue {}
 
     if http.success?
