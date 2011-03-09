@@ -159,6 +159,19 @@ describe Tddium do
     end
   end
 
+  shared_examples_for "suite has not been initialized" do
+    context ".tddium.test file is missing" do
+      before do
+        stub_config_file
+      end
+
+      it "should tell the user '#{Tddium::Text::Error::NO_SUITE_EXISTS % DEFAULT_BRANCH_NAME}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::NO_SUITE_EXISTS % DEFAULT_BRANCH_NAME)
+        run(tddium)
+      end
+    end
+  end
+
   shared_examples_for "sending the api key" do
     it "should include the api key in the headers" do
       run(tddium)
@@ -380,6 +393,7 @@ describe Tddium do
 
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like "suite has not been initialized"
 
     it "should push the latest code to tddium" do
       tddium.should_receive(:`).with("git push #{Tddium::Git::REMOTE_NAME} #{DEFAULT_BRANCH_NAME}")

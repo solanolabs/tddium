@@ -45,6 +45,7 @@ module TddiumConstant
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
+      NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
     end
   end
 end

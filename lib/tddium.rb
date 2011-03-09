@@ -31,7 +31,7 @@ class Tddium < Thor
 
   attr_accessor :environment
 
-  desc "suite", "Register the suite for this rails app, or manage its settings"
+  desc "suite", "Register the suite for this project, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
@@ -85,13 +85,17 @@ class Tddium < Thor
     return unless git_repo? && tddium_settings
 
     start_time = Time.now
-    suite_id = current_suite_id
+
+    unless current_suite_id
+      say Text::Error::NO_SUITE_EXISTS % current_git_branch
+      return
+    end
 
     # Push the latest code to git
     git_push
 
     # Call the API to get the suite and its tests
-    call_api(:get, "#{Api::Path::SUITES}/#{suite_id}") do |api_response|
+    call_api(:get, "#{Api::Path::SUITES}/#{current_suite_id}") do |api_response|
       test_pattern = api_response["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
@@ -100,7 +104,7 @@ class Tddium < Thor
         session_id = api_response["session"]["id"]
 
         # Call the API to register the tests
-        call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => suite_id, :tests => test_files}) do |api_response|
+        call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files}) do |api_response|
           # Start the tests
           call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}") do |api_response|
             tests_not_finished_yet = true
@@ -108,6 +112,7 @@ class Tddium < Thor
             test_statuses = Hash.new(0)
             api_call_successful = true
 
+            say Text::Process::STARTING_TEST % test_files.size
             say Text::Process::TERMINATE_INSTRUCTION
             while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
@@ -115,6 +120,7 @@ class Tddium < Thor
                 # Catch Ctrl-C to interrupt the test
                 Signal.trap(:INT) do
                   say Text::Process::INTERRUPT
+                  say Text::Process::CHECK_TEST_STATUS
                   tests_not_finished_yet = false
                 end
 
@@ -140,13 +146,20 @@ class Tddium < Thor
             end
 
             # Print out the result
-            say "Finished in #{Time.now - start_time} seconds"
+            say Text::Process::FINISHED_TEST % (Time.now - start_time)
             say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-            say "You can check out the test report details at #{api_response["report"]}"
+            say Text::Process::CHECK_TEST_REPORT % api_response["report"]
           end
         end
       end
     end
+  end
+
+  desc "status", "Display information about this suite, and any open dev sessions"
+  method_options :environment => Default::ENVIRONMENT
+  def status
+    self.environment = options[:environment]
+    return unless tddium_settings
   end
 
   private
