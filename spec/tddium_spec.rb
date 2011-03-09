@@ -23,6 +23,11 @@ describe Tddium do
     tddium.spec
   end
 
+  def run_status(tddium, options = {:environment => "test"})
+    stub_cli_options(tddium, options)
+    tddium.status
+  end
+
   def stub_cli_options(tddium, options = {})
     tddium.stub(:options).and_return(options)
   end
@@ -107,8 +112,8 @@ describe Tddium do
     create_file(".git/something", "something")
   end
 
-  def stub_config_file(without_branches = true)
-    branch_params = without_branches ? {} : {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}}
+  def stub_config_file(with_branches = false)
+    branch_params = with_branches ? {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}} : {}
     create_file(".tddium.test", branch_params.merge(:api_key => DEFAULT_API_KEY).to_json)
   end
 
@@ -209,6 +214,14 @@ describe Tddium do
         tddium.should_receive(:say).with(/Conflict/)
         run(tddium)
       end
+    end
+  end
+
+  shared_examples_for "getting the current suite from the API" do
+    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+      run(tddium)
+      FakeWeb.last_request.method.should == "GET"
+      FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
     end
   end
 
@@ -366,7 +379,7 @@ describe Tddium do
     end
     context "suite has already been registered" do
       before do
-        stub_config_file(false)
+        stub_config_file(true)
         stub_http_response(:put, "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}")
       end
 
@@ -386,7 +399,7 @@ describe Tddium do
   describe "#spec" do
     before do
       stub_defaults
-      stub_config_file(false)
+      stub_config_file(true)
       stub_git_push(tddium)
       stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
     end
@@ -400,12 +413,7 @@ describe Tddium do
       run_spec(tddium)
     end
 
-    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
-      run_spec(tddium)
-      FakeWeb.last_request.method.should == "GET"
-      FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
-    end
-
+    it_should_behave_like "getting the current suite from the API"
     it_should_behave_like "sending the api key"
 
     context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
@@ -588,4 +596,21 @@ describe Tddium do
       let(:method) { :get }
     end
   end
+
+  describe "#status" do
+    before do
+      stub_defaults
+    end
+    
+    it_should_behave_like "git repo has not been initialized"
+    it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like "suite has not been initialized"
+    it_should_behave_like "getting the current suite from the API"
+
+    it "should show the user " do
+      
+    end
+
+  end
+
 end

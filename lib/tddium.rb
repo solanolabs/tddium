@@ -82,20 +82,15 @@ class Tddium < Thor
   method_options :environment => Default::ENVIRONMENT
   def spec
     self.environment = options[:environment]
-    return unless git_repo? && tddium_settings
+    return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     start_time = Time.now
-
-    unless current_suite_id
-      say Text::Error::NO_SUITE_EXISTS % current_git_branch
-      return
-    end
 
     # Push the latest code to git
     git_push
 
     # Call the API to get the suite and its tests
-    call_api(:get, "#{Api::Path::SUITES}/#{current_suite_id}") do |api_response|
+    call_api(:get, current_suite_path) do |api_response|
       test_pattern = api_response["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
@@ -159,7 +154,13 @@ class Tddium < Thor
   method_options :environment => Default::ENVIRONMENT
   def status
     self.environment = options[:environment]
-    return unless tddium_settings
+    return unless git_repo? && tddium_settings && suite_for_current_branch?
+
+    call_api(:get, current_suite_path) do |api_response|
+      api_response["suite"].each do |suite_setting, value|
+        say("#{suite_setting.gsub("_", " ").capitalize}: #{value}")
+      end
+    end
   end
 
   private
@@ -211,6 +212,18 @@ class Tddium < Thor
 
   def current_suite_id
     tddium_settings["branches"][current_git_branch] if tddium_settings["branches"]
+  end
+
+  def current_suite_path
+    "#{Api::Path::SUITES}/#{current_suite_id}"
+  end
+
+  def suite_for_current_branch?
+    unless current_suite_id
+      message = Text::Error::NO_SUITE_EXISTS % current_git_branch
+      say message
+    end
+    message.nil?
   end
 
   def tddium_file_name
