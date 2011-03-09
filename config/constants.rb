@@ -34,13 +34,17 @@ module TddiumConstant
     module Process
       TERMINATE_INSTRUCTION = "Ctrl-C to terminate the process"
       INTERRUPT = "Interrupted"
+      STARTING_TEST = "Starting %s tests..."
+      CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
+      FINISHED_TEST = "Finished in %s seconds"
+      CHECK_TEST_REPORT = "You can check out the test report details at %s"
     end
 
     module Error
       API = "An error occured: "
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
-      GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'."
+      GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
     end
   end
 end

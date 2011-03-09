@@ -129,7 +129,7 @@ describe Tddium do
       end
 
       it "should return git is uninitialized" do
-        tddium.should_receive(:say).with("git repo must be initialized. Try 'git init'.")
+        tddium.should_receive(:say).with(Tddium::Text::Error::GIT_NOT_INITIALIZED)
         run(tddium)
       end
     end
@@ -461,6 +461,11 @@ describe Tddium do
               run_spec(tddium)
             end
 
+            it "should tell the user '#{Tddium::Text::Process::STARTING_TEST % 3}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::STARTING_TEST % 3)
+              run_spec(tddium)
+            end
+
             it "should send a 'GET' request to '#{Tddium::Api::Path::TEST_EXECUTIONS}'" do
               run_spec(tddium)
               FakeWeb.last_request.method.should == "GET"
@@ -470,13 +475,13 @@ describe Tddium do
             it_should_behave_like "sending the api key"
 
             shared_examples_for("test output summary") do
-              it "should display a link to the report" do
-                tddium.should_receive(:say).with("You can check out the test report details at http://api.tddium.com/1/sessions/7/test_executions/report")
+              it "should show the user a link to the report" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_REPORT % "http://api.tddium.com/1/sessions/7/test_executions/report")
                 run_spec(tddium)
               end
 
-              it "should display the time taken" do
-                tddium.should_receive(:say).with(/^Finished in [\d\.]+ seconds$/)
+              it "should show the user the time taken" do
+                tddium.should_receive(:say).with(/^#{Tddium::Text::Process::FINISHED_TEST % "[\\d\\.]+"}$/)
                 run_spec(tddium)
               end
             end
@@ -488,12 +493,17 @@ describe Tddium do
                 stub_sleep(tddium)
               end
 
-              it "should display '#{Tddium::Text::Process::INTERRUPT}'" do
+              it "should show the user '#{Tddium::Text::Process::INTERRUPT}'" do
                 tddium.should_receive(:say).with(Tddium::Text::Process::INTERRUPT)
                 run_spec(tddium)
               end
 
-              it "should display a summary of all the tests" do
+              it "should show the user '#{Tddium::Text::Process::CHECK_TEST_STATUS}'" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_STATUS)
+                run_spec(tddium)
+              end
+
+              it "should show the user a summary of all the tests" do
                 tddium.should_receive(:say).with("3 examples, 1 failures, 0 errors, 1 pending")
                 run_spec(tddium)
               end
