@@ -119,7 +119,7 @@ describe Tddium do
   def stub_sleep(tddium)
     tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
   end
-
+  
   let(:tddium) { Tddium.new }
 
   shared_examples_for "git repo has not been initialized" do
@@ -163,6 +163,39 @@ describe Tddium do
     it "should include the api key in the headers" do
       run(tddium)
       FakeWeb.last_request[Tddium::Api::KEY_HEADER].should == DEFAULT_API_KEY
+    end
+  end
+
+  shared_examples_for("showing that an error occured") do
+    it "should show that an error occured" do
+      tddium.should_receive(:say).with(/^#{Tddium::Text::Error::API}/)
+      run(tddium)
+    end
+  end
+
+  shared_examples_for("showing the API error") do
+    it "should show the API error" do
+      tddium.should_receive(:say).with(/\{\:suite_name\=\>\[\"has already been taken\"\]\}$/)
+      run(tddium)
+    end
+  end
+
+  shared_examples_for "an unsuccessful api call" do
+    context "Response is successful but API status is not 0" do
+      before { stub_http_response(method, path, :response => fixture_path("post_suites_201_json_status_1.json")) }
+      it_should_behave_like("showing that an error occured")
+      it_should_behave_like("showing the API error")
+    end
+
+    context "Response is unsuccessful" do
+      before { stub_http_response(method, path, :response => fixture_path("post_suites_409.json")) }
+      it_should_behave_like("showing that an error occured")
+      it_should_behave_like("showing the API error")
+
+      it "should show the HTTP error message" do
+        tddium.should_receive(:say).with(/Conflict/)
+        run(tddium)
+      end
     end
   end
 
@@ -313,48 +346,9 @@ describe Tddium do
         end
       end
 
-      context "API response successful but JSON status not 0" do
-        before do
-          stub_http_response(:post, Tddium::Api::Path::SUITES, :response => fixture_path("post_suites_201_json_status_1.json"))
-        end
-
-        it "should do show the explaination" do
-          tddium.should_receive(:say).with("An error occured: {:suite_name=>[\"has already been taken\"]}")
-          run_suite(tddium)
-        end
-      end
-
-      context "API response unsuccessful" do
-        before do
-          stub_http_response(:post, Tddium::Api::Path::SUITES, :status => ["501", "Internal Server Error"])
-        end
-
-        it "should show that there was an error" do
-          tddium.should_receive(:say).with(/^An error occured: /)
-          run_suite(tddium)
-        end
-
-        context "API status code != 0" do
-          before do
-            stub_http_response(:post, Tddium::Api::Path::SUITES, :response => fixture_path("post_suites_409.json"))
-          end
-
-          it "should show the error message" do
-            tddium.should_receive(:say).with(/Conflict \{\:suite_name\=\>\[\"has already been taken\"\]\}$/)
-            run_suite(tddium)
-          end
-        end
-
-        context "501 Error" do
-          before do
-            stub_http_response(:post, Tddium::Api::Path::SUITES, :status => ["501", "Internal Server Error"])
-          end
-
-          it "should show the HTTP error message" do
-            tddium.should_receive(:say).with(/Internal Server Error$/)
-            run_suite(tddium)
-          end
-        end
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { Tddium::Api::Path::SUITES }
+        let(:method) { :post }
       end
     end
     context "suite has already been registered" do
@@ -367,6 +361,11 @@ describe Tddium do
         run_suite(tddium)
         FakeWeb.last_request.method.should == "PUT"
         FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITE}\/#{DEFAULT_SUITE_ID}$/
+      end
+
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}" }
+        let(:method) { :put }
       end
     end
   end
@@ -539,11 +538,30 @@ describe Tddium do
               end
 
               it_should_behave_like("test output summary")
-
+            end
+            it_should_behave_like "an unsuccessful api call" do
+              let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}" }
+              let(:method) { :get }
             end
           end
+          it_should_behave_like "an unsuccessful api call" do
+            let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}" }
+            let(:method) { :post }
+          end
+        end
+        it_should_behave_like "an unsuccessful api call" do
+          let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}" }
+          let(:method) { :post }
         end
       end
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { Tddium::Api::Path::SESSIONS }
+        let(:method) { :post }
+      end
+    end
+    it_should_behave_like "an unsuccessful api call" do
+      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+      let(:method) { :get }
     end
   end
 end

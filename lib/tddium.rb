@@ -160,10 +160,10 @@ class Tddium < Thor
       if response["status"] == 0
         yield response
       else
-        message = "An error occured: #{response["explanation"]}"
+        message = Text::Error::API + response["explanation"].to_s
       end
     else
-      message = "An error occured: #{http.response.header.msg}"
+      message = Text::Error::API + http.response.header.msg.to_s
       message << " #{response["explanation"]}" if response["status"].to_i > 0
     end
     say message if message
