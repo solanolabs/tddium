@@ -124,8 +124,35 @@ describe Tddium do
   def stub_sleep(tddium)
     tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
   end
-  
+
   let(:tddium) { Tddium.new }
+
+  shared_examples_for "set the default environment" do
+    context "with environment parameter" do
+      it "should should set the environment as the parameter of environment" do
+        run(tddium, :environment => "test")
+        tddium.environment.should == "test"
+      end
+    end
+
+    context "without environment parameter" do
+      before do
+        FileUtils.rm_rf(".tddium")
+        FileUtils.rm_rf(".tddium.development")
+      end
+
+      it "should should set the environment as production if the file '.tddium.development' does not exist" do
+        run(tddium, :environment => nil)
+        tddium.environment.should == "production"
+      end
+
+      it "should should set the environment as development if the file '.tddium.development' exists" do
+        create_file(".tddium.development")
+        run(tddium, :environment => nil)
+        tddium.environment.should == "development"
+      end
+    end
+  end
 
   shared_examples_for "git repo has not been initialized" do
     context "git repo has not been initialized" do
@@ -184,7 +211,7 @@ describe Tddium do
     end
   end
 
-  shared_examples_for("showing that an error occured") do
+  shared_examples_for "showing that an error occured" do
     it "should show that an error occured" do
       tddium.should_receive(:say).with(/^#{Tddium::Text::Error::API}/)
       run(tddium)
@@ -280,10 +307,11 @@ describe Tddium do
       end
     end
 
+    it_should_behave_like "set the default environment"
     it_should_behave_like "sending the api key"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
-    
+
     context "suite has not yet been registered" do
       it "should ask for a suite name" do
         stub_default_suite_name(tddium)
@@ -377,6 +405,7 @@ describe Tddium do
         let(:method) { :post }
       end
     end
+
     context "suite has already been registered" do
       before do
         stub_config_file(true)
@@ -404,6 +433,7 @@ describe Tddium do
       stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
     end
 
+    it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
@@ -571,26 +601,31 @@ describe Tddium do
 
               it_should_behave_like("test output summary")
             end
+
             it_should_behave_like "an unsuccessful api call" do
               let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}" }
               let(:method) { :get }
             end
           end
+
           it_should_behave_like "an unsuccessful api call" do
             let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}" }
             let(:method) { :post }
           end
         end
+
         it_should_behave_like "an unsuccessful api call" do
           let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}" }
           let(:method) { :post }
         end
       end
+
       it_should_behave_like "an unsuccessful api call" do
         let(:path) { Tddium::Api::Path::SESSIONS }
         let(:method) { :post }
       end
     end
+
     it_should_behave_like "an unsuccessful api call" do
       let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
       let(:method) { :get }
@@ -601,16 +636,15 @@ describe Tddium do
     before do
       stub_defaults
     end
-    
+
+    it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
     it_should_behave_like "getting the current suite from the API"
 
     it "should show the user " do
-      
+
     end
-
   end
-
 end

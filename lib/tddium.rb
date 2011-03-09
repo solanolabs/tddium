@@ -35,9 +35,9 @@ class Tddium < Thor
   method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
-  method_option :environment, :type => :string, :default => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => nil
   def suite
-    self.environment = options[:environment]
+    set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings
 
     # Inputs for API call
@@ -79,9 +79,9 @@ class Tddium < Thor
   end
 
   desc "spec", "Run the test suite"
-  method_options :environment => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => nil
   def spec
-    self.environment = options[:environment]
+    set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     start_time = Time.now
@@ -151,9 +151,9 @@ class Tddium < Thor
   end
 
   desc "status", "Display information about this suite, and any open dev sessions"
-  method_options :environment => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => nil
   def status
-    self.environment = options[:environment]
+    set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     call_api(:get, current_suite_path) do |api_response|
@@ -261,5 +261,14 @@ class Tddium < Thor
       say message
     end
     message.nil?
+  end
+
+  def set_default_environment(env)
+    if env.nil?
+      self.environment = "development"
+      self.environment = "production" unless File.exists?(tddium_file_name)
+    else
+      self.environment = env
+    end
   end
 end
