@@ -635,6 +635,8 @@ describe Tddium do
   describe "#status" do
     before do
       stub_defaults
+      stub_config_file(true)
+      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
     end
 
     it_should_behave_like "set the default environment"
@@ -643,8 +645,50 @@ describe Tddium do
     it_should_behave_like "suite has not been initialized"
     it_should_behave_like "getting the current suite from the API"
 
-    it "should show the user " do
+    context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
+      it "should show the user the suite name" do
+        tddium.should_receive(:say).with("Suite name: tddium/demo")
+        run_status(tddium)
+      end
 
+      it "should show the user the ssh key" do
+        tddium.should_receive(:say).with("Ssh key: ssh-rsa AAAABb/wVQ== someone@gmail.com\n")
+        run_status(tddium)
+      end
+
+      it "should show the user the test pattern" do
+        tddium.should_receive(:say).with("Test pattern: **/*_spec.rb")
+        run_status(tddium)
+      end
+
+      it "should show the user the ruby version" do
+        tddium.should_receive(:say).with("Ruby version: 1.8.7")
+        run_status(tddium)
+      end
+
+      it "should not show the user the created at timestamp" do
+        tddium.should_not_receive(:say).with(/Created at/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the updated at timestamp" do
+        tddium.should_not_receive(:say).with(/Updated at/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the user id" do
+        tddium.should_not_receive(:say).with(/User id/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the suite id" do
+        tddium.should_not_receive(:say).with(/id/)
+        run_status(tddium)
+      end
+    end
+    it_should_behave_like "an unsuccessful api call" do
+      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+      let(:method) { :get }
     end
   end
 end

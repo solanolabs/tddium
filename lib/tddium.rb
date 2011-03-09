@@ -157,8 +157,9 @@ class Tddium < Thor
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     call_api(:get, current_suite_path) do |api_response|
+      hidden_settings = %w{id user_id updated_at created_at}
       api_response["suite"].each do |suite_setting, value|
-        say("#{suite_setting.gsub("_", " ").capitalize}: #{value}")
+        say("#{suite_setting.gsub("_", " ").capitalize}: #{value}") unless hidden_settings.include?(suite_setting)
       end
     end
   end
