@@ -250,7 +250,7 @@ class Tddium < Thor
   def tddium_config
    unless @tddium_config
      @tddium_config = YAML.load(
-       File.read(File.join(File.dirname(__FILE__), "config", "environment.yml"))
+       File.read(File.join(File.dirname(__FILE__), "..", "config", "environment.yml"))
      )[environment]
    end
    @tddium_config
