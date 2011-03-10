@@ -31,13 +31,13 @@ class Tddium < Thor
 
   attr_accessor :environment
 
-  desc "suite", "Register the suite for this rails app, or manage its settings"
+  desc "suite", "Register the suite for this project, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
-  method_option :environment, :type => :string, :default => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => nil
   def suite
-    self.environment = options[:environment]
+    set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings
 
     # Inputs for API call
@@ -79,19 +79,18 @@ class Tddium < Thor
   end
 
   desc "spec", "Run the test suite"
-  method_options :environment => Default::ENVIRONMENT
+  method_option :environment, :type => :string, :default => nil
   def spec
-    self.environment = options[:environment]
-    return unless git_repo? && tddium_settings
+    set_default_environment(options[:environment])
+    return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     start_time = Time.now
-    suite_id = current_suite_id
 
     # Push the latest code to git
     git_push
 
     # Call the API to get the suite and its tests
-    call_api(:get, "#{Api::Path::SUITES}/#{suite_id}") do |api_response|
+    call_api(:get, current_suite_path) do |api_response|
       test_pattern = api_response["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
@@ -100,7 +99,7 @@ class Tddium < Thor
         session_id = api_response["session"]["id"]
 
         # Call the API to register the tests
-        call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => suite_id, :tests => test_files}) do |api_response|
+        call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files}) do |api_response|
           # Start the tests
           call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}") do |api_response|
             tests_not_finished_yet = true
@@ -108,6 +107,7 @@ class Tddium < Thor
             test_statuses = Hash.new(0)
             api_call_successful = true
 
+            say Text::Process::STARTING_TEST % test_files.size
             say Text::Process::TERMINATE_INSTRUCTION
             while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
@@ -115,6 +115,7 @@ class Tddium < Thor
                 # Catch Ctrl-C to interrupt the test
                 Signal.trap(:INT) do
                   say Text::Process::INTERRUPT
+                  say Text::Process::CHECK_TEST_STATUS
                   tests_not_finished_yet = false
                 end
 
@@ -140,11 +141,25 @@ class Tddium < Thor
             end
 
             # Print out the result
-            say "Finished in #{Time.now - start_time} seconds"
+            say Text::Process::FINISHED_TEST % (Time.now - start_time)
             say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-            say "You can check out the test report details at #{api_response["report"]}"
+            say Text::Process::CHECK_TEST_REPORT % api_response["report"]
           end
         end
+      end
+    end
+  end
+
+  desc "status", "Display information about this suite, and any open dev sessions"
+  method_option :environment, :type => :string, :default => nil
+  def status
+    set_default_environment(options[:environment])
+    return unless git_repo? && tddium_settings && suite_for_current_branch?
+
+    call_api(:get, current_suite_path) do |api_response|
+      hidden_settings = %w{id user_id updated_at created_at}
+      api_response["suite"].each do |suite_setting, value|
+        say("#{suite_setting.gsub("_", " ").capitalize}: #{value}") unless hidden_settings.include?(suite_setting)
       end
     end
   end
@@ -160,10 +175,10 @@ class Tddium < Thor
       if response["status"] == 0
         yield response
       else
-        message = "An error occured: #{response["explanation"]}"
+        message = Text::Error::API + response["explanation"].to_s
       end
     else
-      message = "An error occured: #{http.response.header.msg}"
+      message = Text::Error::API + http.response.header.msg.to_s
       message << " #{response["explanation"]}" if response["status"].to_i > 0
     end
     say message if message
@@ -198,6 +213,18 @@ class Tddium < Thor
 
   def current_suite_id
     tddium_settings["branches"][current_git_branch] if tddium_settings["branches"]
+  end
+
+  def current_suite_path
+    "#{Api::Path::SUITES}/#{current_suite_id}"
+  end
+
+  def suite_for_current_branch?
+    unless current_suite_id
+      message = Text::Error::NO_SUITE_EXISTS % current_git_branch
+      say message
+    end
+    message.nil?
   end
 
   def tddium_file_name
@@ -235,5 +262,14 @@ class Tddium < Thor
       say message
     end
     message.nil?
+  end
+
+  def set_default_environment(env)
+    if env.nil?
+      self.environment = "development"
+      self.environment = "production" unless File.exists?(tddium_file_name)
+    else
+      self.environment = env
+    end
   end
 end

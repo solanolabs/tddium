@@ -23,6 +23,11 @@ describe Tddium do
     tddium.spec
   end
 
+  def run_status(tddium, options = {:environment => "test"})
+    stub_cli_options(tddium, options)
+    tddium.status
+  end
+
   def stub_cli_options(tddium, options = {})
     tddium.stub(:options).and_return(options)
   end
@@ -107,8 +112,8 @@ describe Tddium do
     create_file(".git/something", "something")
   end
 
-  def stub_config_file(without_branches = true)
-    branch_params = without_branches ? {} : {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}}
+  def stub_config_file(with_branches = false)
+    branch_params = with_branches ? {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}} : {}
     create_file(".tddium.test", branch_params.merge(:api_key => DEFAULT_API_KEY).to_json)
   end
 
@@ -122,6 +127,33 @@ describe Tddium do
 
   let(:tddium) { Tddium.new }
 
+  shared_examples_for "set the default environment" do
+    context "with environment parameter" do
+      it "should should set the environment as the parameter of environment" do
+        run(tddium, :environment => "test")
+        tddium.environment.should == "test"
+      end
+    end
+
+    context "without environment parameter" do
+      before do
+        FileUtils.rm_rf(".tddium")
+        FileUtils.rm_rf(".tddium.development")
+      end
+
+      it "should should set the environment as production if the file '.tddium.development' does not exist" do
+        run(tddium, :environment => nil)
+        tddium.environment.should == "production"
+      end
+
+      it "should should set the environment as development if the file '.tddium.development' exists" do
+        create_file(".tddium.development")
+        run(tddium, :environment => nil)
+        tddium.environment.should == "development"
+      end
+    end
+  end
+
   shared_examples_for "git repo has not been initialized" do
     context "git repo has not been initialized" do
       before do
@@ -129,7 +161,7 @@ describe Tddium do
       end
 
       it "should return git is uninitialized" do
-        tddium.should_receive(:say).with("git repo must be initialized. Try 'git init'.")
+        tddium.should_receive(:say).with(Tddium::Text::Error::GIT_NOT_INITIALIZED)
         run(tddium)
       end
     end
@@ -159,10 +191,64 @@ describe Tddium do
     end
   end
 
+  shared_examples_for "suite has not been initialized" do
+    context ".tddium.test file is missing" do
+      before do
+        stub_config_file
+      end
+
+      it "should tell the user '#{Tddium::Text::Error::NO_SUITE_EXISTS % DEFAULT_BRANCH_NAME}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::NO_SUITE_EXISTS % DEFAULT_BRANCH_NAME)
+        run(tddium)
+      end
+    end
+  end
+
   shared_examples_for "sending the api key" do
     it "should include the api key in the headers" do
       run(tddium)
       FakeWeb.last_request[Tddium::Api::KEY_HEADER].should == DEFAULT_API_KEY
+    end
+  end
+
+  shared_examples_for "showing that an error occured" do
+    it "should show that an error occured" do
+      tddium.should_receive(:say).with(/^#{Tddium::Text::Error::API}/)
+      run(tddium)
+    end
+  end
+
+  shared_examples_for("showing the API error") do
+    it "should show the API error" do
+      tddium.should_receive(:say).with(/\{\:suite_name\=\>\[\"has already been taken\"\]\}$/)
+      run(tddium)
+    end
+  end
+
+  shared_examples_for "an unsuccessful api call" do
+    context "Response is successful but API status is not 0" do
+      before { stub_http_response(method, path, :response => fixture_path("post_suites_201_json_status_1.json")) }
+      it_should_behave_like("showing that an error occured")
+      it_should_behave_like("showing the API error")
+    end
+
+    context "Response is unsuccessful" do
+      before { stub_http_response(method, path, :response => fixture_path("post_suites_409.json")) }
+      it_should_behave_like("showing that an error occured")
+      it_should_behave_like("showing the API error")
+
+      it "should show the HTTP error message" do
+        tddium.should_receive(:say).with(/Conflict/)
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for "getting the current suite from the API" do
+    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+      run(tddium)
+      FakeWeb.last_request.method.should == "GET"
+      FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
     end
   end
 
@@ -221,10 +307,11 @@ describe Tddium do
       end
     end
 
+    it_should_behave_like "set the default environment"
     it_should_behave_like "sending the api key"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
-    
+
     context "suite has not yet been registered" do
       it "should ask for a suite name" do
         stub_default_suite_name(tddium)
@@ -313,53 +400,15 @@ describe Tddium do
         end
       end
 
-      context "API response successful but JSON status not 0" do
-        before do
-          stub_http_response(:post, Tddium::Api::Path::SUITES, :response => fixture_path("post_suites_201_json_status_1.json"))
-        end
-
-        it "should do show the explaination" do
-          tddium.should_receive(:say).with("An error occured: {:suite_name=>[\"has already been taken\"]}")
-          run_suite(tddium)
-        end
-      end
-
-      context "API response unsuccessful" do
-        before do
-          stub_http_response(:post, Tddium::Api::Path::SUITES, :status => ["501", "Internal Server Error"])
-        end
-
-        it "should show that there was an error" do
-          tddium.should_receive(:say).with(/^An error occured: /)
-          run_suite(tddium)
-        end
-
-        context "API status code != 0" do
-          before do
-            stub_http_response(:post, Tddium::Api::Path::SUITES, :response => fixture_path("post_suites_409.json"))
-          end
-
-          it "should show the error message" do
-            tddium.should_receive(:say).with(/Conflict \{\:suite_name\=\>\[\"has already been taken\"\]\}$/)
-            run_suite(tddium)
-          end
-        end
-
-        context "501 Error" do
-          before do
-            stub_http_response(:post, Tddium::Api::Path::SUITES, :status => ["501", "Internal Server Error"])
-          end
-
-          it "should show the HTTP error message" do
-            tddium.should_receive(:say).with(/Internal Server Error$/)
-            run_suite(tddium)
-          end
-        end
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { Tddium::Api::Path::SUITES }
+        let(:method) { :post }
       end
     end
+
     context "suite has already been registered" do
       before do
-        stub_config_file(false)
+        stub_config_file(true)
         stub_http_response(:put, "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}")
       end
 
@@ -368,31 +417,33 @@ describe Tddium do
         FakeWeb.last_request.method.should == "PUT"
         FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITE}\/#{DEFAULT_SUITE_ID}$/
       end
+
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}" }
+        let(:method) { :put }
+      end
     end
   end
 
   describe "#spec" do
     before do
       stub_defaults
-      stub_config_file(false)
+      stub_config_file(true)
       stub_git_push(tddium)
       stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
     end
 
+    it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like "suite has not been initialized"
 
     it "should push the latest code to tddium" do
       tddium.should_receive(:`).with("git push #{Tddium::Git::REMOTE_NAME} #{DEFAULT_BRANCH_NAME}")
       run_spec(tddium)
     end
 
-    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
-      run_spec(tddium)
-      FakeWeb.last_request.method.should == "GET"
-      FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
-    end
-
+    it_should_behave_like "getting the current suite from the API"
     it_should_behave_like "sending the api key"
 
     context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
@@ -462,6 +513,11 @@ describe Tddium do
               run_spec(tddium)
             end
 
+            it "should tell the user '#{Tddium::Text::Process::STARTING_TEST % 3}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::STARTING_TEST % 3)
+              run_spec(tddium)
+            end
+
             it "should send a 'GET' request to '#{Tddium::Api::Path::TEST_EXECUTIONS}'" do
               run_spec(tddium)
               FakeWeb.last_request.method.should == "GET"
@@ -471,13 +527,13 @@ describe Tddium do
             it_should_behave_like "sending the api key"
 
             shared_examples_for("test output summary") do
-              it "should display a link to the report" do
-                tddium.should_receive(:say).with("You can check out the test report details at http://api.tddium.com/1/sessions/7/test_executions/report")
+              it "should show the user a link to the report" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_REPORT % "http://api.tddium.com/1/sessions/7/test_executions/report")
                 run_spec(tddium)
               end
 
-              it "should display the time taken" do
-                tddium.should_receive(:say).with(/^Finished in [\d\.]+ seconds$/)
+              it "should show the user the time taken" do
+                tddium.should_receive(:say).with(/^#{Tddium::Text::Process::FINISHED_TEST % "[\\d\\.]+"}$/)
                 run_spec(tddium)
               end
             end
@@ -489,12 +545,17 @@ describe Tddium do
                 stub_sleep(tddium)
               end
 
-              it "should display '#{Tddium::Text::Process::INTERRUPT}'" do
+              it "should show the user '#{Tddium::Text::Process::INTERRUPT}'" do
                 tddium.should_receive(:say).with(Tddium::Text::Process::INTERRUPT)
                 run_spec(tddium)
               end
 
-              it "should display a summary of all the tests" do
+              it "should show the user '#{Tddium::Text::Process::CHECK_TEST_STATUS}'" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_STATUS)
+                run_spec(tddium)
+              end
+
+              it "should show the user a summary of all the tests" do
                 tddium.should_receive(:say).with("3 examples, 1 failures, 0 errors, 1 pending")
                 run_spec(tddium)
               end
@@ -539,11 +600,95 @@ describe Tddium do
               end
 
               it_should_behave_like("test output summary")
+            end
 
+            it_should_behave_like "an unsuccessful api call" do
+              let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}" }
+              let(:method) { :get }
             end
           end
+
+          it_should_behave_like "an unsuccessful api call" do
+            let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}" }
+            let(:method) { :post }
+          end
+        end
+
+        it_should_behave_like "an unsuccessful api call" do
+          let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}" }
+          let(:method) { :post }
         end
       end
+
+      it_should_behave_like "an unsuccessful api call" do
+        let(:path) { Tddium::Api::Path::SESSIONS }
+        let(:method) { :post }
+      end
+    end
+
+    it_should_behave_like "an unsuccessful api call" do
+      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+      let(:method) { :get }
+    end
+  end
+
+  describe "#status" do
+    before do
+      stub_defaults
+      stub_config_file(true)
+      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
+    end
+
+    it_should_behave_like "set the default environment"
+    it_should_behave_like "git repo has not been initialized"
+    it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like "suite has not been initialized"
+    it_should_behave_like "getting the current suite from the API"
+
+    context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
+      it "should show the user the suite name" do
+        tddium.should_receive(:say).with("Suite name: tddium/demo")
+        run_status(tddium)
+      end
+
+      it "should show the user the ssh key" do
+        tddium.should_receive(:say).with("Ssh key: ssh-rsa AAAABb/wVQ== someone@gmail.com\n")
+        run_status(tddium)
+      end
+
+      it "should show the user the test pattern" do
+        tddium.should_receive(:say).with("Test pattern: **/*_spec.rb")
+        run_status(tddium)
+      end
+
+      it "should show the user the ruby version" do
+        tddium.should_receive(:say).with("Ruby version: 1.8.7")
+        run_status(tddium)
+      end
+
+      it "should not show the user the created at timestamp" do
+        tddium.should_not_receive(:say).with(/Created at/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the updated at timestamp" do
+        tddium.should_not_receive(:say).with(/Updated at/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the user id" do
+        tddium.should_not_receive(:say).with(/User id/)
+        run_status(tddium)
+      end
+
+      it "should not show the user the suite id" do
+        tddium.should_not_receive(:say).with(/id/)
+        run_status(tddium)
+      end
+    end
+    it_should_behave_like "an unsuccessful api call" do
+      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+      let(:method) { :get }
     end
   end
 end
