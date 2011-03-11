@@ -266,12 +266,12 @@ describe Tddium do
     end
 
     it "should ask the user for their ssh key" do
-      tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY)
+      tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
       run_suite(tddium)
     end
 
     it "should ask for a test file pattern" do
-      tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN)
+      tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
       run_suite(tddium)
     end
 
@@ -299,8 +299,8 @@ describe Tddium do
     context "interactive mode" do
       before do
         ssh_key_file = "~/.ssh/foo.txt"
-        tddium.stub(:ask).with(Tddium::Text::Prompt::SSH_KEY).and_return(ssh_key_file)
-        tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN).and_return("**/*_selenium.rb")
+        tddium.stub(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE).and_return(ssh_key_file)
+        tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_selenium.rb")
         create_file(ssh_key_file, "ssh-rsa 65431")
       end
 
@@ -412,18 +412,41 @@ describe Tddium do
     context "suite has already been registered" do
       before do
         stub_config_file(true)
-        stub_http_response(:put, "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}")
       end
 
-      it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}'" do
-        run_suite(tddium)
-        FakeWeb.last_request.method.should == "PUT"
-        FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITE}\/#{DEFAULT_SUITE_ID}$/
+      context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
+        before do
+          stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
+          stub_http_response(:put, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
+        end
+
+        it "should not ask for a suite name" do
+          stub_default_suite_name(tddium)
+          tddium.should_not_receive(:ask).with(suite_name_prompt)
+          run_suite(tddium)
+        end
+
+        it "should look for the current ruby version" do
+          tddium.should_not_receive(:`).with("ruby -v")
+          run_suite(tddium)
+        end
+
+        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+          run_suite(tddium)
+          FakeWeb.last_request.method.should == "PUT"
+          FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
+        end
+
+        it_should_behave_like "sending the api key"
+        it_should_behave_like "an unsuccessful api call" do
+          let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+          let(:method) { :put }
+        end
       end
 
       it_should_behave_like "an unsuccessful api call" do
-        let(:path) { "#{Tddium::Api::Path::SUITE}/#{DEFAULT_SUITE_ID}" }
-        let(:method) { :put }
+        let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+        let(:method) { :get }
       end
     end
   end
@@ -689,6 +712,7 @@ describe Tddium do
         run_status(tddium)
       end
     end
+
     it_should_behave_like "an unsuccessful api call" do
       let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
       let(:method) { :get }

@@ -18,7 +18,6 @@ module TddiumConstant
     KEY_HEADER = "X-tddium-api-key"
 
     module Path
-      SUITE = "suite"
       SUITES = "suites"
       SESSIONS = "sessions"
       TEST_EXECUTIONS = "test_executions"
@@ -30,8 +29,8 @@ module TddiumConstant
 
   module Text
     module Prompt
-      SSH_KEY = "Enter your ssh key or press 'Return'. Using '#{Default::SSH_FILE}' by default:"
-      TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '#{Default::TEST_PATTERN}' by default:"
+      SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
+      TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
     end
 
@@ -42,6 +41,7 @@ module TddiumConstant
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
+      UPDATE_SUITE = "The suite has been updated successfully"
     end
 
     module Error

@@ -40,27 +40,41 @@ class Tddium < Thor
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings
 
-    # Inputs for API call
     params = {}
+    if current_suite_id
+      call_api(:get, current_suite_path) do |api_response|
+        # Get current values and prompt for updates
+        current_ssh_key = api_response["suite"]["ssh_key"]
+        ssh_file = options[:ssh_key] || ask(Text::Prompt::SSH_KEY % current_ssh_key[0, 30])
+        if ssh_file.empty?
+          params[:ssh_key] = current_ssh_key
+        else
+          params[:ssh_key] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+        end
 
-    ssh_file = options[:ssh_key] || ask(Text::Prompt::SSH_KEY)
-    ssh_file = Default::SSH_FILE if ssh_file.empty?
-    params[:ssh_key] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+        current_test_pattern = api_response["suite"]["test_pattern"]
+        test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN % current_test_pattern)
+        params[:test_pattern] = test_pattern.empty? ? current_test_pattern : test_pattern
 
-    test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN)
-    params[:test_pattern] = test_pattern.empty? ? Default::TEST_PATTERN : test_pattern
+        # Update the current suite if it exists already
+        call_api(:put, current_suite_path, {:suite => params}) do |api_response|
+          say Text::Process::UPDATE_SUITE
+        end
+      end
+    else
+      # Inputs for new suite
+      ssh_file = options[:ssh_key] || ask(Text::Prompt::SSH_KEY % Default::SSH_FILE)
+      ssh_file = Default::SSH_FILE if ssh_file.empty?
+      params[:ssh_key] = File.open(File.expand_path(ssh_file)) {|file| file.read}
 
-    if current_suite_id.nil?
+      test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN % Default::TEST_PATTERN)
+      params[:test_pattern] = test_pattern.empty? ? Default::TEST_PATTERN : test_pattern
+
       default_suite_name = "#{File.basename(Dir.pwd)}/#{current_git_branch}"
       suite_name = options[:name] || ask(Text::Prompt::SUITE_NAME % default_suite_name)
       params[:suite_name] = suite_name.empty? ? default_suite_name : suite_name
       params[:ruby_version] = `ruby -v`.match(/^ruby ([\d\.]+)/)[1]
-    end
 
-    if current_suite_id
-      # Update the current suite if it exists already
-      call_api(:put, "#{Api::Path::SUITE}/#{current_suite_id}", {:suite => params})
-    else
       # Create new suite if it does not exist yet
       call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
         # Manage git
