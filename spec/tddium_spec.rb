@@ -9,7 +9,7 @@ describe Tddium do
 
   DEFAULT_APP_NAME = "tddelicious"
   DEFAULT_BRANCH_NAME = "test"
-  DEFAULT_SUITE_ID = "66"
+  DEFAULT_SUITE_ID = 66
   DEFAULT_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
 
   def run(tddium, options = {:environment => "test"})
@@ -507,7 +507,7 @@ describe Tddium do
         it "should POST the names of the file names extracted from the suite's test_pattern" do
           run_spec(tddium)
           request_params = parse_request_params
-          request_params.should include({"suite_id" => DEFAULT_SUITE_ID})
+          request_params.should include({"suite_id" => DEFAULT_SUITE_ID.to_s})
           request_params["tests"][0]["test_name"].should =~ /spec\/cat_spec.rb$/
           request_params["tests"][1]["test_name"].should =~ /spec\/dog_spec.rb$/
           request_params["tests"][2]["test_name"].should =~ /spec\/mouse_spec.rb$/
@@ -662,33 +662,34 @@ describe Tddium do
     before do
       stub_defaults
       stub_config_file(true)
-      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
+      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}", :response => fixture_path("get_suites_list_200.json"))
+      stub_http_response(:get, "#{Tddium::Api::Path::SESSIONS}", :response => fixture_path("get_sessions_list_200.json"))
     end
 
     it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
-    it_should_behave_like "getting the current suite from the API"
+#    it_should_behave_like "getting the current suite from the API"
 
-    context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
+    context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
       it "should show the user the suite name" do
-        tddium.should_receive(:say).with("Suite name: tddium/demo")
+        tddium.should_receive(:say).with("  Suite name: tddium/demo")
         run_status(tddium)
       end
 
       it "should show the user the ssh key" do
-        tddium.should_receive(:say).with("Ssh key: ssh-rsa AAAABb/wVQ== someone@gmail.com\n")
+        tddium.should_receive(:say).with("  Ssh key: ssh-rsa AAAABb/wVQ== someone@gmail.com\n")
         run_status(tddium)
       end
 
       it "should show the user the test pattern" do
-        tddium.should_receive(:say).with("Test pattern: **/*_spec.rb")
+        tddium.should_receive(:say).with("  Test pattern: **/*_spec.rb")
         run_status(tddium)
       end
 
       it "should show the user the ruby version" do
-        tddium.should_receive(:say).with("Ruby version: 1.8.7")
+        tddium.should_receive(:say).with("  Ruby version: 1.8.7")
         run_status(tddium)
       end
 
@@ -714,7 +715,7 @@ describe Tddium do
     end
 
     it_should_behave_like "an unsuccessful api call" do
-      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
+      let(:path) { "#{Tddium::Api::Path::SUITES}" }
       let(:method) { :get }
     end
   end

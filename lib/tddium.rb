@@ -170,11 +170,57 @@ class Tddium < Thor
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
-    call_api(:get, current_suite_path) do |api_response|
-      hidden_settings = %w{id user_id updated_at created_at}
-      api_response["suite"].each do |suite_setting, value|
-        say("#{suite_setting.gsub("_", " ").capitalize}: #{value}") unless hidden_settings.include?(suite_setting)
+    call_api(:get, Api::Path::SUITES) do |api_response|
+      if api_response["suites"].size == 0
+        say "You currently do not have any suite"
+      else
+        say "Your suites: #{api_response["suites"].collect {|suite| suite["suite_name"]}.join(", ")}"
+
+        if current_suite = api_response["suites"].detect {|suite| suite["id"] == current_suite_id}
+          say "====="
+          say "Your current suite: #{current_suite["suite_name"]}}"
+
+          displayed_attributes = %w{suite_name ssh_key test_pattern ruby_version}
+          displayed_attributes.each do |attr|
+            say("  #{attr.gsub("_", " ").capitalize}: #{current_suite[attr]}") if current_suite[attr]
+          end
+
+          call_api(:get, Api::Path::SESSIONS, {:active => true}) do |api_response|
+            say "====="
+            if api_response["sessions"].size == 0
+              say "There is no active session"
+            else
+              say "Your active sessions:"
+              api_response["sessions"].each do |session|
+                say("  Session #{session["id"]}:")
+                displayed_attributes = %w{start_time end_time suite result}
+                displayed_attributes.each do |attr|
+                  say("    #{attr.gsub("_", " ").capitalize}: #{session[attr]}") if session[attr]
+                end
+              end
+            end
+          end
+
+          call_api(:get, Api::Path::SESSIONS, {:active => false, :order => "date", :limit => 10}) do |api_response|
+            say "====="
+            if api_response["sessions"].size == 0
+              say "There is no session"
+            else
+              say "Your latest sessions:"
+              api_response["sessions"].each do |session|
+                say("  Session #{session["id"]}:")
+                displayed_attributes = %w{start_time end_time suite result}
+                displayed_attributes.each do |attr|
+                  say("    #{attr.gsub("_", " ").capitalize}: #{session[attr]}") if session[attr]
+                end
+              end
+            end
+          end
+        else
+          say "Your current suite is unavailable"
+        end
       end
+
     end
   end
 
