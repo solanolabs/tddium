@@ -1,3 +1,7 @@
+=begin
+Copyright (c) 2011 Solano Labs All Rights Reserved
+=end
+
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "tddium/version"

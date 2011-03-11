@@ -1,12 +1,12 @@
 =begin
-Copyright (c) 2010 tddium.com All Rights Reserved
+Copyright (c) 2011 Solano Labs All Rights Reserved
 =end
 
 require "rubygems"
 require "thor"
 require "httparty"
 require "json"
-require "config/constants"
+require "tddium/constant"
 
 #      Usage:
 #

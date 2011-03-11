@@ -1,6 +1,9 @@
+=begin
+Copyright (c) 2011 Solano Labs All Rights Reserved
+=end
+
 require 'spec_helper'
 
-# TODO: Test what happens if an error occurs in the POST and GET requests
 describe Tddium do
   include FakeFS::SpecHelpers
 

@@ -57,6 +57,4 @@ what you use.
 
 == Copyright
 
-Copyright (c) 2010 Jay Moorthi. See LICENSE.txt for
-further details.
-
+Copyright (c) 2011 Solano Labs All Rights Reserved. See LICENSE.txt for further details.

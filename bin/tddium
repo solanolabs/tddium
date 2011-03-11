@@ -1,8 +1,8 @@
-#!/usr/bin/env ruby
-
 =begin
-Copyright (c) 2010 tddium.com All Rights Reserved
+Copyright (c) 2011 Solano Labs All Rights Reserved
 =end
+
+#!/usr/bin/env ruby
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require "tddium"
