@@ -6,7 +6,7 @@ require "rubygems"
 require "thor"
 require "httparty"
 require "json"
-require "tddium/constant"
+require File.expand_path("../tddium/constant", __FILE__)
 
 #      Usage:
 #
