@@ -4,8 +4,8 @@ Copyright (c) 2011 Solano Labs All Rights Reserved
 
 require "rubygems"
 require "thor"
-require "httparty"
 require "json"
+require "tddium_client"
 require File.expand_path("../tddium/constant", __FILE__)
 
 #      Usage:
@@ -28,8 +28,6 @@ require File.expand_path("../tddium/constant", __FILE__)
 
 class Tddium < Thor
   include TddiumConstant
-
-  attr_accessor :environment
 
   desc "suite", "Register the suite for this project, or manage its settings"
   method_option :ssh_key, :type => :string, :default => nil
@@ -119,13 +117,13 @@ class Tddium < Thor
             tests_not_finished_yet = true
             finished_tests = {}
             test_statuses = Hash.new(0)
-            api_call_successful = true
+            api_call_error = nil
 
             say Text::Process::STARTING_TEST % test_files.size
             say Text::Process::TERMINATE_INSTRUCTION
-            while tests_not_finished_yet && api_call_successful do
+            while tests_not_finished_yet && api_call_error.nil? do
               # Poll the API to check the status
-              api_call_successful = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
+              api_call_error = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
                 # Catch Ctrl-C to interrupt the test
                 Signal.trap(:INT) do
                   say Text::Process::INTERRUPT
@@ -226,44 +224,24 @@ class Tddium < Thor
 
   private
 
-  def call_api(method, api_path, params = {}, &block)
-    headers = { Api::KEY_HEADER => tddium_settings(false)["api_key"] } if tddium_settings(false) && tddium_settings(false)["api_key"]
-    http = HTTParty.send(method, tddium_uri(api_path), :body => params, :headers => headers)
-    response = JSON.parse(http.body) rescue {}
-
-    if http.success?
-      if response["status"] == 0
-        yield response
-      else
-        message = Text::Error::API + response["explanation"].to_s
-      end
-    else
-      message = Text::Error::API + http.response.header.msg.to_s
-      message << " #{response["explanation"]}" if response["status"].to_i > 0
-    end
-    say message if message
-    message.nil?
-  end
-
   def git_push
     `git push #{Git::REMOTE_NAME} #{current_git_branch}`
   end
 
-  def tddium_uri(path)
-    uri = URI.parse("")
-    uri.host = tddium_config["api"]["host"]
-    uri.port = tddium_config["api"]["port"]
-    uri.scheme = tddium_config["api"]["scheme"]
-    URI.join(uri.to_s, "#{tddium_config["api"]["version"]}/#{path}").to_s
+  def call_api(method, api_path, params = {}, &block)
+    api_key =  tddium_settings(false)["api_key"] if tddium_settings(false)
+    response = tddium_client.call_api(method, api_path, params, api_key, &block)
+    say response[1] if response
+    response
   end
 
   def tddium_git_repo_uri(suite_name)
     repo_name = suite_name.split("/").first
     git_uri = URI.parse("")
-    git_uri.host = tddium_config["git"]["host"]
-    git_uri.scheme = tddium_config["git"]["scheme"]
-    git_uri.userinfo = tddium_config["git"]["user"]
-    git_uri.path = "#{tddium_config["git"]["absolute_path"]}/#{repo_name}"
+    git_uri.host = Git::HOST
+    git_uri.scheme = Git::SCHEME
+    git_uri.userinfo = "git"
+    git_uri.path = "#{Git::ABSOLUTE_PATH}/#{repo_name}"
     git_uri.to_s
   end
 
@@ -288,7 +266,7 @@ class Tddium < Thor
   end
 
   def tddium_file_name
-    extension = ".#{environment}" unless environment == "production"
+    extension = ".#{environment}" unless environment == :production
     ".tddium#{extension}"
   end
 
@@ -307,15 +285,6 @@ class Tddium < Thor
     @tddium_settings
   end
 
-  def tddium_config
-   unless @tddium_config
-     @tddium_config = YAML.load(
-       File.read(File.join(File.dirname(__FILE__), "..", "config", "environment.yml"))
-     )[environment]
-   end
-   @tddium_config
-  end
-
   def git_repo?
     unless File.exists?(".git")
       message = Text::Error::GIT_NOT_INITIALIZED
@@ -326,10 +295,18 @@ class Tddium < Thor
 
   def set_default_environment(env)
     if env.nil?
-      self.environment = "development"
-      self.environment = "production" unless File.exists?(tddium_file_name)
+      tddium_client.environment = :development
+      tddium_client.environment = :production unless File.exists?(tddium_file_name)
     else
-      self.environment = env
+      tddium_client.environment = env.to_sym
     end
+  end
+
+  def environment
+    tddium_client.environment
+  end
+
+  def tddium_client
+    @tddium_client ||= TddiumClient.new
   end
 end

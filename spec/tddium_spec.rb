@@ -1,11 +1,8 @@
-=begin
-Copyright (c) 2011 Solano Labs All Rights Reserved
-=end
-
 require 'spec_helper'
 
 describe Tddium do
   include FakeFS::SpecHelpers
+  include TddiumSpecHelpers
 
   DEFAULT_APP_NAME = "tddelicious"
   DEFAULT_BRANCH_NAME = "test"
@@ -56,63 +53,18 @@ describe Tddium do
     tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
   end
 
-  def parse_request_params
-    Rack::Utils.parse_nested_query(FakeWeb.last_request.body)
-  end
-
-  def create_file(path, content = "blah")
-    FileUtils.mkdir_p(File.dirname(path))
-    File.open(path, 'w') do |f|
-      f.write(content)
+  def stub_call_api_response(method, path, *response)
+    result = tddium_client.stub(:call_api).with(method, path, anything, anything).and_yield(response.first)
+    response.each_with_index do |current_response, index|
+      result.and_yield(current_response) unless index.zero?
     end
-  end
-
-  def register_uri_options(options = {})
-    if options.is_a?(Array)
-      options_array = []
-      options.each do |sub_options|
-        options_array << register_uri_options(sub_options)
-      end
-      options_array
-    else
-      options_for_fake_web = {:body => options[:body], :status => options[:status]}
-      if options[:response]
-        FakeFS.deactivate!
-        response = File.open(options[:response]) { |f| f.read }
-        FakeFS.activate!
-        options_for_fake_web.merge!(:response => response)
-      end
-      options_for_fake_web
-    end
-  end
-
-  def tddium_config(raw = false, environment = "test")
-   unless @tddium_config
-     FakeFS.deactivate!
-     @tddium_config = File.read(File.join("config", "environment.yml"))
-     FakeFS.activate!
-   end
-   raw ? @tddium_config : YAML.load(@tddium_config)[environment]
-  end
-
-  def stub_tddium_config
-    create_file(File.join("config", "environment.yml"), tddium_config(true))
-  end
-
-  def stub_http_response(method, path, options = {})
-    uri = URI.parse("")
-    uri.host = tddium_config["api"]["host"]
-    uri.scheme = tddium_config["api"]["scheme"]
-    uri.port = tddium_config["api"]["port"]
-    FakeWeb.register_uri(method, URI.join(uri.to_s, "#{tddium_config["api"]["version"]}/#{path}").to_s, register_uri_options(options))
   end
 
   def stub_defaults
-    FakeWeb.clean_registry
     tddium.stub(:say)
-    stub_tddium_config
     stub_git_branch(tddium)
-    create_file(".git/something", "something")
+    stub_tddium_client
+    create_file(File.join(".git", "something"), "something")
   end
 
   def stub_config_file(with_branches = false)
@@ -128,13 +80,29 @@ describe Tddium do
     tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
   end
 
+  def call_api_should_receive(options = {})
+    params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, options[:api_key] || anything]
+    if block_given? && options[:params]
+      yield options[:params]
+    else
+      tddium_client.stub(:call_api).with(*params).and_return("an error")
+    end
+  end
+
+  def stub_tddium_client
+    TddiumClient.stub(:new).and_return(tddium_client)
+    tddium_client.stub(:environment).and_return(:test)
+    tddium_client.stub(:call_api).and_return("an error")
+  end
+
   let(:tddium) { Tddium.new }
+  let(:tddium_client) { mock(TddiumClient).as_null_object }
 
   shared_examples_for "set the default environment" do
     context "with environment parameter" do
       it "should should set the environment as the parameter of environment" do
+        tddium_client.should_receive(:environment=).with(:test)
         run(tddium, :environment => "test")
-        tddium.environment.should == "test"
       end
     end
 
@@ -142,17 +110,19 @@ describe Tddium do
       before do
         FileUtils.rm_rf(".tddium")
         FileUtils.rm_rf(".tddium.development")
+        tddium_client.stub(:environment).and_return(:development)
       end
 
       it "should should set the environment as production if the file '.tddium.development' does not exist" do
+        tddium_client.should_receive(:environment=).with(:production)
         run(tddium, :environment => nil)
-        tddium.environment.should == "production"
       end
 
       it "should should set the environment as development if the file '.tddium.development' exists" do
         create_file(".tddium.development")
+        tddium_client.should_receive(:environment=).with(:development)
+        tddium_client.should_not_receive(:environment=).with(:production)
         run(tddium, :environment => nil)
-        tddium.environment.should == "development"
       end
     end
   end
@@ -208,50 +178,24 @@ describe Tddium do
   end
 
   shared_examples_for "sending the api key" do
-    it "should include the api key in the headers" do
-      run(tddium)
-      FakeWeb.last_request[Tddium::Api::KEY_HEADER].should == DEFAULT_API_KEY
-    end
-  end
-
-  shared_examples_for "showing that an error occured" do
-    it "should show that an error occured" do
-      tddium.should_receive(:say).with(/^#{Tddium::Text::Error::API}/)
-      run(tddium)
-    end
-  end
-
-  shared_examples_for("showing the API error") do
-    it "should show the API error" do
-      tddium.should_receive(:say).with(/\{\:suite_name\=\>\[\"has already been taken\"\]\}$/)
+    it "should call the api with the api key" do
+      call_api_should_receive(:api_key => DEFAULT_API_KEY)
       run(tddium)
     end
   end
 
   shared_examples_for "an unsuccessful api call" do
-    context "Response is successful but API status is not 0" do
-      before { stub_http_response(method, path, :response => fixture_path("post_suites_201_json_status_1.json")) }
-      it_should_behave_like("showing that an error occured")
-      it_should_behave_like("showing the API error")
-    end
-
-    context "Response is unsuccessful" do
-      before { stub_http_response(method, path, :response => fixture_path("post_suites_409.json")) }
-      it_should_behave_like("showing that an error occured")
-      it_should_behave_like("showing the API error")
-
-      it "should show the HTTP error message" do
-        tddium.should_receive(:say).with(/Conflict/)
-        run(tddium)
-      end
+    it "should show the error" do
+      tddium_client.stub(:call_api).and_return(["1", "API error"])
+      tddium.should_receive(:say).with("API error")
+      run(tddium)
     end
   end
 
   shared_examples_for "getting the current suite from the API" do
     it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+      call_api_should_receive(:method => :get, :path => "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
       run(tddium)
-      FakeWeb.last_request.method.should == "GET"
-      FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
     end
   end
 
@@ -260,7 +204,6 @@ describe Tddium do
       stub_defaults
       stub_config_file
       stub_ruby_version(tddium)
-      stub_http_response(:post, Tddium::Api::Path::SUITES)
       tddium.stub(:ask).and_return("")
       create_file("~/.ssh/id_rsa.pub", "ssh-rsa blah")
     end
@@ -276,9 +219,9 @@ describe Tddium do
     end
 
     context "using defaults" do
-      it "should POST the default values to the API" do
+      it "should send the default values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:ssh_key => "ssh-rsa blah", :test_pattern => "**/*_spec.rb")})
         run_suite(tddium)
-        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa blah", "test_pattern" => "**/*_spec.rb")
       end
     end
 
@@ -290,8 +233,8 @@ describe Tddium do
       end
 
       it "should POST the passed in values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:ssh_key => "ssh-rsa 1234", :test_pattern => "**/*_test.rb")})
         run_suite(tddium, cli_args)
-        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa 1234", "test_pattern" => "**/*_test.rb")
       end
 
     end
@@ -305,11 +248,11 @@ describe Tddium do
       end
 
       it "should POST the passed in values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:ssh_key => "ssh-rsa 65431", :test_pattern => "**/*_selenium.rb")})
         run_suite(tddium)
-        parse_request_params["suite"].should include("ssh_key" => "ssh-rsa 65431", "test_pattern" => "**/*_selenium.rb")
       end
     end
-
+    
     it_should_behave_like "set the default environment"
     it_should_behave_like "sending the api key"
     it_should_behave_like "git repo has not been initialized"
@@ -318,21 +261,19 @@ describe Tddium do
     context "suite has not yet been registered" do
       it "should ask for a suite name" do
         stub_default_suite_name(tddium)
-        stub_config_file
         tddium.should_receive(:ask).with(suite_name_prompt)
         run_suite(tddium)
       end
 
       it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
+        call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
         run_suite(tddium)
-        FakeWeb.last_request.method.should == "POST"
-        FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITES}$/
       end
 
       it "should post the current ruby version to the API" do
         stub_ruby_version(tddium, "1.9.2")
+        call_api_should_receive(:params => {:suite => hash_including(:ruby_version => "1.9.2")})
         run_suite(tddium)
-        parse_request_params["suite"].should include("ruby_version" => "1.9.2")
       end
 
       context "using defaults" do
@@ -341,8 +282,8 @@ describe Tddium do
         end
 
         it "should POST the default values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:suite_name => default_suite_name)})
           run_suite(tddium)
-          parse_request_params["suite"].should include("suite_name" => default_suite_name)
         end
       end
 
@@ -350,8 +291,8 @@ describe Tddium do
         let(:cli_args) { { :name => "my_suite_name", :environment => "test" } }
 
         it "should POST the passed in values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:suite_name => "my_suite_name")})
           run_suite(tddium, cli_args)
-          parse_request_params["suite"].should include("suite_name" => "my_suite_name")
         end
       end
 
@@ -362,14 +303,15 @@ describe Tddium do
         end
 
         it "should POST the passed values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:suite_name => "foobar")})
           run_suite(tddium)
-          parse_request_params["suite"].should include("suite_name" => "foobar")
         end
       end
 
       context "API response successful" do
         before do
-          stub_http_response(:post, Tddium::Api::Path::SUITES, :response => fixture_path("post_suites_201.json"))
+          response = {"suite"=>{"id"=>DEFAULT_SUITE_ID}}
+          stub_call_api_response(:post, Tddium::Api::Path::SUITES, response)
           tddium.stub(:`).with(/^git remote/)
           stub_git_push(tddium)
         end
@@ -398,15 +340,12 @@ describe Tddium do
           it "should create '.tddium.test' and write the suite_id and branch name" do
             run_suite(tddium)
             tddium_file = File.open(".tddium.test") { |file| file.read }
-            JSON.parse(tddium_file)["branches"]["oaktree"].should == 19 # From response
+            JSON.parse(tddium_file)["branches"]["oaktree"].should == DEFAULT_SUITE_ID
           end
         end
       end
 
-      it_should_behave_like "an unsuccessful api call" do
-        let(:path) { Tddium::Api::Path::SUITES }
-        let(:method) { :post }
-      end
+      it_should_behave_like "an unsuccessful api call"
     end
 
     context "suite has already been registered" do
@@ -416,8 +355,14 @@ describe Tddium do
 
       context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
         before do
-          stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
-          stub_http_response(:put, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
+          response = {
+            "suite" => {
+              "test_pattern" => "**/*_test.rb",
+              "id" => DEFAULT_SUITE_ID,
+              "ssh_key" => "ssh-rsa AAAABb/wVQ== someone@gmail.com\n",
+            }
+          }
+          stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", response)
         end
 
         it "should not ask for a suite name" do
@@ -426,28 +371,26 @@ describe Tddium do
           run_suite(tddium)
         end
 
-        it "should look for the current ruby version" do
+        it "should not look for the current ruby version" do
           tddium.should_not_receive(:`).with("ruby -v")
           run_suite(tddium)
         end
 
-        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+        it "should prompt for a test pattern using the current test pattern as the default" do
+          tddium.should_receive(:ask).with(/\*\*\/\*\_test\.rb/)
           run_suite(tddium)
-          FakeWeb.last_request.method.should == "PUT"
-          FakeWeb.last_request.path.should =~ /\/#{Tddium::Api::Path::SUITES}\/#{DEFAULT_SUITE_ID}$/
+        end
+
+        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}'" do
+          call_api_should_receive(:method => :put, :path => "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
+          run_suite(tddium)
         end
 
         it_should_behave_like "sending the api key"
-        it_should_behave_like "an unsuccessful api call" do
-          let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
-          let(:method) { :put }
-        end
+        it_should_behave_like "an unsuccessful api call"
       end
 
-      it_should_behave_like "an unsuccessful api call" do
-        let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
-        let(:method) { :get }
-      end
+      it_should_behave_like "an unsuccessful api call"
     end
   end
 
@@ -456,7 +399,6 @@ describe Tddium do
       stub_defaults
       stub_config_file(true)
       stub_git_push(tddium)
-      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}")
     end
 
     it_should_behave_like "set the default environment"
@@ -474,64 +416,63 @@ describe Tddium do
 
     context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
       before do
-        stub_http_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", :response => fixture_path("get_suites_200.json"))
-        stub_http_response(:post, Tddium::Api::Path::SESSIONS)
+        response = {"suite"=>{"test_pattern"=>"**/*_spec.rb", "id"=>DEFAULT_SUITE_ID, "suite_name"=>"tddium/demo", "ssh_key"=>"ssh-rsa AAAABb/wVQ== someone@gmail.com\n", "ruby_version"=>"1.8.7"}, "status"=>0}
+        stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", response)
         create_file("spec/mouse_spec.rb")
         create_file("spec/cat_spec.rb")
         create_file("spec/dog_spec.rb")
       end
 
       it "should send a 'POST' request to '#{Tddium::Api::Path::SESSIONS}'" do
+        call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SESSIONS)
         run_spec(tddium)
-        FakeWeb.last_request.method.should == "POST"
-        FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::SESSIONS}$/
       end
 
       it_should_behave_like "sending the api key"
 
       context "'POST #{Tddium::Api::Path::SESSIONS}' is successful" do
-        let(:session_id) {7} # from the fixture 'post_sessions_201.json'
+        let(:session_id) {7}
         before do
-          stub_http_response(:post, "#{Tddium::Api::Path::SESSIONS}", :response => fixture_path("post_sessions_201.json"))
-          stub_http_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}")
+          response = {"session"=>{"id"=>session_id}}
+          stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}", response)
         end
 
         it "should send a 'POST' request to '#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}'" do
+          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}$/)
           run_spec(tddium)
-          FakeWeb.last_request.method.should == "POST"
-          FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}$/
         end
 
         it_should_behave_like "sending the api key"
 
         it "should POST the names of the file names extracted from the suite's test_pattern" do
+          call_api_should_receive do |request_params|
+            request_params.should include({"suite_id" => DEFAULT_SUITE_ID})
+            request_params["tests"][0]["test_name"].should =~ /spec\/cat_spec.rb$/
+            request_params["tests"][1]["test_name"].should =~ /spec\/dog_spec.rb$/
+            request_params["tests"][2]["test_name"].should =~ /spec\/mouse_spec.rb$/
+            request_params["tests"].size.should == 3
+          end
           run_spec(tddium)
-          request_params = parse_request_params
-          request_params.should include({"suite_id" => DEFAULT_SUITE_ID.to_s})
-          request_params["tests"][0]["test_name"].should =~ /spec\/cat_spec.rb$/
-          request_params["tests"][1]["test_name"].should =~ /spec\/dog_spec.rb$/
-          request_params["tests"][2]["test_name"].should =~ /spec\/mouse_spec.rb$/
-          request_params["tests"].size.should == 3
         end
 
         context "'POST #{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}' is successful" do
           before do
-            stub_http_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}", :response => fixture_path("post_register_test_executions_200.json"))
-            stub_http_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}")
+            response = {"added"=>0, "existing"=>1, "errors"=>0, "status"=>0}
+            stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}", response)
           end
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
+            call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/)
             run_spec(tddium)
-            FakeWeb.last_request.method.should == "POST"
-            FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/
           end
 
           it_should_behave_like "sending the api key"
 
           context "'POST #{Tddium::Api::Path::START_TEST_EXECUTIONS}' is successful" do
+            let(:get_test_executions_response) { {"report"=>"http://api.tddium.com/1/sessions/7/test_executions/report", "tests"=>{"spec/mouse_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>26, "instance_id"=>nil, "session_id"=>7, "id"=>3, "status"=>"pending", "start_time"=>"2011-03-04T07:07:06Z"}, "spec/pig_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>nil, "test_script_id"=>27, "instance_id"=>nil, "session_id"=>7, "id"=>4, "status"=>"started", "start_time"=>"2011-03-04T07:08:06Z"}, "spec/dog_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:06:12Z", "test_script_id"=>25, "instance_id"=>nil, "session_id"=>7, "id"=>2, "status"=>"failed", "start_time"=>"2011-03-04T07:06:06Z"}, "spec/cat_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:05:12Z", "test_script_id"=>24, "instance_id"=>nil, "session_id"=>7, "id"=>1, "status"=>"passed", "start_time"=>"2011-03-04T07:05:06Z"}}, "status"=>0} }
             before do
-              stub_http_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", :response => fixture_path("post_start_test_executions_200.json"))
-              stub_http_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}")
+              response = {"started"=>1, "status"=>0}
+              stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", response)
             end
 
             it "should tell the user to '#{Tddium::Text::Process::TERMINATE_INSTRUCTION}'" do
@@ -545,9 +486,8 @@ describe Tddium do
             end
 
             it "should send a 'GET' request to '#{Tddium::Api::Path::TEST_EXECUTIONS}'" do
+              call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::TEST_EXECUTIONS}$/)
               run_spec(tddium)
-              FakeWeb.last_request.method.should == "GET"
-              FakeWeb.last_request.path.should =~ /#{Tddium::Api::Path::TEST_EXECUTIONS}$/
             end
 
             it_should_behave_like "sending the api key"
@@ -566,7 +506,7 @@ describe Tddium do
 
             context "user presses 'Ctrl-C' during the process" do
               before do
-                stub_http_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", :response => fixture_path("get_test_executions_200.json"))
+                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response)
                 Signal.stub(:trap).with(:INT).and_yield
                 stub_sleep(tddium)
               end
@@ -591,7 +531,8 @@ describe Tddium do
 
             context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
               before do
-                stub_http_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", [{:response => fixture_path("get_test_executions_200.json")}, {:response => fixture_path("get_test_executions_200_all_finished.json")}])
+                get_test_executions_response_all_finished = {"report"=>"http://api.tddium.com/1/sessions/7/test_executions/report", "tests"=>{"spec/mouse_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>26, "instance_id"=>nil, "session_id"=>7, "id"=>3, "status"=>"pending", "start_time"=>"2011-03-04T07:07:06Z"}, "spec/pig_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>27, "instance_id"=>nil, "session_id"=>7, "id"=>4, "status"=>"error", "start_time"=>"2011-03-04T07:08:06Z"}, "spec/dog_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:06:12Z", "test_script_id"=>25, "instance_id"=>nil, "session_id"=>7, "id"=>2, "status"=>"failed", "start_time"=>"2011-03-04T07:06:06Z"}, "spec/cat_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:05:12Z", "test_script_id"=>24, "instance_id"=>nil, "session_id"=>7, "id"=>1, "status"=>"passed", "start_time"=>"2011-03-04T07:05:06Z"}}, "status"=>0}
+                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
                 stub_sleep(tddium)
               end
 
@@ -628,49 +569,35 @@ describe Tddium do
               it_should_behave_like("test output summary")
             end
 
-            it_should_behave_like "an unsuccessful api call" do
-              let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}" }
-              let(:method) { :get }
-            end
+            it_should_behave_like "an unsuccessful api call"
           end
 
-          it_should_behave_like "an unsuccessful api call" do
-            let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}" }
-            let(:method) { :post }
-          end
+          it_should_behave_like "an unsuccessful api call"
         end
 
-        it_should_behave_like "an unsuccessful api call" do
-          let(:path) { "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}" }
-          let(:method) { :post }
-        end
+        it_should_behave_like "an unsuccessful api call"
       end
 
-      it_should_behave_like "an unsuccessful api call" do
-        let(:path) { Tddium::Api::Path::SESSIONS }
-        let(:method) { :post }
-      end
+      it_should_behave_like "an unsuccessful api call"
     end
 
-    it_should_behave_like "an unsuccessful api call" do
-      let(:path) { "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}" }
-      let(:method) { :get }
-    end
+    it_should_behave_like "an unsuccessful api call"
   end
 
   describe "#status" do
     before do
       stub_defaults
       stub_config_file(true)
-      stub_http_response(:get, "#{Tddium::Api::Path::SUITES}", :response => fixture_path("get_suites_list_200.json"))
-      stub_http_response(:get, "#{Tddium::Api::Path::SESSIONS}", :response => fixture_path("get_sessions_list_200.json"))
+      suites_response = {"suites"=>[{"created_at"=>"2011-03-11T06:23:40Z", "updated_at"=>"2011-03-11T06:25:51Z", "test_pattern"=>"**/*_spec.rb", "id"=>66, "user_id"=>3, "suite_name"=>"tddium/demo", "ssh_key"=>"ssh-rsa AAAABb/wVQ== someone@gmail.com\n", "ruby_version"=>"1.8.7"}], "status"=>0}
+      stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
+      sessions_response = {"status"=>0, "sessions"=>[{"created_at"=>"2011-03-11T08:43:02Z", "updated_at"=>"2011-03-11T08:43:02Z", "id"=>1, "user_id"=>3}]}
+      stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
     end
 
     it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium.test file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
-#    it_should_behave_like "getting the current suite from the API"
 
     context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
       it "should show the user the suite name" do
@@ -714,9 +641,6 @@ describe Tddium do
       end
     end
 
-    it_should_behave_like "an unsuccessful api call" do
-      let(:path) { "#{Tddium::Api::Path::SUITES}" }
-      let(:method) { :get }
-    end
+    it_should_behave_like "an unsuccessful api call"
   end
 end

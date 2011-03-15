@@ -12,11 +12,12 @@ module TddiumConstant
 
   module Git
     REMOTE_NAME = "tddium"
+    HOST = "api.tddium.com"
+    SCHEME = "ssh"
+    ABSOLUTE_PATH = "/home/git/repo"
   end
 
   module Api
-    KEY_HEADER = "X-tddium-api-key"
-
     module Path
       SUITES = "suites"
       SESSIONS = "sessions"
@@ -45,7 +46,6 @@ module TddiumConstant
     end
 
     module Error
-      API = "An error occured: "
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
