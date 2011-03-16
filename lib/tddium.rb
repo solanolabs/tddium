@@ -117,13 +117,13 @@ class Tddium < Thor
             tests_not_finished_yet = true
             finished_tests = {}
             test_statuses = Hash.new(0)
-            api_call_error = nil
+            api_call_successful = true
 
             say Text::Process::STARTING_TEST % test_files.size
             say Text::Process::TERMINATE_INSTRUCTION
-            while tests_not_finished_yet && api_call_error.nil? do
+            while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
-              api_call_error = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
+              api_call_successful = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
                 # Catch Ctrl-C to interrupt the test
                 Signal.trap(:INT) do
                   say Text::Process::INTERRUPT
@@ -230,9 +230,9 @@ class Tddium < Thor
 
   def call_api(method, api_path, params = {}, &block)
     api_key =  tddium_settings(false)["api_key"] if tddium_settings(false)
-    response = tddium_client.call_api(method, api_path, params, api_key, &block)
-    say response[1] if response
-    response
+    status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
+    say error_message if error_message
+    status.zero?
   end
 
   def tddium_git_repo_uri(suite_name)

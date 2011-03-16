@@ -1,3 +1,7 @@
+=begin
+Copyright (c) 2011 Solano Labs All Rights Reserved
+=end
+
 require 'spec_helper'
 
 describe Tddium do
@@ -8,6 +12,7 @@ describe Tddium do
   DEFAULT_BRANCH_NAME = "test"
   DEFAULT_SUITE_ID = 66
   DEFAULT_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
+  DEFAULT_CALL_API_ERROR = [1, "an error"]
 
   def run(tddium, options = {:environment => "test"})
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
@@ -55,8 +60,9 @@ describe Tddium do
 
   def stub_call_api_response(method, path, *response)
     result = tddium_client.stub(:call_api).with(method, path, anything, anything).and_yield(response.first)
+    result.and_return(DEFAULT_CALL_API_ERROR)
     response.each_with_index do |current_response, index|
-      result.and_yield(current_response) unless index.zero?
+      result = result.and_yield(current_response) unless index.zero?
     end
   end
 
@@ -82,17 +88,14 @@ describe Tddium do
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, options[:api_key] || anything]
-    if block_given? && options[:params]
-      yield options[:params]
-    else
-      tddium_client.stub(:call_api).with(*params).and_return("an error")
-    end
+    tddium_client.stub(:call_api).with(*params)                       # To prevent the yield
+    tddium_client.should_receive(:call_api).with(*params).and_return(DEFAULT_CALL_API_ERROR)
   end
 
   def stub_tddium_client
     TddiumClient.stub(:new).and_return(tddium_client)
     tddium_client.stub(:environment).and_return(:test)
-    tddium_client.stub(:call_api).and_return("an error")
+    tddium_client.stub(:call_api).and_return(DEFAULT_CALL_API_ERROR)
   end
 
   let(:tddium) { Tddium.new }
@@ -186,8 +189,8 @@ describe Tddium do
 
   shared_examples_for "an unsuccessful api call" do
     it "should show the error" do
-      tddium_client.stub(:call_api).and_return(["1", "API error"])
-      tddium.should_receive(:say).with("API error")
+      tddium_client.stub(:call_api).and_return(DEFAULT_CALL_API_ERROR)
+      tddium.should_receive(:say).with(DEFAULT_CALL_API_ERROR[1])
       run(tddium)
     end
   end
@@ -445,13 +448,11 @@ describe Tddium do
         it_should_behave_like "sending the api key"
 
         it "should POST the names of the file names extracted from the suite's test_pattern" do
-          call_api_should_receive do |request_params|
-            request_params.should include({"suite_id" => DEFAULT_SUITE_ID})
-            request_params["tests"][0]["test_name"].should =~ /spec\/cat_spec.rb$/
-            request_params["tests"][1]["test_name"].should =~ /spec\/dog_spec.rb$/
-            request_params["tests"][2]["test_name"].should =~ /spec\/mouse_spec.rb$/
-            request_params["tests"].size.should == 3
-          end
+          current_dir = Dir.pwd
+          call_api_should_receive(:params => {:suite_id => DEFAULT_SUITE_ID,
+                                  :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
+                                             {:test_name => "#{current_dir}/spec/dog_spec.rb"},
+                                             {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
           run_spec(tddium)
         end
 
