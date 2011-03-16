@@ -8,7 +8,7 @@ require "tddium/version"
 
 Gem::Specification.new do |s|
   s.name        = "tddium-preview"
-  s.version     = Tddium::VERSION
+  s.version     = TddiumVersion::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Jay Moorthi"]
   s.email       = ["info@tddium.com"]
