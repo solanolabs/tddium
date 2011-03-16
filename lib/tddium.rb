@@ -123,7 +123,7 @@ class Tddium < Thor
             say Text::Process::TERMINATE_INSTRUCTION
             while tests_not_finished_yet && api_call_successful do
               # Poll the API to check the status
-              api_call_successful = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
+              call_api_result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
                 # Catch Ctrl-C to interrupt the test
                 Signal.trap(:INT) do
                   say Text::Process::INTERRUPT
@@ -150,6 +150,7 @@ class Tddium < Thor
                 # If all tests finished, exit the loop else sleep
                 finished_tests.size == api_response["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
               end
+              api_call_successful = call_api_result.success?
             end
 
             # Print out the result
@@ -218,21 +219,95 @@ class Tddium < Thor
           say "Your current suite is unavailable"
         end
       end
+    end
+  end
 
+  desc "account", "View/Manage account information"
+  method_option :environment, :type => :string, :default => nil
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  def account
+    set_default_environment(options[:environment])
+    if user_logged_in? do |api_response|
+        show_user_details(api_response)
+      end
+    else
+      # prompt for email and password
+      email = options[:email] || ask(Text::Prompt::EMAIL)
+      password = options[:email] || ask(Text::Prompt::PASSWORD)
+
+      # POST (email, password) to /users/sign_in to retrieve an API key
+      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:email => email, :password => password}, false) do |api_response|
+        # On success, write the API key to "~/.tddium.<environment>"
+        write_api_key(api_response["api_key"])
+
+        # call get_user again and display the email and created at date
+        get_user do |api_response|
+          show_user_details(api_response)
+        end
+      end
+      unless call_api_result.success?
+        if call_api_result.status == Api::ErrorCode::INCORRECT_PASSWORD
+          # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
+          say Text::Process::ACCOUNT_TAKEN
+        else
+          # if no existing user with this email
+          # display the license
+          # confirm its acceptance
+          # POST to create user
+          # write api key
+          say File.open(File.join(File.dirname(__FILE__), "..", "LICENSE.txt")) do |file|
+            file.read
+          end
+          license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
+          return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
+          call_api(:post, Api::Path::Users, {:email => email, :password => password}) do |api_response|
+            write_api_key(api_response["api_key"])
+          end
+        end
+      end
     end
   end
 
   private
 
+  def user_logged_in?(active = true, &block)
+    result = tddium_settings(false) && tddium_settings["api_key"]
+    (result && active) ? get_user(&block).success? : result
+  end
+
+  def get_user(&block)
+    call_api(:get, Api::Path::USERS, {}, nil, &block)
+  end
+
+  def show_user_details(api_response)
+    # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
+    # Email address
+    # Account creation date
+    say api_response["email"]
+    say api_response["created_at"]
+  end
+
+  def write_api_key(api_key)
+    File.open(tddium_file_name, "w") do |file|
+      file.write(tddium_settings.merge({"api_key" => api_key}).to_json)
+    end
+  end
+
   def git_push
     `git push #{Git::REMOTE_NAME} #{current_git_branch}`
   end
 
-  def call_api(method, api_path, params = {}, &block)
-    api_key =  tddium_settings(false)["api_key"] if tddium_settings(false)
+  def call_api(method, api_path, params = {}, api_key = nil, &block)
+    api_key =  tddium_settings(false)["api_key"] if tddium_settings(false) && api_key != false
     status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
     say error_message if error_message
-    status.zero?
+    response = Struct.new(:status, :message) do
+      def success?
+        self.status.zero?
+      end
+    end
+    response.new(status, error_message)
   end
 
   def tddium_git_repo_uri(suite_name)

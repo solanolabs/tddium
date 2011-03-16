@@ -13,6 +13,8 @@ describe Tddium do
   DEFAULT_SUITE_ID = 66
   DEFAULT_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   DEFAULT_CALL_API_ERROR = [1, "an error"]
+  DEFAULT_EMAIL = "someone@example.com"
+  DEFAULT_PASSWORD = "foobar"
 
   def run(tddium, options = {:environment => "test"})
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
@@ -31,6 +33,11 @@ describe Tddium do
   def run_status(tddium, options = {:environment => "test"})
     stub_cli_options(tddium, options)
     tddium.status
+  end
+
+  def run_account(tddium, options = {:environment => "test"})
+    stub_cli_options(tddium, options)
+    tddium.account
   end
 
   def stub_cli_options(tddium, options = {})
@@ -73,9 +80,12 @@ describe Tddium do
     create_file(File.join(".git", "something"), "something")
   end
 
-  def stub_config_file(with_branches = false)
-    branch_params = with_branches ? {:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}} : {}
-    create_file(".tddium.test", branch_params.merge(:api_key => DEFAULT_API_KEY).to_json)
+  def stub_config_file(options = {})
+    params = {}
+    params.merge!(:branches => {DEFAULT_BRANCH_NAME => DEFAULT_SUITE_ID}) if options[:branches]
+    params.merge!(:api_key => (options[:api_key].is_a?(String)) ? options[:api_key] : DEFAULT_API_KEY) if options[:api_key]
+    json = params.to_json unless params.empty?
+    create_file(".tddium.test", json)
   end
 
   def stub_git_push(tddium)
@@ -170,7 +180,7 @@ describe Tddium do
   shared_examples_for "suite has not been initialized" do
     context ".tddium.test file is missing" do
       before do
-        stub_config_file
+        stub_config_file(:api_key => true)
       end
 
       it "should tell the user '#{Tddium::Text::Error::NO_SUITE_EXISTS % DEFAULT_BRANCH_NAME}'" do
@@ -205,7 +215,7 @@ describe Tddium do
   describe "#suite" do
     before do
       stub_defaults
-      stub_config_file
+      stub_config_file(:api_key => true)
       stub_ruby_version(tddium)
       tddium.stub(:ask).and_return("")
       create_file("~/.ssh/id_rsa.pub", "ssh-rsa blah")
@@ -353,7 +363,7 @@ describe Tddium do
 
     context "suite has already been registered" do
       before do
-        stub_config_file(true)
+        stub_config_file(:api_key => true, :branches => true)
       end
 
       context "'GET #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
@@ -400,7 +410,7 @@ describe Tddium do
   describe "#spec" do
     before do
       stub_defaults
-      stub_config_file(true)
+      stub_config_file(:api_key => true, :branches => true)
       stub_git_push(tddium)
     end
 
@@ -588,7 +598,7 @@ describe Tddium do
   describe "#status" do
     before do
       stub_defaults
-      stub_config_file(true)
+      stub_config_file(:api_key => true, :branches => true)
       suites_response = {"suites"=>[{"created_at"=>"2011-03-11T06:23:40Z", "updated_at"=>"2011-03-11T06:25:51Z", "test_pattern"=>"**/*_spec.rb", "id"=>66, "user_id"=>3, "suite_name"=>"tddium/demo", "ssh_key"=>"ssh-rsa AAAABb/wVQ== someone@gmail.com\n", "ruby_version"=>"1.8.7"}], "status"=>0}
       stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
       sessions_response = {"status"=>0, "sessions"=>[{"created_at"=>"2011-03-11T08:43:02Z", "updated_at"=>"2011-03-11T08:43:02Z", "id"=>1, "user_id"=>3}]}
@@ -643,5 +653,73 @@ describe Tddium do
     end
 
     it_should_behave_like "an unsuccessful api call"
+  end
+
+  describe "#account" do
+    before do
+      stub_defaults
+      tddium.stub(:ask).and_return("")
+    end
+    it_should_behave_like "set the default environment"
+
+    context "there is a tddium config file with an api key" do
+      before {stub_config_file(:api_key => "some api key")}
+
+      shared_examples_for "showing the user's details" do
+        before do
+          stub_call_api_response(:get, Tddium::Api::Path::USERS, {"email" => DEFAULT_EMAIL, "created_at" => "2011-03-11T08:43:02Z"})
+        end
+
+        it "should show the user's email address" do
+          tddium.should_receive(:say).with(DEFAULT_EMAIL)
+          run_account(tddium)
+        end
+
+        it "should show the user's account creation date" do
+          tddium.should_receive(:say).with("2011-03-11T08:43:02Z")
+          run_account(tddium)
+        end        
+      end
+
+      it "should send a 'GET' request to '#{Tddium::Api::Path::USERS}'" do
+        call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::USERS}$/)
+        run_account(tddium)
+      end
+     
+      context "which is valid" do
+        it_should_behave_like "showing the user's details"
+      end
+
+      context "which is invalid" do
+        it "should prompt for the user's email address" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
+          run_account(tddium)
+        end
+        
+        it "should prompt for a password" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::PASSWORD)
+          run_account(tddium)
+        end
+
+        it "should try to sign in the user with their email & password" do
+          tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(DEFAULT_EMAIL)
+          tddium.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(DEFAULT_PASSWORD)
+          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:email => DEFAULT_EMAIL, :password => DEFAULT_PASSWORD})
+          run_account(tddium)
+        end
+
+        context "the user is signed in correctly with their email & password" do
+          before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => DEFAULT_API_KEY})}
+          it "should write the api key to the .tddium file" do
+            run_account(tddium)
+            tddium_file = File.open(".tddium.test") { |file| file.read }
+            JSON.parse(tddium_file)["api_key"].should == DEFAULT_API_KEY
+          end
+
+          it_should_behave_like "showing the user's details"
+          
+        end
+      end
+    end
   end
 end

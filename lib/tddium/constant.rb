@@ -21,18 +21,29 @@ module TddiumConstant
     module Path
       SUITES = "suites"
       SESSIONS = "sessions"
+      USERS = "users"
+      SIGN_IN = "#{USERS}/sign_in"
       TEST_EXECUTIONS = "test_executions"
       REGISTER_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/register"
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
     end
+    module ErrorCode
+      INCORRECT_PASSWORD = 1
+    end
   end
 
   module Text
     module Prompt
+      module Response
+        AGREE_TO_LICENSE = "I AGREE"
+      end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
+      LICENSE_AGREEMENT = "Type '%s' to accept the license and continue" % Response::AGREE_TO_LICENSE
+      EMAIL = "Enter your email address"
+      PASSWORD = "Enter a password"
     end
 
     module Process
@@ -43,6 +54,7 @@ module TddiumConstant
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
       UPDATE_SUITE = "The suite has been updated successfully"
+      ACCOUNT_TAKEN = "Sorry an account already exists with this email address. If you are the owner of this account try 'tddium login'"
     end
 
     module Error
