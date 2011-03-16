@@ -237,7 +237,7 @@ class Tddium < Thor
       password = options[:email] || ask(Text::Prompt::PASSWORD)
 
       # POST (email, password) to /users/sign_in to retrieve an API key
-      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:email => email, :password => password}, false) do |api_response|
+      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:email => email, :password => password}, false, false) do |api_response|
         # On success, write the API key to "~/.tddium.<environment>"
         write_api_key(api_response["api_key"])
 
@@ -256,12 +256,13 @@ class Tddium < Thor
           # confirm its acceptance
           # POST to create user
           # write api key
-          say File.open(File.join(File.dirname(__FILE__), "..", "LICENSE.txt")) do |file|
+          content =  File.open(File.join(File.dirname(__FILE__), "..", "LICENSE.txt")) do |file|
             file.read
           end
+          say content
           license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
           return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-          call_api(:post, Api::Path::Users, {:email => email, :password => password}) do |api_response|
+          call_api(:post, Api::Path::USERS, :user => {:email => email, :password => password}) do |api_response|
             write_api_key(api_response["api_key"])
           end
         end
@@ -277,7 +278,7 @@ class Tddium < Thor
   end
 
   def get_user(&block)
-    call_api(:get, Api::Path::USERS, {}, nil, &block)
+    call_api(:get, Api::Path::USERS, {}, nil, false, &block)
   end
 
   def show_user_details(api_response)
@@ -289,8 +290,9 @@ class Tddium < Thor
   end
 
   def write_api_key(api_key)
+    settings = tddium_settings(false) || {}
     File.open(tddium_file_name, "w") do |file|
-      file.write(tddium_settings.merge({"api_key" => api_key}).to_json)
+      file.write(settings.merge({"api_key" => api_key}).to_json)
     end
   end
 
@@ -298,10 +300,10 @@ class Tddium < Thor
     `git push #{Git::REMOTE_NAME} #{current_git_branch}`
   end
 
-  def call_api(method, api_path, params = {}, api_key = nil, &block)
+  def call_api(method, api_path, params = {}, api_key = nil, show_error = true, &block)
     api_key =  tddium_settings(false)["api_key"] if tddium_settings(false) && api_key != false
     status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
-    say error_message if error_message
+    say error_message if error_message && show_error
     response = Struct.new(:status, :message) do
       def success?
         self.status.zero?

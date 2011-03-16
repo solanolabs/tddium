@@ -41,9 +41,9 @@ module TddiumConstant
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
-      LICENSE_AGREEMENT = "Type '%s' to accept the license and continue" % Response::AGREE_TO_LICENSE
-      EMAIL = "Enter your email address"
-      PASSWORD = "Enter a password"
+      LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
+      EMAIL = "Enter your email address:"
+      PASSWORD = "Enter a password:"
     end
 
     module Process
