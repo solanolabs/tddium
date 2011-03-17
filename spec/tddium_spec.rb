@@ -15,6 +15,7 @@ describe Tddium do
   DEFAULT_CALL_API_ERROR = [1, 501, "an error"]
   DEFAULT_EMAIL = "someone@example.com"
   DEFAULT_PASSWORD = "foobar"
+  DEFAULT_LICENSE_TEXT = "LICENSE"
 
   def run(tddium, options = {:environment => "test"})
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
@@ -66,11 +67,22 @@ describe Tddium do
   end
 
   def stub_call_api_response(method, path, *response)
-    result = tddium_client.stub(:call_api).with(method, path, anything, anything).and_yield(response.first)
-    result.and_return(DEFAULT_CALL_API_ERROR)
+    options = extract_options!(response, :and_return, :and_yield)
+    options[:and_yield] = true unless options[:and_yield] == false
+    result = tddium_client.stub(:call_api).with(method, path, anything, anything)
+    result = result.and_yield(response.first) if options[:and_yield]
+    result.and_return(options[:and_return] || DEFAULT_CALL_API_ERROR)
     response.each_with_index do |current_response, index|
-      result = result.and_yield(current_response) unless index.zero?
+      result = result.and_yield(current_response) unless index.zero? || !options[:and_yield]
     end
+  end
+
+  def extract_options!(array, *option_keys)
+    is_options = false
+    option_keys.each do |option_key|
+      is_options ||= array.last.include?(option_key.to_sym)
+    end
+    (array.last.is_a?(Hash) && is_options) ? array.pop : {}
   end
 
   def stub_defaults
@@ -97,7 +109,7 @@ describe Tddium do
   end
 
   def call_api_should_receive(options = {})
-    params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, options[:api_key] || anything]
+    params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
     tddium_client.stub(:call_api).with(*params)                       # To prevent the yield
     tddium_client.should_receive(:call_api).with(*params).and_return(DEFAULT_CALL_API_ERROR)
   end
@@ -399,6 +411,14 @@ describe Tddium do
           run_suite(tddium)
         end
 
+        context "'PUT #{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}' is successful" do
+          before { stub_call_api_response(:put, "#{Tddium::Api::Path::SUITES}/#{DEFAULT_SUITE_ID}", {}) }
+          it "should display '#{Tddium::Text::Process::UPDATE_SUITE}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Process::UPDATE_SUITE)
+            run_suite(tddium)
+          end
+        end
+
         it_should_behave_like "sending the api key"
         it_should_behave_like "an unsuccessful api call"
       end
@@ -659,6 +679,8 @@ describe Tddium do
     before do
       stub_defaults
       tddium.stub(:ask).and_return("")
+      HighLine.stub(:ask).and_return("")
+      create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), DEFAULT_LICENSE_TEXT)
     end
     it_should_behave_like "set the default environment"
 
@@ -691,33 +713,113 @@ describe Tddium do
       end
 
       context "which is invalid" do
-        it "should prompt for the user's email address" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
-          run_account(tddium)
+        shared_examples_for "a password prompt" do
+          context "--password was not passed in" do
+            it "should prompt for a password or confirmation" do
+              highline = mock(HighLine)
+              HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
+              highline.should_receive(:echo=).with("*")
+              run_account(tddium)
+            end
+          end
+          context "--password was passed in" do
+            it "should not prompt for a password or confirmation" do
+              HighLine.should_not_receive(:ask).with(password_prompt)
+              run_account(tddium, :password => DEFAULT_PASSWORD)
+            end
+          end
         end
-        
-        it "should prompt for a password" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::PASSWORD)
-          run_account(tddium)
+
+        context "--email was not passed in" do
+          it "should prompt for the user's email address" do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
+            run_account(tddium)
+          end
+        end
+
+        context "--email was passed in" do
+          it "should not prompt for the user's email address" do
+            tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
+            run_account(tddium, :email => DEFAULT_EMAIL)
+          end
+        end
+
+        it_should_behave_like "a password prompt" do
+          let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
         end
 
         it "should try to sign in the user with their email & password" do
           tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(DEFAULT_EMAIL)
-          tddium.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(DEFAULT_PASSWORD)
-          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:user => {:email => DEFAULT_EMAIL, :password => DEFAULT_PASSWORD}})
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(DEFAULT_PASSWORD)
+          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:user => {:email => DEFAULT_EMAIL, :password => DEFAULT_PASSWORD}}, :api_key => false)
           run_account(tddium)
         end
 
-        context "the user is signed in correctly with their email & password" do
-          before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => DEFAULT_API_KEY})}
+        shared_examples_for "writing the api key to the .tddium file" do
           it "should write the api key to the .tddium file" do
             run_account(tddium)
             tddium_file = File.open(".tddium.test") { |file| file.read }
             JSON.parse(tddium_file)["api_key"].should == DEFAULT_API_KEY
           end
+        end
 
-          it_should_behave_like "showing the user's details"
-          
+        context "the user is signed in correctly with their email & password" do
+          before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => DEFAULT_API_KEY})}
+          it_should_behave_like "writing the api key to the .tddium file"
+          it_should_behave_like "showing the user's details"         
+        end
+        
+        context "the user did not sign in correctly" do
+          let(:call_api_result) {[403, "Forbidden"]}
+          context "because their password was incorrect (i.e. an email already exists)" do
+            before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::INCORRECT_PASSWORD))}
+            it "should tell the user that the email address has already been taken" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_TAKEN)
+              run_account(tddium)
+            end
+          end
+          context "because the email did not exist (i.e. no account with this email)" do
+            before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::EMAIL_NOT_FOUND))}
+
+            it_should_behave_like "a password prompt" do
+              let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+            end
+
+            context "the user does not confirm their password correctly" do
+              before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
+              it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
+                run_account(tddium)
+              end
+            end
+
+            context "the user confirms their password correctly" do
+              it "should show the user the license" do
+                tddium.should_receive(:say).with(DEFAULT_LICENSE_TEXT)
+                run_account(tddium)
+              end
+
+              it "should ask the user to accept the license" do
+                tddium.should_receive(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT)
+                run_account(tddium)
+              end
+
+              context "accepting the license" do
+                before do
+                  tddium.stub(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT).and_return(Tddium::Text::Prompt::Response::AGREE_TO_LICENSE)
+                  tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(DEFAULT_EMAIL)
+                end
+                it "should send a 'POST' request to '#{Tddium::Api::Path::USERS}' with the user's email address and password" do
+                  call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::USERS}$/, :params => {:user => {:email => DEFAULT_EMAIL, :password => ""}}, :api_key => false)
+                  run_account(tddium)
+                end
+                context "'POST #{Tddium::Api::Path::USERS}' is successful" do
+                  before{stub_call_api_response(:post, Tddium::Api::Path::USERS, {"api_key" => DEFAULT_API_KEY})}
+                  it_should_behave_like "writing the api key to the .tddium file"
+                end
+              end
+            end
+          end
         end
       end
     end

@@ -4,6 +4,7 @@ Copyright (c) 2011 Solano Labs All Rights Reserved
 
 require "rubygems"
 require "thor"
+require "highline/import"
 require "json"
 require "tddium_client"
 require File.expand_path("../tddium/constant", __FILE__)
@@ -234,7 +235,7 @@ class Tddium < Thor
     else
       # prompt for email and password
       email = options[:email] || ask(Text::Prompt::EMAIL)
-      password = options[:email] || ask(Text::Prompt::PASSWORD)
+      password = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
 
       # POST (email, password) to /users/sign_in to retrieve an API key
       call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => {:email => email, :password => password}}, false, false) do |api_response|
@@ -256,13 +257,21 @@ class Tddium < Thor
           # confirm its acceptance
           # POST to create user
           # write api key
-          content =  File.open(File.join(File.dirname(__FILE__), "..", "LICENSE.txt")) do |file|
+          unless options[:password]
+            password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+            unless password_confirmation == password
+              say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
+              return
+            end
+          end
+          
+          content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
             file.read
           end
           say content
           license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
           return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-          call_api(:post, Api::Path::USERS, {:user => {:email => email, :password => password}}) do |api_response|
+          call_api(:post, Api::Path::USERS, {:user => {:email => email, :password => password}}, false) do |api_response|
             write_api_key(api_response["api_key"])
           end
         end

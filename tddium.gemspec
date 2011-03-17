@@ -24,9 +24,11 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency("thor")
+  s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("tddium_client")
 
   s.add_development_dependency("rspec")
   s.add_development_dependency("fakefs")
+  s.add_development_dependency("rcov")
 end

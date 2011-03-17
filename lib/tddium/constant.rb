@@ -29,8 +29,13 @@ module TddiumConstant
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
     end
     module ErrorCode
-      INCORRECT_PASSWORD = 1
+      INCORRECT_PASSWORD = 2
+      EMAIL_NOT_FOUND = 3
     end
+  end
+
+  module License
+    FILE_NAME = "LICENSE.txt"
   end
 
   module Text
@@ -43,7 +48,8 @@ module TddiumConstant
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
       LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
-      PASSWORD = "Enter a password:"
+      PASSWORD = "Enter a password: "
+      PASSWORD_CONFIRMATION = "Confirm your password: "
     end
 
     module Process
@@ -55,6 +61,7 @@ module TddiumConstant
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
       UPDATE_SUITE = "The suite has been updated successfully"
       ACCOUNT_TAKEN = "Sorry an account already exists with this email address. If you are the owner of this account try 'tddium login'"
+      PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
     end
 
     module Error
