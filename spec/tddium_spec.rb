@@ -704,7 +704,7 @@ describe Tddium do
         it "should try to sign in the user with their email & password" do
           tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(DEFAULT_EMAIL)
           tddium.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(DEFAULT_PASSWORD)
-          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:email => DEFAULT_EMAIL, :password => DEFAULT_PASSWORD})
+          call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:user => {:email => DEFAULT_EMAIL, :password => DEFAULT_PASSWORD}})
           run_account(tddium)
         end
 
