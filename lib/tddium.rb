@@ -237,7 +237,7 @@ class Tddium < Thor
       password = options[:email] || ask(Text::Prompt::PASSWORD)
 
       # POST (email, password) to /users/sign_in to retrieve an API key
-      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:email => email, :password => password}, false, false) do |api_response|
+      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => {:email => email, :password => password}}, false, false) do |api_response|
         # On success, write the API key to "~/.tddium.<environment>"
         write_api_key(api_response["api_key"])
 
@@ -247,7 +247,7 @@ class Tddium < Thor
         end
       end
       unless call_api_result.success?
-        if call_api_result.status == Api::ErrorCode::INCORRECT_PASSWORD
+        if call_api_result.api_status == Api::ErrorCode::INCORRECT_PASSWORD
           # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
           say Text::Process::ACCOUNT_TAKEN
         else
@@ -262,7 +262,7 @@ class Tddium < Thor
           say content
           license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
           return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-          call_api(:post, Api::Path::USERS, :user => {:email => email, :password => password}) do |api_response|
+          call_api(:post, Api::Path::USERS, {:user => {:email => email, :password => password}}) do |api_response|
             write_api_key(api_response["api_key"])
           end
         end
@@ -302,14 +302,14 @@ class Tddium < Thor
 
   def call_api(method, api_path, params = {}, api_key = nil, show_error = true, &block)
     api_key =  tddium_settings(false)["api_key"] if tddium_settings(false) && api_key != false
-    status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
+    api_status, http_status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
     say error_message if error_message && show_error
-    response = Struct.new(:status, :message) do
+    response = Struct.new(:api_status, :http_status, :message) do
       def success?
-        self.status.zero?
+        self.api_status.to_i.zero?
       end
     end
-    response.new(status, error_message)
+    response.new(api_status, http_status, error_message)
   end
 
   def tddium_git_repo_uri(suite_name)

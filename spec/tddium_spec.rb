@@ -12,7 +12,7 @@ describe Tddium do
   DEFAULT_BRANCH_NAME = "test"
   DEFAULT_SUITE_ID = 66
   DEFAULT_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
-  DEFAULT_CALL_API_ERROR = [1, "an error"]
+  DEFAULT_CALL_API_ERROR = [1, 501, "an error"]
   DEFAULT_EMAIL = "someone@example.com"
   DEFAULT_PASSWORD = "foobar"
 
@@ -200,7 +200,7 @@ describe Tddium do
   shared_examples_for "an unsuccessful api call" do
     it "should show the error" do
       tddium_client.stub(:call_api).and_return(DEFAULT_CALL_API_ERROR)
-      tddium.should_receive(:say).with(DEFAULT_CALL_API_ERROR[1])
+      tddium.should_receive(:say).with(DEFAULT_CALL_API_ERROR[2])
       run(tddium)
     end
   end
