@@ -669,9 +669,7 @@ describe Tddium do
       before {stub_config_file(:api_key => "some api key")}
 
       shared_examples_for "showing the user's details" do
-        before do
-          stub_call_api_response(:get, Tddium::Api::Path::USERS, {"email" => DEFAULT_EMAIL, "created_at" => "2011-03-11T08:43:02Z"})
-        end
+        before {stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => DEFAULT_EMAIL, "created_at" => "2011-03-11T08:43:02Z"}})}
 
         it "should show the user's email address" do
           tddium.should_receive(:say).with(DEFAULT_EMAIL)

@@ -294,8 +294,8 @@ class Tddium < Thor
     # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
     # Email address
     # Account creation date
-    say api_response["email"]
-    say api_response["created_at"]
+    say api_response["user"]["email"]
+    say api_response["user"]["created_at"]
   end
 
   def write_api_key(api_key)
