@@ -815,7 +815,12 @@ describe Tddium do
                 context "'POST #{Tddium::Api::Path::USERS}' is successful" do
                   before{stub_call_api_response(:post, Tddium::Api::Path::USERS, {"api_key" => DEFAULT_API_KEY})}
                   it_should_behave_like "writing the api key to the .tddium file"
+                  it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
+                    tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
+                    run_account(tddium)
+                  end
                 end
+                it_should_behave_like "an unsuccessful api call"
               end
             end
           end

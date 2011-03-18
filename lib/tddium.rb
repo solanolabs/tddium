@@ -270,6 +270,7 @@ class Tddium < Thor
 
           call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
             write_api_key(api_response["api_key"])
+            say Text::Process::ACCOUNT_CREATED
           end
         end
       end

@@ -68,6 +68,7 @@ module TddiumConstant
       UPDATE_SUITE = "The suite has been updated successfully"
       ACCOUNT_TAKEN = "Sorry an account already exists with this email address. If you are the owner of this account try 'tddium login'"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
+      ACCOUNT_CREATED = "Your account was successfully created"
     end
 
     module Error
