@@ -233,6 +233,7 @@ class Tddium < Thor
       call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => params}, false, false) do |api_response|
         # On success, write the API key to "~/.tddium.<environment>"
         write_api_key(api_response["api_key"])
+        tddium_settings(:force_reload => true, :fail_with_message => false)
 
         # call get_user again and display the email and created at date
         get_user do |api_response|
@@ -282,7 +283,7 @@ class Tddium < Thor
   end
 
   def user_logged_in?(active = true, &block)
-    result = tddium_settings(false) && tddium_settings["api_key"]
+    result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
     (result && active) ? get_user(&block).success? : result
   end
 
@@ -299,7 +300,7 @@ class Tddium < Thor
   end
 
   def write_api_key(api_key)
-    settings = tddium_settings(false) || {}
+    settings = tddium_settings(:fail_with_message => false) || {}
     File.open(tddium_file_name, "w") do |file|
       file.write(settings.merge({"api_key" => api_key}).to_json)
     end
@@ -310,7 +311,7 @@ class Tddium < Thor
   end
 
   def call_api(method, api_path, params = {}, api_key = nil, show_error = true, &block)
-    api_key =  tddium_settings(false)["api_key"] if tddium_settings(false) && api_key != false
+    api_key =  tddium_settings(:fail_with_message => false)["api_key"] if tddium_settings(:fail_with_message => false) && api_key != false
     api_status, http_status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
     say error_message if error_message && show_error
     response = Struct.new(:api_status, :http_status, :message) do
@@ -355,16 +356,17 @@ class Tddium < Thor
     ".tddium#{extension}"
   end
 
-  def tddium_settings(fail_with_message = true)
-    unless @tddium_settings
+  def tddium_settings(options = {})
+    options[:fail_with_message] = true unless options[:fail_with_message] == false
+    if @tddium_settings.nil? || options[:force_reload]
       if File.exists?(tddium_file_name)
         tddium_config = File.open(tddium_file_name) do |file|
           file.read
         end
         @tddium_settings = JSON.parse(tddium_config) rescue nil
-        say (Text::Error::INVALID_TDDIUM_FILE % environment) if @tddium_settings.nil? && fail_with_message
+        say (Text::Error::INVALID_TDDIUM_FILE % environment) if @tddium_settings.nil? && options[:fail_with_message]
       else
-        say Text::Error::NOT_INITIALIZED if fail_with_message
+        say Text::Error::NOT_INITIALIZED if options[:fail_with_message]
       end
     end
     @tddium_settings
