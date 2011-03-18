@@ -31,7 +31,6 @@ class Tddium < Thor
   include TddiumConstant
 
   desc "suite", "Register the suite for this project, or manage its settings"
-  method_option :ssh_key, :type => :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
@@ -42,18 +41,8 @@ class Tddium < Thor
     params = {}
     if current_suite_id
       call_api(:get, current_suite_path) do |api_response|
-        # Get current values and prompt for updates
-        current_ssh_key = api_response["suite"]["ssh_key"]
-        ssh_file = options[:ssh_key] || ask(Text::Prompt::SSH_KEY % current_ssh_key[0, 30])
-        if ssh_file.empty?
-          params[:ssh_key] = current_ssh_key
-        else
-          params[:ssh_key] = File.open(File.expand_path(ssh_file)) {|file| file.read}
-        end
-
-        current_test_pattern = api_response["suite"]["test_pattern"]
-        test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN % current_test_pattern)
-        params[:test_pattern] = test_pattern.empty? ? current_test_pattern : test_pattern
+        # Get the current test pattern and prompt for updates
+        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], api_response["suite"]["test_pattern"])
 
         # Update the current suite if it exists already
         call_api(:put, current_suite_path, {:suite => params}) do |api_response|
@@ -62,23 +51,20 @@ class Tddium < Thor
       end
     else
       # Inputs for new suite
-      ssh_file = options[:ssh_key] || ask(Text::Prompt::SSH_KEY % Default::SSH_FILE)
-      ssh_file = Default::SSH_FILE if ssh_file.empty?
-      params[:ssh_key] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
+      params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], File.basename(Dir.pwd))
 
-      test_pattern = options[:test_pattern] || ask(Text::Prompt::TEST_PATTERN % Default::TEST_PATTERN)
-      params[:test_pattern] = test_pattern.empty? ? Default::TEST_PATTERN : test_pattern
+      params[:branch] = current_git_branch
 
-      default_suite_name = "#{File.basename(Dir.pwd)}/#{current_git_branch}"
-      suite_name = options[:name] || ask(Text::Prompt::SUITE_NAME % default_suite_name)
-      params[:suite_name] = suite_name.empty? ? default_suite_name : suite_name
-      params[:ruby_version] = `ruby -v`.match(/^ruby ([\d\.]+)/)[1]
+      params[:ruby_version] = dependency_version(:ruby)
+      params[:bundler_version] = dependency_version(:bundle)
+      params[:rubygems_version] = dependency_version(:gem)
 
       # Create new suite if it does not exist yet
       call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
         # Manage git
         `git remote rm #{Git::REMOTE_NAME}`
-        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:suite_name])}`
+        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:repo_name])}`
         git_push
 
         # Save the created suite
@@ -227,6 +213,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
+  method_option :ssh_key_file, :type => :string, :default => nil
   def account
     set_default_environment(options[:environment])
     if user_logged_in? do |api_response|
@@ -234,11 +221,12 @@ class Tddium < Thor
       end
     else
       # prompt for email and password
-      email = options[:email] || ask(Text::Prompt::EMAIL)
-      password = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
+      params = {}
+      params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+      params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
 
       # POST (email, password) to /users/sign_in to retrieve an API key
-      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => {:email => email, :password => password}}, false, false) do |api_response|
+      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => params}, false, false) do |api_response|
         # On success, write the API key to "~/.tddium.<environment>"
         write_api_key(api_response["api_key"])
 
@@ -259,19 +247,23 @@ class Tddium < Thor
           # write api key
           unless options[:password]
             password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-            unless password_confirmation == password
+            unless password_confirmation == params[:password]
               say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
               return
             end
           end
-          
+
+          ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
+          params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+
           content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
             file.read
           end
           say content
           license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
           return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-          call_api(:post, Api::Path::USERS, {:user => {:email => email, :password => password}}, false) do |api_response|
+
+          call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
             write_api_key(api_response["api_key"])
           end
         end
@@ -280,6 +272,10 @@ class Tddium < Thor
   end
 
   private
+
+  def dependency_version(command)
+    `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
+  end
 
   def user_logged_in?(active = true, &block)
     result = tddium_settings(false) && tddium_settings["api_key"]
@@ -321,8 +317,7 @@ class Tddium < Thor
     response.new(api_status, http_status, error_message)
   end
 
-  def tddium_git_repo_uri(suite_name)
-    repo_name = suite_name.split("/").first
+  def tddium_git_repo_uri(repo_name)
     git_uri = URI.parse("")
     git_uri.host = Git::HOST
     git_uri.scheme = Git::SCHEME
@@ -394,5 +389,10 @@ class Tddium < Thor
 
   def tddium_client
     @tddium_client ||= TddiumClient.new
+  end
+
+  def prompt(text, current_value, default_value)
+    value = current_value || ask(text % default_value)
+    value.empty? ? default_value : value
   end
 end

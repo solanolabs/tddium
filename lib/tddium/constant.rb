@@ -3,6 +3,12 @@ Copyright (c) 2011 Solano Labs All Rights Reserved
 =end
 
 module TddiumConstant
+
+  module Dependency
+    VERSION_REGEXP = /([\d\.]+)/
+  end
+
+
   module Default
     SLEEP_TIME_BETWEEN_POLLS = 2
     ENVIRONMENT = "production"
