@@ -7,7 +7,5 @@ require 'rspec/core/rake_task'
 
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = "--color"
-  t.rcov = true
-  t.rcov_opts = ["-T", "--exclude", "gems/,lib/tddium/constant"]
 end
 task :default => :spec
