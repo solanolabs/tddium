@@ -105,6 +105,7 @@ class Tddium < Thor
             finished_tests = {}
             test_statuses = Hash.new(0)
             api_call_successful = true
+            get_test_executions_response = {}
 
             say Text::Process::STARTING_TEST % test_files.size
             say Text::Process::TERMINATE_INSTRUCTION
@@ -134,6 +135,9 @@ class Tddium < Thor
                   end
                 end
 
+                # save response for later use
+                get_test_executions_response = api_response
+
                 # If all tests finished, exit the loop else sleep
                 finished_tests.size == api_response["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
               end
@@ -143,7 +147,7 @@ class Tddium < Thor
             # Print out the result
             say Text::Process::FINISHED_TEST % (Time.now - start_time)
             say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-            say Text::Process::CHECK_TEST_REPORT % api_response["report"]
+            say Text::Process::CHECK_TEST_REPORT % get_test_executions_response["report"]
           end
         end
       end
