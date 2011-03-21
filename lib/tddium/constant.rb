@@ -71,6 +71,7 @@ module TddiumConstant
       ACCOUNT_CREATED = "Your account was successfully created"
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
+      LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
     end
 
     module Error

@@ -284,6 +284,14 @@ class Tddium < Thor
     end
   end
 
+  desc "logout", "Log out of tddium"
+  method_option :environment, :type => :string, :default => nil
+  def logout
+    set_default_environment(options[:environment])
+    FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
+    say Text::Process::LOGGED_OUT_SUCCESSFULLY
+  end
+
   private
 
   def dependency_version(command)

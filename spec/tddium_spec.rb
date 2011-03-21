@@ -24,7 +24,7 @@ describe Tddium do
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
   end
 
-  [:suite, :spec, :status, :account, :login].each do |method|
+  [:suite, :spec, :status, :account, :login, :logout].each do |method|
     define_method("run_#{method}") do |tddium, *params|
       options = params.first || {}
       options[:environment] = "test" unless options.has_key?(:environment)
@@ -867,6 +867,29 @@ describe Tddium do
 
     context "the user does not sign in successfully" do
       it_should_behave_like "an unsuccessful api call"
+    end
+  end
+
+  describe "#logout" do
+    before { tddium.stub(:say) }
+
+    context "deleting config file" do
+      it "should delete the file if it exists" do
+        create_file(".tddium.test")
+        run_logout(tddium)
+
+        File.should_not be_exists(".tddium.test")
+      end
+
+      it "should do nothing if the file does not exist" do
+        FileUtils.should_not_receive(:rm)
+        run_logout(tddium)
+      end
+    end
+
+    it "should say the successful logout message" do
+      tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY)
+      run_logout(tddium)
     end
   end
 end
