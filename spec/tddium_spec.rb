@@ -873,21 +873,22 @@ describe Tddium do
   describe "#logout" do
     before { tddium.stub(:say) }
 
-    context "deleting config file" do
-      it "should delete the file if it exists" do
-        create_file(".tddium.test")
+    context ".tddium file exists" do
+      before { stub_config_file }
+      it "should delete the file" do
         run_logout(tddium)
-
         File.should_not be_exists(".tddium.test")
       end
+    end
 
-      it "should do nothing if the file does not exist" do
+    context ".tddium file does not exists" do
+      it "should do nothing" do
         FileUtils.should_not_receive(:rm)
         run_logout(tddium)
       end
     end
 
-    it "should say the successful logout message" do
+    it "should show the user: '#{Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY}'" do
       tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY)
       run_logout(tddium)
     end
