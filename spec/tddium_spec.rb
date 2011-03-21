@@ -8,17 +8,31 @@ describe Tddium do
   include FakeFS::SpecHelpers
   include TddiumSpecHelpers
 
+  SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   SAMPLE_APP_NAME = "tddelicious"
   SAMPLE_BRANCH_NAME = "test"
-  SAMPLE_SUITE_ID = 66
-  SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   SAMPLE_CALL_API_RESPONSE = [0, 200, nil]
   SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
+  SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
   SAMPLE_PASSWORD = "foobar"
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
-  SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
+  SAMPLE_SUITE_ID = 66
+
+  def call_api_should_receive(options = {})
+    params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
+    tddium_client.stub(:call_api).with(*params)                       # To prevent the yield
+    tddium_client.should_receive(:call_api).with(*params).and_return(SAMPLE_CALL_API_ERROR)
+  end
+
+  def extract_options!(array, *option_keys)
+    is_options = false
+    option_keys.each do |option_key|
+      is_options ||= array.last.include?(option_key.to_sym)
+    end
+    (array.last.is_a?(Hash) && is_options) ? array.pop : {}
+  end
 
   def run(tddium, options = {:environment => "test"})
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
@@ -33,28 +47,8 @@ describe Tddium do
     end
   end
 
-  def stub_cli_options(tddium, options = {})
-    tddium.stub(:options).and_return(options)
-  end
-
-  def stub_default_suite_name
-    Dir.stub(:pwd).and_return(SAMPLE_APP_NAME)
-  end
-
-  def stub_ruby_version(tddium, version = "1.9.2")
-    tddium.stub(:`).with("ruby -v").and_return("ruby #{version} (2010-08-16 patchlevel 302) [i686-darwin10.5.0]")
-  end
-
   def stub_bundler_version(tddium, version = "10.0.10")
     tddium.stub(:`).with("bundle -v").and_return("Bundler version #{version}")
-  end
-
-  def stub_rubygems_version(tddium, version = "1.3.7")
-    tddium.stub(:`).with("gem -v").and_return(version)
-  end
-
-  def stub_git_branch(tddium, default_branch_name = SAMPLE_BRANCH_NAME)
-    tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
   end
 
   def stub_call_api_response(method, path, *response)
@@ -68,19 +62,8 @@ describe Tddium do
     end
   end
 
-  def extract_options!(array, *option_keys)
-    is_options = false
-    option_keys.each do |option_key|
-      is_options ||= array.last.include?(option_key.to_sym)
-    end
-    (array.last.is_a?(Hash) && is_options) ? array.pop : {}
-  end
-
-  def stub_defaults
-    tddium.stub(:say)
-    stub_git_branch(tddium)
-    stub_tddium_client
-    create_file(File.join(".git", "something"), "something")
+  def stub_cli_options(tddium, options = {})
+    tddium.stub(:options).and_return(options)
   end
 
   def stub_config_file(options = {})
@@ -91,18 +74,35 @@ describe Tddium do
     create_file(".tddium.test", json)
   end
 
+  def stub_default_suite_name
+    Dir.stub(:pwd).and_return(SAMPLE_APP_NAME)
+  end
+
+  def stub_defaults
+    tddium.stub(:say)
+    stub_git_branch(tddium)
+    stub_tddium_client
+    create_file(File.join(".git", "something"), "something")
+  end
+
+  def stub_git_branch(tddium, default_branch_name = SAMPLE_BRANCH_NAME)
+    tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
+  end
+
   def stub_git_push(tddium)
     tddium.stub(:`).with(/^git push/)
   end
 
-  def stub_sleep(tddium)
-    tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
+  def stub_ruby_version(tddium, version = "1.9.2")
+    tddium.stub(:`).with("ruby -v").and_return("ruby #{version} (2010-08-16 patchlevel 302) [i686-darwin10.5.0]")
   end
 
-  def call_api_should_receive(options = {})
-    params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
-    tddium_client.stub(:call_api).with(*params)                       # To prevent the yield
-    tddium_client.should_receive(:call_api).with(*params).and_return(SAMPLE_CALL_API_ERROR)
+  def stub_rubygems_version(tddium, version = "1.3.7")
+    tddium.stub(:`).with("gem -v").and_return(version)
+  end
+
+  def stub_sleep(tddium)
+    tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
   end
 
   def stub_tddium_client
@@ -114,106 +114,6 @@ describe Tddium do
   let(:tddium) { Tddium.new }
   let(:tddium_client) { mock(TddiumClient).as_null_object }
 
-  shared_examples_for "set the default environment" do
-    context "with environment parameter" do
-      it "should should set the environment as the parameter of environment" do
-        tddium_client.should_receive(:environment=).with(:test)
-        run(tddium, :environment => "test")
-      end
-    end
-
-    context "without environment parameter" do
-      before do
-        FileUtils.rm_rf(".tddium")
-        FileUtils.rm_rf(".tddium.development")
-        tddium_client.stub(:environment).and_return(:development)
-      end
-
-      it "should should set the environment as production if the file '.tddium.development' does not exist" do
-        tddium_client.should_receive(:environment=).with(:production)
-        run(tddium, :environment => nil)
-      end
-
-      it "should should set the environment as development if the file '.tddium.development' exists" do
-        create_file(".tddium.development")
-        tddium_client.should_receive(:environment=).with(:development)
-        tddium_client.should_not_receive(:environment=).with(:production)
-        run(tddium, :environment => nil)
-      end
-    end
-  end
-
-  shared_examples_for "git repo has not been initialized" do
-    context "git repo has not been initialized" do
-      before do
-        FileUtils.rm_rf(".git")
-      end
-
-      it "should return git is uninitialized" do
-        tddium.should_receive(:say).with(Tddium::Text::Error::GIT_NOT_INITIALIZED)
-        run(tddium)
-      end
-    end
-  end
-
-  shared_examples_for ".tddium.test file is missing or corrupt" do
-    context ".tddium.test file is missing" do
-      before do
-        FileUtils.rm_rf(".tddium.test")
-      end
-
-      it "should tell the user '#{Tddium::Text::Error::NOT_INITIALIZED}'" do
-        tddium.should_receive(:say).with(Tddium::Text::Error::NOT_INITIALIZED)
-        run(tddium)
-      end
-    end
-
-    context ".tddium.test file is corrupt" do
-      before do
-        create_file(".tddium.test", "corrupt file")
-      end
-
-      it "should tell the user '#{Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test'}'" do
-        tddium.should_receive(:say).with(Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test')
-        run(tddium)
-      end
-    end
-  end
-
-  shared_examples_for "suite has not been initialized" do
-    context ".tddium.test file is missing" do
-      before do
-        stub_config_file(:api_key => true)
-      end
-
-      it "should tell the user '#{Tddium::Text::Error::NO_SUITE_EXISTS % SAMPLE_BRANCH_NAME}'" do
-        tddium.should_receive(:say).with(Tddium::Text::Error::NO_SUITE_EXISTS % SAMPLE_BRANCH_NAME)
-        run(tddium)
-      end
-    end
-  end
-
-  shared_examples_for "sending the api key" do
-    it "should call the api with the api key" do
-      call_api_should_receive(:api_key => SAMPLE_API_KEY)
-      run(tddium)
-    end
-  end
-
-  shared_examples_for "an unsuccessful api call" do
-    it "should show the error" do
-      tddium_client.stub(:call_api).and_return(SAMPLE_CALL_API_ERROR)
-      tddium.should_receive(:say).with(SAMPLE_CALL_API_ERROR[2])
-      run(tddium)
-    end
-  end
-
-  shared_examples_for "getting the current suite from the API" do
-    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
-      call_api_should_receive(:method => :get, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
-      run(tddium)
-    end
-  end
 
   shared_examples_for "a password prompt" do
     context "--password was not passed in" do
@@ -232,11 +132,31 @@ describe Tddium do
     end
   end
 
-  shared_examples_for "writing the api key to the .tddium file" do
-    it "should write the api key to the .tddium file" do
+  shared_examples_for "an unsuccessful api call" do
+    it "should show the error" do
+      tddium_client.stub(:call_api).and_return(SAMPLE_CALL_API_ERROR)
+      tddium.should_receive(:say).with(SAMPLE_CALL_API_ERROR[2])
       run(tddium)
-      tddium_file = File.open(".tddium.test") { |file| file.read }
-      JSON.parse(tddium_file)["api_key"].should == SAMPLE_API_KEY
+    end
+  end
+
+  shared_examples_for "git repo has not been initialized" do
+    context "git repo has not been initialized" do
+      before do
+        FileUtils.rm_rf(".git")
+      end
+
+      it "should return git is uninitialized" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::GIT_NOT_INITIALIZED)
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for "getting the current suite from the API" do
+    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
+      call_api_should_receive(:method => :get, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
+      run(tddium)
     end
   end
 
@@ -283,192 +203,263 @@ describe Tddium do
     end
   end
 
-  describe "#suite" do
+  shared_examples_for "sending the api key" do
+    it "should call the api with the api key" do
+      call_api_should_receive(:api_key => SAMPLE_API_KEY)
+      run(tddium)
+    end
+  end
+
+  shared_examples_for "set the default environment" do
+    context "with environment parameter" do
+      it "should should set the environment as the parameter of environment" do
+        tddium_client.should_receive(:environment=).with(:test)
+        run(tddium, :environment => "test")
+      end
+    end
+
+    context "without environment parameter" do
+      before do
+        FileUtils.rm_rf(".tddium")
+        FileUtils.rm_rf(".tddium.development")
+        tddium_client.stub(:environment).and_return(:development)
+      end
+
+      it "should should set the environment as production if the file '.tddium.development' does not exist" do
+        tddium_client.should_receive(:environment=).with(:production)
+        run(tddium, :environment => nil)
+      end
+
+      it "should should set the environment as development if the file '.tddium.development' exists" do
+        create_file(".tddium.development")
+        tddium_client.should_receive(:environment=).with(:development)
+        tddium_client.should_not_receive(:environment=).with(:production)
+        run(tddium, :environment => nil)
+      end
+    end
+  end
+
+  shared_examples_for "suite has not been initialized" do
+    context ".tddium file is missing" do
+      before do
+        stub_config_file(:api_key => true)
+      end
+
+      it "should tell the user '#{Tddium::Text::Error::NO_SUITE_EXISTS % SAMPLE_BRANCH_NAME}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::NO_SUITE_EXISTS % SAMPLE_BRANCH_NAME)
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for ".tddium file is missing or corrupt" do
+    context ".tddium file is missing" do
+      before do
+        FileUtils.rm_rf(".tddium.test")
+      end
+
+      it "should tell the user '#{Tddium::Text::Error::NOT_INITIALIZED}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::NOT_INITIALIZED)
+        run(tddium)
+      end
+    end
+
+    context ".tddium file is corrupt" do
+      before do
+        create_file(".tddium.test", "corrupt file")
+      end
+
+      it "should tell the user '#{Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test'}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test')
+        run(tddium)
+      end
+    end
+  end
+
+  shared_examples_for "writing the api key to the .tddium file" do
+    it "should write the api key to the .tddium file" do
+      run(tddium)
+      tddium_file = File.open(".tddium.test") { |file| file.read }
+      JSON.parse(tddium_file)["api_key"].should == SAMPLE_API_KEY
+    end
+  end
+
+  describe "#account" do
     before do
       stub_defaults
-      stub_config_file(:api_key => true)
-      stub_ruby_version(tddium)
-      stub_rubygems_version(tddium)
-      stub_bundler_version(tddium)
       tddium.stub(:ask).and_return("")
-    end
-
-    it "should ask for a test file pattern" do
-      tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
-      run_suite(tddium)
-    end
-
-    context "using defaults" do
-      before{ stub_default_suite_name }
-      it "should send the default values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => Tddium::Default::TEST_PATTERN, :repo_name => SAMPLE_APP_NAME)})
-        run_suite(tddium)
-      end
-    end
-
-    context "passing arguments" do
-      let(:cli_args) { { :test_pattern => "**/*_test.rb", :environment => "test" } }
-
-      it "should POST the passed in values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_test.rb")})
-        run_suite(tddium, cli_args)
-      end
-    end
-
-    context "interactive mode" do
-      before { tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_selenium.rb") }
-
-      it "should POST the passed in values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_selenium.rb")})
-        run_suite(tddium)
-      end
+      HighLine.stub(:ask).and_return("")
+      create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), SAMPLE_LICENSE_TEXT)
+      create_file(Tddium::Default::SSH_FILE, "ssh-rsa blah")
     end
 
     it_should_behave_like "set the default environment"
-    it_should_behave_like "sending the api key"
-    it_should_behave_like "git repo has not been initialized"
-    it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like "logging in a user"
 
-    context "suite has not yet been registered" do
-      it "should ask for a suite name" do
-        stub_default_suite_name
-        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
-        run_suite(tddium)
+    shared_examples_for "showing the user's details" do
+      it "should show the user's email address" do
+        tddium.should_receive(:say).with(SAMPLE_EMAIL)
+        run_account(tddium)
       end
 
-      it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
-        call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
-        run_suite(tddium)
+      it "should show the user's account creation date" do
+        tddium.should_receive(:say).with(SAMPLE_DATE_TIME)
+        run_account(tddium)
       end
-
-      it "should post the current ruby version to the API" do
-        stub_ruby_version(tddium, "1.9.2")
-        call_api_should_receive(:params => {:suite => hash_including(:ruby_version => "1.9.2")})
-        run_suite(tddium)
-      end
-
-      context "using defaults" do
-        before do
-          stub_default_suite_name
-        end
-
-        it "should POST the default values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => SAMPLE_APP_NAME)})
-          run_suite(tddium)
-        end
-      end
-
-      context "passing arguments" do
-        let(:cli_args) { { :name => "my_suite_name", :environment => "test" } }
-
-        it "should POST the passed in values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "my_suite_name")})
-          run_suite(tddium, cli_args)
-        end
-      end
-
-      context "interactive mode" do
-        before do
-          tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("foobar")
-          stub_default_suite_name
-        end
-
-        it "should POST the passed values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "foobar")})
-          run_suite(tddium)
-        end
-      end
-
-      context "API response successful" do
-        before do
-          response = {"suite"=>{"id"=>SAMPLE_SUITE_ID}}
-          stub_call_api_response(:post, Tddium::Api::Path::SUITES, response)
-          tddium.stub(:`).with(/^git remote/)
-          stub_git_push(tddium)
-        end
-
-        it "should remove any existing remotes named 'tddium'" do
-          tddium.should_receive(:`).with("git remote rm tddium")
-          run_suite(tddium)
-        end
-
-        it "should add a new remote called 'tddium'" do
-          stub_default_suite_name
-          tddium.should_receive(:`).with("git remote add tddium ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}")
-          run_suite(tddium)
-        end
-
-        context "in the branch 'oaktree'" do
-          before do
-            tddium.stub(:current_git_branch).and_return("oaktree")
-          end
-
-          it "should push the current git branch to tddium oaktree" do
-            tddium.should_receive(:`).with("git push tddium oaktree")
-            run_suite(tddium)
-          end
-
-          it "should create '.tddium.test' and write the suite_id and branch name" do
-            run_suite(tddium)
-            tddium_file = File.open(".tddium.test") { |file| file.read }
-            JSON.parse(tddium_file)["branches"]["oaktree"].should == SAMPLE_SUITE_ID
-          end
-        end
-      end
-
-      it_should_behave_like "an unsuccessful api call"
     end
 
-    context "suite has already been registered" do
+    context "the user is already logged in" do
       before do
-        stub_config_file(:api_key => true, :branches => true)
+        stub_config_file(:api_key => SAMPLE_API_KEY)
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
       end
 
-      context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
-        before do
-          response = {
-            "suite" => {
-              "test_pattern" => "**/*_test.rb",
-              "id" => SAMPLE_SUITE_ID
-            }
-          }
-          stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", response)
+      it_should_behave_like "showing the user's details"
+    end
+
+    context "the user logs in successfully" do
+      before do
+        stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY}, :and_return => SAMPLE_CALL_API_RESPONSE)
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
+      end
+      it_should_behave_like "showing the user's details"
+    end
+
+    context "the user does not log in successfully" do
+      let(:call_api_result) {[403, "Forbidden"]}
+      context "because their password was incorrect (i.e. an email already exists)" do
+        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::INCORRECT_PASSWORD))}
+        it "should tell the user that the email address has already been taken" do
+          tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_TAKEN)
+          run_account(tddium)
+        end
+      end
+      context "because the email did not exist (i.e. no account with this email)" do
+        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::EMAIL_NOT_FOUND))}
+
+        it_should_behave_like "a password prompt" do
+          let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
         end
 
-        it "should not ask for a suite name" do
-          stub_default_suite_name
-          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
-          run_suite(tddium)
-        end
-
-        it "should not look for the current ruby version" do
-          tddium.should_not_receive(:`).with("ruby -v")
-          run_suite(tddium)
-        end
-
-        it "should prompt for a test pattern using the current test pattern as the default" do
-          tddium.should_receive(:ask).with(/\*\*\/\*\_test\.rb/)
-          run_suite(tddium)
-        end
-
-        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
-          call_api_should_receive(:method => :put, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
-          run_suite(tddium)
-        end
-
-        context "'PUT #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
-          before { stub_call_api_response(:put, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {}) }
-          it "should display '#{Tddium::Text::Process::UPDATE_SUITE}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::UPDATE_SUITE)
-            run_suite(tddium)
+        context "the user does not confirm their password correctly" do
+          before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
+          it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
+            run_account(tddium)
           end
         end
 
-        it_should_behave_like "sending the api key"
-        it_should_behave_like "an unsuccessful api call"
+        context "the user confirms their password correctly" do
+          before do
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
+          end
+
+          context "--ssh-key-file is not supplied" do
+            it "should prompt the user for their ssh key file" do
+              tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+              run_account(tddium)
+            end
+          end
+
+          context "--ssh-key-file is supplied" do
+            it "should not prompt the user for their ssh key file" do
+              tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+              run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
+            end
+          end
+
+          it "should show the user the license" do
+            tddium.should_receive(:say).with(SAMPLE_LICENSE_TEXT)
+            run_account(tddium)
+          end
+
+          it "should ask the user to accept the license" do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT)
+            run_account(tddium)
+          end
+
+          context "accepting the license" do
+            before do
+              tddium.stub(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT).and_return(Tddium::Text::Prompt::Response::AGREE_TO_LICENSE)
+              tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(SAMPLE_EMAIL)
+              create_file(Tddium::Default::SSH_FILE, "ssh-rsa 1234")
+            end
+            it "should send a 'POST' request to '#{Tddium::Api::Path::USERS}' with the user's email address, password and ssh key" do
+              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::USERS}$/, :params => {:user => {:email => SAMPLE_EMAIL, :password => SAMPLE_PASSWORD, :user_git_pubkey => "ssh-rsa 1234"}}, :api_key => false)
+              run_account(tddium)
+            end
+            context "'POST #{Tddium::Api::Path::USERS}' is successful" do
+              before{stub_call_api_response(:post, Tddium::Api::Path::USERS, {"api_key" => SAMPLE_API_KEY})}
+              it_should_behave_like "writing the api key to the .tddium file"
+              it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
+                tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
+                run_account(tddium)
+              end
+            end
+            it_should_behave_like "an unsuccessful api call"
+          end
+        end
+      end
+    end
+  end
+
+  describe "#login" do
+    before do
+      stub_defaults
+      tddium.stub(:ask).and_return("")
+      HighLine.stub(:ask).and_return("")
+    end
+
+    it_should_behave_like "set the default environment"
+    it_should_behave_like "logging in a user"
+
+    context "user is already logged in" do
+      before do
+        stub_config_file(:api_key => SAMPLE_API_KEY)
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, :and_yield => false, :and_return => SAMPLE_CALL_API_RESPONSE)
       end
 
+      it "should show the user: '#{Tddium::Text::Process::ALREADY_LOGGED_IN}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Process::ALREADY_LOGGED_IN)
+        run_login(tddium)
+      end
+    end
+
+    context "the user logs in successfully" do
+      before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {})}
+      it "should show the user: '#{Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY}'" do
+        tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY)
+        run_login(tddium)
+      end
+    end
+
+    context "the user does not sign in successfully" do
       it_should_behave_like "an unsuccessful api call"
+    end
+  end
+
+  describe "#logout" do
+    before { tddium.stub(:say) }
+
+    context ".tddium file exists" do
+      before { stub_config_file }
+      it "should delete the file" do
+        run_logout(tddium)
+        File.should_not be_exists(".tddium.test")
+      end
+    end
+
+    context ".tddium file does not exists" do
+      it "should do nothing" do
+        FileUtils.should_not_receive(:rm)
+        run_logout(tddium)
+      end
+    end
+
+    it "should show the user: '#{Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY}'" do
+      tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY)
+      run_logout(tddium)
     end
   end
 
@@ -481,7 +472,7 @@ describe Tddium do
 
     it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
-    it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
     it "should push the latest code to tddium" do
@@ -672,7 +663,7 @@ describe Tddium do
 
     it_should_behave_like "set the default environment"
     it_should_behave_like "git repo has not been initialized"
-    it_should_behave_like ".tddium.test file is missing or corrupt"
+    it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
     context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
@@ -715,182 +706,192 @@ describe Tddium do
     it_should_behave_like "an unsuccessful api call"
   end
 
-  describe "#account" do
+  describe "#suite" do
     before do
       stub_defaults
+      stub_config_file(:api_key => true)
+      stub_ruby_version(tddium)
+      stub_rubygems_version(tddium)
+      stub_bundler_version(tddium)
       tddium.stub(:ask).and_return("")
-      HighLine.stub(:ask).and_return("")
-      create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), SAMPLE_LICENSE_TEXT)
-      create_file(Tddium::Default::SSH_FILE, "ssh-rsa blah")
+    end
+
+    it "should ask for a test file pattern" do
+      tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
+      run_suite(tddium)
+    end
+
+    context "using defaults" do
+      before{ stub_default_suite_name }
+      it "should send the default values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => Tddium::Default::TEST_PATTERN, :repo_name => SAMPLE_APP_NAME)})
+        run_suite(tddium)
+      end
+    end
+
+    context "passing arguments" do
+      let(:cli_args) { { :test_pattern => "**/*_test.rb", :environment => "test" } }
+
+      it "should POST the passed in values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_test.rb")})
+        run_suite(tddium, cli_args)
+      end
+    end
+
+    context "interactive mode" do
+      before { tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_selenium.rb") }
+
+      it "should POST the passed in values to the API" do
+        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_selenium.rb")})
+        run_suite(tddium)
+      end
     end
 
     it_should_behave_like "set the default environment"
-    it_should_behave_like "logging in a user"
+    it_should_behave_like "sending the api key"
+    it_should_behave_like "git repo has not been initialized"
+    it_should_behave_like ".tddium file is missing or corrupt"
 
-    shared_examples_for "showing the user's details" do
-      it "should show the user's email address" do
-        tddium.should_receive(:say).with(SAMPLE_EMAIL)
-        run_account(tddium)
+    context "suite has not yet been registered" do
+      it "should ask for a suite name" do
+        stub_default_suite_name
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
+        run_suite(tddium)
       end
 
-      it "should show the user's account creation date" do
-        tddium.should_receive(:say).with(SAMPLE_DATE_TIME)
-        run_account(tddium)
-      end
-    end
-
-    context "the user is already logged in" do
-      before do
-        stub_config_file(:api_key => SAMPLE_API_KEY)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
+      it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
+        call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
+        run_suite(tddium)
       end
 
-      it_should_behave_like "showing the user's details"
-    end
-
-    context "the user logs in successfully" do
-      before do
-        stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY}, :and_return => SAMPLE_CALL_API_RESPONSE)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
+      it "should post the current ruby version to the API" do
+        stub_ruby_version(tddium, "1.9.2")
+        call_api_should_receive(:params => {:suite => hash_including(:ruby_version => "1.9.2")})
+        run_suite(tddium)
       end
-      it_should_behave_like "showing the user's details"
-    end
 
-    context "the user does not log in successfully" do
-      let(:call_api_result) {[403, "Forbidden"]}
-      context "because their password was incorrect (i.e. an email already exists)" do
-        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::INCORRECT_PASSWORD))}
-        it "should tell the user that the email address has already been taken" do
-          tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_TAKEN)
-          run_account(tddium)
-        end
-      end
-      context "because the email did not exist (i.e. no account with this email)" do
-        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::EMAIL_NOT_FOUND))}
-
-        it_should_behave_like "a password prompt" do
-          let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+      context "using defaults" do
+        before do
+          stub_default_suite_name
         end
 
-        context "the user does not confirm their password correctly" do
-          before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
-          it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
-            run_account(tddium)
-          end
+        it "should POST the default values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:repo_name => SAMPLE_APP_NAME)})
+          run_suite(tddium)
+        end
+      end
+
+      context "passing arguments" do
+        let(:cli_args) { { :name => "my_suite_name", :environment => "test" } }
+
+        it "should POST the passed in values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "my_suite_name")})
+          run_suite(tddium, cli_args)
+        end
+      end
+
+      context "interactive mode" do
+        before do
+          tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("foobar")
+          stub_default_suite_name
         end
 
-        context "the user confirms their password correctly" do
+        it "should POST the passed values to the API" do
+          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "foobar")})
+          run_suite(tddium)
+        end
+      end
+
+      context "API response successful" do
+        before do
+          response = {"suite"=>{"id"=>SAMPLE_SUITE_ID}}
+          stub_call_api_response(:post, Tddium::Api::Path::SUITES, response)
+          tddium.stub(:`).with(/^git remote/)
+          stub_git_push(tddium)
+        end
+
+        it "should remove any existing remotes named 'tddium'" do
+          tddium.should_receive(:`).with("git remote rm tddium")
+          run_suite(tddium)
+        end
+
+        it "should add a new remote called 'tddium'" do
+          stub_default_suite_name
+          tddium.should_receive(:`).with("git remote add tddium ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}")
+          run_suite(tddium)
+        end
+
+        context "in the branch 'oaktree'" do
           before do
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
+            tddium.stub(:current_git_branch).and_return("oaktree")
           end
 
-          context "--ssh-key-file is not supplied" do
-            it "should prompt the user for their ssh key file" do
-              tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-              run_account(tddium)
-            end
+          it "should push the current git branch to tddium oaktree" do
+            tddium.should_receive(:`).with("git push tddium oaktree")
+            run_suite(tddium)
           end
 
-          context "--ssh-key-file is supplied" do
-            it "should not prompt the user for their ssh key file" do
-              tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-              run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
-            end
-          end
-
-          it "should show the user the license" do
-            tddium.should_receive(:say).with(SAMPLE_LICENSE_TEXT)
-            run_account(tddium)
-          end
-
-          it "should ask the user to accept the license" do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT)
-            run_account(tddium)
-          end
-
-          context "accepting the license" do
-            before do
-              tddium.stub(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT).and_return(Tddium::Text::Prompt::Response::AGREE_TO_LICENSE)
-              tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(SAMPLE_EMAIL)
-              create_file(Tddium::Default::SSH_FILE, "ssh-rsa 1234")
-            end
-            it "should send a 'POST' request to '#{Tddium::Api::Path::USERS}' with the user's email address, password and ssh key" do
-              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::USERS}$/, :params => {:user => {:email => SAMPLE_EMAIL, :password => SAMPLE_PASSWORD, :user_git_pubkey => "ssh-rsa 1234"}}, :api_key => false)
-              run_account(tddium)
-            end
-            context "'POST #{Tddium::Api::Path::USERS}' is successful" do
-              before{stub_call_api_response(:post, Tddium::Api::Path::USERS, {"api_key" => SAMPLE_API_KEY})}
-              it_should_behave_like "writing the api key to the .tddium file"
-              it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
-                tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
-                run_account(tddium)
-              end
-            end
-            it_should_behave_like "an unsuccessful api call"
+          it "should create '.tddium' and write the suite_id and branch name" do
+            run_suite(tddium)
+            tddium_file = File.open(".tddium.test") { |file| file.read }
+            JSON.parse(tddium_file)["branches"]["oaktree"].should == SAMPLE_SUITE_ID
           end
         end
       end
-    end
-  end
 
-  describe "#login" do
-    before do
-      stub_defaults
-      tddium.stub(:ask).and_return("")
-      HighLine.stub(:ask).and_return("")
-    end
-
-    it_should_behave_like "set the default environment"
-    it_should_behave_like "logging in a user"
-
-    context "user is already logged in" do
-      before do
-        stub_config_file(:api_key => SAMPLE_API_KEY)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, :and_yield => false, :and_return => SAMPLE_CALL_API_RESPONSE)
-      end
-
-      it "should show the user: '#{Tddium::Text::Process::ALREADY_LOGGED_IN}'" do
-        tddium.should_receive(:say).with(Tddium::Text::Process::ALREADY_LOGGED_IN)
-        run_login(tddium)
-      end
-    end
-
-    context "the user logs in successfully" do
-      before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {})}
-      it "should show the user: '#{Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY}'" do
-        tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY)
-        run_login(tddium)
-      end
-    end
-
-    context "the user does not sign in successfully" do
       it_should_behave_like "an unsuccessful api call"
     end
-  end
 
-  describe "#logout" do
-    before { tddium.stub(:say) }
-
-    context ".tddium file exists" do
-      before { stub_config_file }
-      it "should delete the file" do
-        run_logout(tddium)
-        File.should_not be_exists(".tddium.test")
+    context "suite has already been registered" do
+      before do
+        stub_config_file(:api_key => true, :branches => true)
       end
-    end
 
-    context ".tddium file does not exists" do
-      it "should do nothing" do
-        FileUtils.should_not_receive(:rm)
-        run_logout(tddium)
+      context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
+        before do
+          response = {
+            "suite" => {
+              "test_pattern" => "**/*_test.rb",
+              "id" => SAMPLE_SUITE_ID
+            }
+          }
+          stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", response)
+        end
+
+        it "should not ask for a suite name" do
+          stub_default_suite_name
+          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
+          run_suite(tddium)
+        end
+
+        it "should not look for the current ruby version" do
+          tddium.should_not_receive(:`).with("ruby -v")
+          run_suite(tddium)
+        end
+
+        it "should prompt for a test pattern using the current test pattern as the default" do
+          tddium.should_receive(:ask).with(/\*\*\/\*\_test\.rb/)
+          run_suite(tddium)
+        end
+
+        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
+          call_api_should_receive(:method => :put, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
+          run_suite(tddium)
+        end
+
+        context "'PUT #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
+          before { stub_call_api_response(:put, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {}) }
+          it "should display '#{Tddium::Text::Process::UPDATE_SUITE}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Process::UPDATE_SUITE)
+            run_suite(tddium)
+          end
+        end
+
+        it_should_behave_like "sending the api key"
+        it_should_behave_like "an unsuccessful api call"
       end
-    end
 
-    it "should show the user: '#{Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY}'" do
-      tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_OUT_SUCCESSFULLY)
-      run_logout(tddium)
+      it_should_behave_like "an unsuccessful api call"
     end
   end
 end

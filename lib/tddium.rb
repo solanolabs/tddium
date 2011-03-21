@@ -30,51 +30,83 @@ require File.expand_path("../tddium/constant", __FILE__)
 class Tddium < Thor
   include TddiumConstant
 
-  desc "suite", "Register the suite for this project, or manage its settings"
-  method_option :test_pattern, :type => :string, :default => nil
-  method_option :name, :type => :string, :default => nil
+  desc "account", "View/Manage account information"
   method_option :environment, :type => :string, :default => nil
-  def suite
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  method_option :ssh_key_file, :type => :string, :default => nil
+  def account
     set_default_environment(options[:environment])
-    return unless git_repo? && tddium_settings
-
-    params = {}
-    if current_suite_id
-      call_api(:get, current_suite_path) do |api_response|
-        # Get the current test pattern and prompt for updates
-        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], api_response["suite"]["test_pattern"])
-
-        # Update the current suite if it exists already
-        call_api(:put, current_suite_path, {:suite => params}) do |api_response|
-          say Text::Process::UPDATE_SUITE
-        end
+    if user_logged_in? do |api_response|
+        show_user_details(api_response)
       end
     else
-      # Inputs for new suite
-      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
-      params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], File.basename(Dir.pwd))
+      params = get_user_credentials(options)
+      login = login_user(:params => params) do |api_response|
+        tddium_settings(:force_reload => true, :fail_with_message => false)
+        # call get_user again and display the email and created at date
+        get_user do |api_response|
+          show_user_details(api_response)
+        end
+      end
+      unless login.success?
+        if login.api_status == Api::ErrorCode::INCORRECT_PASSWORD
+          # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
+          say Text::Process::ACCOUNT_TAKEN
+        else
+          # if no existing user with this email
+          # display the license
+          # confirm its acceptance
+          # POST to create user
+          # write api key
+          unless options[:password]
+            password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+            unless password_confirmation == params[:password]
+              say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
+              return
+            end
+          end
 
-      params[:branch] = current_git_branch
+          ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
+          params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
 
-      params[:ruby_version] = dependency_version(:ruby)
-      params[:bundler_version] = dependency_version(:bundle)
-      params[:rubygems_version] = dependency_version(:gem)
+          content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
+            file.read
+          end
+          say content
+          license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
+          return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
-      # Create new suite if it does not exist yet
-      call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
-        # Manage git
-        `git remote rm #{Git::REMOTE_NAME}`
-        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:repo_name])}`
-        git_push
-
-        # Save the created suite
-        branches = tddium_settings["branches"] || {}
-        branches.merge!({current_git_branch => api_response["suite"]["id"]})
-        File.open(tddium_file_name, "w") do |file|
-          file.write(tddium_settings.merge({"branches" => branches}).to_json)
+          call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
+            write_api_key(api_response["api_key"])
+            say Text::Process::ACCOUNT_CREATED
+          end
         end
       end
     end
+  end
+
+  desc "login", "Log in to tddium using your email address and password"
+  method_option :environment, :type => :string, :default => nil
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  def login
+    set_default_environment(options[:environment])
+    if user_logged_in?
+      say Text::Process::ALREADY_LOGGED_IN
+    else
+      login_user(:params => get_user_credentials(options), :show_error => true) do
+        say Text::Process::LOGGED_IN_SUCCESSFULLY
+      end
+    end
+  end
+
+  desc "logout", "Log out of tddium"
+  method_option :environment, :type => :string, :default => nil
+  def logout
+    set_default_environment(options[:environment])
+    FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
+    say Text::Process::LOGGED_OUT_SUCCESSFULLY
   end
 
   desc "spec", "Run the test suite"
@@ -213,136 +245,54 @@ class Tddium < Thor
     end
   end
 
-  desc "account", "View/Manage account information"
+  desc "suite", "Register the suite for this project, or manage its settings"
+  method_option :test_pattern, :type => :string, :default => nil
+  method_option :name, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  method_option :ssh_key_file, :type => :string, :default => nil
-  def account
+  def suite
     set_default_environment(options[:environment])
-    if user_logged_in? do |api_response|
-        show_user_details(api_response)
-      end
-    else
-      params = get_login_details(options)
-      login = login_user(:params => params) do |api_response|
-        tddium_settings(:force_reload => true, :fail_with_message => false)
-        # call get_user again and display the email and created at date
-        get_user do |api_response|
-          show_user_details(api_response)
+    return unless git_repo? && tddium_settings
+
+    params = {}
+    if current_suite_id
+      call_api(:get, current_suite_path) do |api_response|
+        # Get the current test pattern and prompt for updates
+        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], api_response["suite"]["test_pattern"])
+
+        # Update the current suite if it exists already
+        call_api(:put, current_suite_path, {:suite => params}) do |api_response|
+          say Text::Process::UPDATE_SUITE
         end
       end
-      unless login.success?
-        if login.api_status == Api::ErrorCode::INCORRECT_PASSWORD
-          # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
-          say Text::Process::ACCOUNT_TAKEN
-        else
-          # if no existing user with this email
-          # display the license
-          # confirm its acceptance
-          # POST to create user
-          # write api key
-          unless options[:password]
-            password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-            unless password_confirmation == params[:password]
-              say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
-              return
-            end
-          end
+    else
+      # Inputs for new suite
+      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
+      params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], File.basename(Dir.pwd))
 
-          ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
-          params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+      params[:branch] = current_git_branch
 
-          content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
-            file.read
-          end
-          say content
-          license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
-          return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
+      params[:ruby_version] = dependency_version(:ruby)
+      params[:bundler_version] = dependency_version(:bundle)
+      params[:rubygems_version] = dependency_version(:gem)
 
-          call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
-            write_api_key(api_response["api_key"])
-            say Text::Process::ACCOUNT_CREATED
-          end
+      # Create new suite if it does not exist yet
+      call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
+        # Manage git
+        `git remote rm #{Git::REMOTE_NAME}`
+        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:repo_name])}`
+        git_push
+
+        # Save the created suite
+        branches = tddium_settings["branches"] || {}
+        branches.merge!({current_git_branch => api_response["suite"]["id"]})
+        File.open(tddium_file_name, "w") do |file|
+          file.write(tddium_settings.merge({"branches" => branches}).to_json)
         end
       end
     end
-  end
-
-  desc "login", "Log in to tddium using your email address and password"
-  method_option :environment, :type => :string, :default => nil
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  def login
-    set_default_environment(options[:environment])
-    if user_logged_in?
-      say Text::Process::ALREADY_LOGGED_IN
-    else
-      login_user(:params => get_login_details(options), :show_error => true) do
-        say Text::Process::LOGGED_IN_SUCCESSFULLY
-      end
-    end
-  end
-
-  desc "logout", "Log out of tddium"
-  method_option :environment, :type => :string, :default => nil
-  def logout
-    set_default_environment(options[:environment])
-    FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
-    say Text::Process::LOGGED_OUT_SUCCESSFULLY
   end
 
   private
-
-  def dependency_version(command)
-    `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
-  end
-
-  def user_logged_in?(active = true, &block)
-    result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
-    (result && active) ? get_user(&block).success? : result
-  end
-
-  def login_user(options = {}, &block)
-    # POST (email, password) to /users/sign_in to retrieve an API key
-    login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error]) do |api_response|
-      # On success, write the API key to "~/.tddium.<environment>"
-      write_api_key(api_response["api_key"])
-      yield api_response if block_given?
-    end
-    login_result
-  end
-
-  def get_login_details(options = {})
-    params = {}
-    # prompt for email and password
-    params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
-    params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
-    params
-  end
-
-  def get_user(&block)
-    call_api(:get, Api::Path::USERS, {}, nil, false, &block)
-  end
-
-  def show_user_details(api_response)
-    # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
-    # Email address
-    # Account creation date
-    say api_response["user"]["email"]
-    say api_response["user"]["created_at"]
-  end
-
-  def write_api_key(api_key)
-    settings = tddium_settings(:fail_with_message => false) || {}
-    File.open(tddium_file_name, "w") do |file|
-      file.write(settings.merge({"api_key" => api_key}).to_json)
-    end
-  end
-
-  def git_push
-    `git push #{Git::REMOTE_NAME} #{current_git_branch}`
-  end
 
   def call_api(method, api_path, params = {}, api_key = nil, show_error = true, &block)
     api_key =  tddium_settings(:fail_with_message => false)["api_key"] if tddium_settings(:fail_with_message => false) && api_key != false
@@ -354,15 +304,6 @@ class Tddium < Thor
       end
     end
     response.new(api_status, http_status, error_message)
-  end
-
-  def tddium_git_repo_uri(repo_name)
-    git_uri = URI.parse("")
-    git_uri.host = Git::HOST
-    git_uri.scheme = Git::SCHEME
-    git_uri.userinfo = "git"
-    git_uri.path = "#{Git::ABSOLUTE_PATH}/#{repo_name}"
-    git_uri.to_s
   end
 
   def current_git_branch
@@ -377,6 +318,70 @@ class Tddium < Thor
     "#{Api::Path::SUITES}/#{current_suite_id}"
   end
 
+  def dependency_version(command)
+    `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
+  end
+
+  def environment
+    tddium_client.environment
+  end
+
+  def get_user(&block)
+    call_api(:get, Api::Path::USERS, {}, nil, false, &block)
+  end
+
+  def get_user_credentials(options = {})
+    params = {}
+    # prompt for email and password
+    params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+    params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
+    params
+  end
+
+  def git_push
+    `git push #{Git::REMOTE_NAME} #{current_git_branch}`
+  end
+
+  def git_repo?
+    unless File.exists?(".git")
+      message = Text::Error::GIT_NOT_INITIALIZED
+      say message
+    end
+    message.nil?
+  end
+
+  def login_user(options = {}, &block)
+    # POST (email, password) to /users/sign_in to retrieve an API key
+    login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error]) do |api_response|
+      # On success, write the API key to "~/.tddium.<environment>"
+      write_api_key(api_response["api_key"])
+      yield api_response if block_given?
+    end
+    login_result
+  end
+
+  def prompt(text, current_value, default_value)
+    value = current_value || ask(text % default_value)
+    value.empty? ? default_value : value
+  end
+
+  def set_default_environment(env)
+    if env.nil?
+      tddium_client.environment = :development
+      tddium_client.environment = :production unless File.exists?(tddium_file_name)
+    else
+      tddium_client.environment = env.to_sym
+    end
+  end
+
+  def show_user_details(api_response)
+    # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
+    # Email address
+    # Account creation date
+    say api_response["user"]["email"]
+    say api_response["user"]["created_at"]
+  end
+
   def suite_for_current_branch?
     unless current_suite_id
       message = Text::Error::NO_SUITE_EXISTS % current_git_branch
@@ -385,9 +390,22 @@ class Tddium < Thor
     message.nil?
   end
 
+  def tddium_client
+    @tddium_client ||= TddiumClient.new
+  end
+
   def tddium_file_name
     extension = ".#{environment}" unless environment == :production
     ".tddium#{extension}"
+  end
+
+  def tddium_git_repo_uri(repo_name)
+    git_uri = URI.parse("")
+    git_uri.host = Git::HOST
+    git_uri.scheme = Git::SCHEME
+    git_uri.userinfo = "git"
+    git_uri.path = "#{Git::ABSOLUTE_PATH}/#{repo_name}"
+    git_uri.to_s
   end
 
   def tddium_settings(options = {})
@@ -406,33 +424,15 @@ class Tddium < Thor
     @tddium_settings
   end
 
-  def git_repo?
-    unless File.exists?(".git")
-      message = Text::Error::GIT_NOT_INITIALIZED
-      say message
+  def user_logged_in?(active = true, &block)
+    result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
+    (result && active) ? get_user(&block).success? : result
+  end
+
+  def write_api_key(api_key)
+    settings = tddium_settings(:fail_with_message => false) || {}
+    File.open(tddium_file_name, "w") do |file|
+      file.write(settings.merge({"api_key" => api_key}).to_json)
     end
-    message.nil?
-  end
-
-  def set_default_environment(env)
-    if env.nil?
-      tddium_client.environment = :development
-      tddium_client.environment = :production unless File.exists?(tddium_file_name)
-    else
-      tddium_client.environment = env.to_sym
-    end
-  end
-
-  def environment
-    tddium_client.environment
-  end
-
-  def tddium_client
-    @tddium_client ||= TddiumClient.new
-  end
-
-  def prompt(text, current_value, default_value)
-    value = current_value || ask(text % default_value)
-    value.empty? ? default_value : value
   end
 end
