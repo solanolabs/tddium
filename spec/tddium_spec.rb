@@ -15,10 +15,11 @@ describe Tddium do
   SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
-  SAMPLE_PASSWORD = "foobar"
   SAMPLE_LICENSE_TEXT = "LICENSE"
+  SAMPLE_PASSWORD = "foobar"
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
-  SAMPLE_SUITE_ID = 66
+  SAMPLE_SESSION_ID = 1
+  SAMPLE_SUITE_ID = 1
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -500,9 +501,8 @@ describe Tddium do
       it_should_behave_like "sending the api key"
 
       context "'POST #{Tddium::Api::Path::SESSIONS}' is successful" do
-        let(:session_id) {7}
         before do
-          response = {"session"=>{"id"=>session_id}}
+          response = {"session"=>{"id"=>SAMPLE_SESSION_ID}}
           stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}", response)
         end
 
@@ -525,7 +525,7 @@ describe Tddium do
         context "'POST #{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}' is successful" do
           before do
             response = {"added"=>0, "existing"=>1, "errors"=>0, "status"=>0}
-            stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}", response)
+            stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}", response)
           end
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
@@ -536,10 +536,10 @@ describe Tddium do
           it_should_behave_like "sending the api key"
 
           context "'POST #{Tddium::Api::Path::START_TEST_EXECUTIONS}' is successful" do
-            let(:get_test_executions_response) { {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>26, "instance_id"=>nil, "session_id"=>7, "id"=>3, "status"=>"pending", "start_time"=>"2011-03-04T07:07:06Z"}, "spec/pig_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>nil, "test_script_id"=>27, "instance_id"=>nil, "session_id"=>7, "id"=>4, "status"=>"started", "start_time"=>"2011-03-04T07:08:06Z"}, "spec/dog_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:06:12Z", "test_script_id"=>25, "instance_id"=>nil, "session_id"=>7, "id"=>2, "status"=>"failed", "start_time"=>"2011-03-04T07:06:06Z"}, "spec/cat_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:05:12Z", "test_script_id"=>24, "instance_id"=>nil, "session_id"=>7, "id"=>1, "status"=>"passed", "start_time"=>"2011-03-04T07:05:06Z"}}, "status"=>0} }
+            let(:get_test_executions_response) { {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"pending"}, "spec/pig_spec.rb"=>{"end_time"=>nil, "status"=>"started"}, "spec/dog_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"failed"}, "spec/cat_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"passed"}}} }
             before do
               response = {"started"=>1, "status"=>0}
-              stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", response)
+              stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", response)
             end
 
             it "should tell the user to '#{Tddium::Text::Process::TERMINATE_INSTRUCTION}'" do
@@ -573,7 +573,7 @@ describe Tddium do
 
             context "user presses 'Ctrl-C' during the process" do
               before do
-                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response)
+                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response)
                 Signal.stub(:trap).with(:INT).and_yield
                 stub_sleep(tddium)
               end
@@ -598,8 +598,8 @@ describe Tddium do
 
             context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
               before do
-                get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>26, "instance_id"=>nil, "session_id"=>7, "id"=>3, "status"=>"pending", "start_time"=>"2011-03-04T07:07:06Z"}, "spec/pig_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:07:06Z", "test_script_id"=>27, "instance_id"=>nil, "session_id"=>7, "id"=>4, "status"=>"error", "start_time"=>"2011-03-04T07:08:06Z"}, "spec/dog_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:06:12Z", "test_script_id"=>25, "instance_id"=>nil, "session_id"=>7, "id"=>2, "status"=>"failed", "start_time"=>"2011-03-04T07:06:06Z"}, "spec/cat_spec.rb"=>{"result"=>nil, "usage"=>nil, "end_time"=>"2011-03-04T07:05:12Z", "test_script_id"=>24, "instance_id"=>nil, "session_id"=>7, "id"=>1, "status"=>"passed", "start_time"=>"2011-03-04T07:05:06Z"}}, "status"=>0}
-                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{session_id}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
+              get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"pending"}, "spec/pig_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"error"}, "spec/dog_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"failed"}, "spec/cat_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"passed"}}}
+                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
                 stub_sleep(tddium)
               end
 
@@ -655,7 +655,7 @@ describe Tddium do
     before do
       stub_defaults
       stub_config_file(:api_key => true, :branches => true)
-      suites_response = {"suites"=>[{"created_at"=>"2011-03-11T06:23:40Z", "updated_at"=>"2011-03-11T06:25:51Z", "test_pattern"=>"**/*_spec.rb", "id"=>66, "user_id"=>3, "suite_name"=>"tddium/demo", "ruby_version"=>"1.8.7"}], "status"=>0}
+      suites_response = {"suites"=>[{"created_at"=>SAMPLE_DATE_TIME, "updated_at"=>SAMPLE_DATE_TIME, "test_pattern"=>"**/*_spec.rb", "id"=>SAMPLE_SUITE_ID, "user_id"=>3, "suite_name"=>SAMPLE_APP_NAME, "ruby_version"=>"1.8.7"}], "status"=>0}
       stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
       sessions_response = {"status"=>0, "sessions"=>[{"created_at"=>"2011-03-11T08:43:02Z", "updated_at"=>"2011-03-11T08:43:02Z", "id"=>1, "user_id"=>3}]}
       stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
@@ -668,7 +668,7 @@ describe Tddium do
 
     context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
       it "should show the user the suite name" do
-        tddium.should_receive(:say).with("  Suite name: tddium/demo")
+        tddium.should_receive(:say).with("  Suite name: #{SAMPLE_APP_NAME}")
         run_status(tddium)
       end
 
