@@ -69,6 +69,8 @@ module TddiumConstant
       ACCOUNT_TAKEN = "Sorry an account already exists with this email address. If you are the owner of this account try 'tddium login'"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       ACCOUNT_CREATED = "Your account was successfully created"
+      ALREADY_LOGGED_IN = "You're already logged in"
+      LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
     end
 
     module Error

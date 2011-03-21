@@ -224,24 +224,16 @@ class Tddium < Thor
         show_user_details(api_response)
       end
     else
-      # prompt for email and password
-      params = {}
-      params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
-      params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
-
-      # POST (email, password) to /users/sign_in to retrieve an API key
-      call_api_result = call_api(:post, Api::Path::SIGN_IN, {:user => params}, false, false) do |api_response|
-        # On success, write the API key to "~/.tddium.<environment>"
-        write_api_key(api_response["api_key"])
+      params = get_login_details(options)
+      login = login_user(:params => params) do |api_response|
         tddium_settings(:force_reload => true, :fail_with_message => false)
-
         # call get_user again and display the email and created at date
         get_user do |api_response|
           show_user_details(api_response)
         end
       end
-      unless call_api_result.success?
-        if call_api_result.api_status == Api::ErrorCode::INCORRECT_PASSWORD
+      unless login.success?
+        if login.api_status == Api::ErrorCode::INCORRECT_PASSWORD
           # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
           say Text::Process::ACCOUNT_TAKEN
         else
@@ -277,6 +269,21 @@ class Tddium < Thor
     end
   end
 
+  desc "login", "Log in to tddium using your email address and password"
+  method_option :environment, :type => :string, :default => nil
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  def login
+    set_default_environment(options[:environment])
+    if user_logged_in?
+      say Text::Process::ALREADY_LOGGED_IN
+    else
+      login_user(:params => get_login_details(options), :show_error => true) do
+        say Text::Process::LOGGED_IN_SUCCESSFULLY
+      end
+    end
+  end
+
   private
 
   def dependency_version(command)
@@ -286,6 +293,24 @@ class Tddium < Thor
   def user_logged_in?(active = true, &block)
     result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
     (result && active) ? get_user(&block).success? : result
+  end
+
+  def login_user(options = {}, &block)
+    # POST (email, password) to /users/sign_in to retrieve an API key
+    login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error]) do |api_response|
+      # On success, write the API key to "~/.tddium.<environment>"
+      write_api_key(api_response["api_key"])
+      yield api_response if block_given?
+    end
+    login_result
+  end
+
+  def get_login_details(options = {})
+    params = {}
+    # prompt for email and password
+    params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+    params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
+    params
   end
 
   def get_user(&block)
