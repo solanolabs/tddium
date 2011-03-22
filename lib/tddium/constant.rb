@@ -71,11 +71,32 @@ module TddiumConstant
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
     end
 
+    module Status
+      NO_SUITE = "You currently do not have any suites"
+      ALL_SUITES = "Your suites: %s"
+      CURRENT_SUITE = "Your current suite: %s"
+      CURRENT_SUITE_UNAVAILABLE = "Your current suite is unavailable"
+      NO_ACTIVE_SESSION = "There is no active sessions"
+      ACTIVE_SESSIONS = "Your active sessions:"
+      NO_INACTIVE_SESSION = "There is no previous sessions"
+      INACTIVE_SESSIONS = "Your latest sessions:"
+      SESSION_TITLE = "  Session %s:"
+      ATTRIBUTE_DETAIL = "    %s: %s"
+      SEPARATOR = "====="
+    end
+
     module Error
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
     end
+  end
+
+  module DisplayedAttributes
+    SUITE = %w{repo_name branch test_pattern
+               ruby_version bundler_version rubygems_version
+               total_test_scripts total_test_executions}
+    SESSION = %w{start_time end_time suite result report_url}
   end
 end

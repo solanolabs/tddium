@@ -11,6 +11,7 @@ describe Tddium do
   SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   SAMPLE_APP_NAME = "tddelicious"
   SAMPLE_BRANCH_NAME = "test"
+  SAMPLE_BUNDLER_VERSION = "1.10.10"
   SAMPLE_CALL_API_RESPONSE = [0, 200, nil]
   SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
@@ -19,8 +20,11 @@ describe Tddium do
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_PASSWORD = "foobar"
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
+  SAMPLE_RUBYGEMS_VERSION = "1.3.7"
+  SAMPLE_RUBY_VERSION = "1.8.7"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
+  SAMPLE_TEST_PATTERN = "**/*_spec.rb"
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -49,7 +53,7 @@ describe Tddium do
     end
   end
 
-  def stub_bundler_version(tddium, version = "10.0.10")
+  def stub_bundler_version(tddium, version = SAMPLE_BUNDLER_VERSION)
     tddium.stub(:`).with("bundle -v").and_return("Bundler version #{version}")
   end
 
@@ -70,7 +74,7 @@ describe Tddium do
 
   def stub_config_file(options = {})
     params = {}
-    params.merge!(:branches => {SAMPLE_BRANCH_NAME => SAMPLE_SUITE_ID}) if options[:branches]
+    params.merge!(:branches => (options[:branches].is_a?(Hash)) ? options[:branches] : {SAMPLE_BRANCH_NAME => SAMPLE_SUITE_ID}) if options[:branches]
     params.merge!(:api_key => (options[:api_key].is_a?(String)) ? options[:api_key] : SAMPLE_API_KEY) if options[:api_key]
     json = params.to_json unless params.empty?
     create_file(".tddium.test", json)
@@ -99,7 +103,7 @@ describe Tddium do
     tddium.stub(:`).with("ruby -v").and_return("ruby #{version} (2010-08-16 patchlevel 302) [i686-darwin10.5.0]")
   end
 
-  def stub_rubygems_version(tddium, version = "1.3.7")
+  def stub_rubygems_version(tddium, version = SAMPLE_RUBYGEMS_VERSION)
     tddium.stub(:`).with("gem -v").and_return(version)
   end
 
@@ -487,7 +491,7 @@ describe Tddium do
 
     context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
       before do
-        response = {"suite"=>{"test_pattern"=>"**/*_spec.rb", "id"=>SAMPLE_SUITE_ID, "suite_name"=>"tddium/demo", "ruby_version"=>"1.8.7"}, "status"=>0}
+        response = {"suite"=>{"test_pattern"=>SAMPLE_TEST_PATTERN, "id"=>SAMPLE_SUITE_ID, "suite_name"=>"tddium/demo", "ruby_version"=>SAMPLE_RUBY_VERSION}}
         stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", response)
         create_file("spec/mouse_spec.rb")
         create_file("spec/cat_spec.rb")
@@ -656,10 +660,6 @@ describe Tddium do
     before do
       stub_defaults
       stub_config_file(:api_key => true, :branches => true)
-      suites_response = {"suites"=>[{"created_at"=>SAMPLE_DATE_TIME, "updated_at"=>SAMPLE_DATE_TIME, "test_pattern"=>"**/*_spec.rb", "id"=>SAMPLE_SUITE_ID, "user_id"=>3, "suite_name"=>SAMPLE_APP_NAME, "ruby_version"=>"1.8.7"}], "status"=>0}
-      stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
-      sessions_response = {"status"=>0, "sessions"=>[{"created_at"=>"2011-03-11T08:43:02Z", "updated_at"=>"2011-03-11T08:43:02Z", "id"=>1, "user_id"=>3}]}
-      stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
     end
 
     it_should_behave_like "set the default environment"
@@ -668,39 +668,105 @@ describe Tddium do
     it_should_behave_like "suite has not been initialized"
 
     context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
-      it "should show the user the suite name" do
-        tddium.should_receive(:say).with("  Suite name: #{SAMPLE_APP_NAME}")
-        run_status(tddium)
+      context "returns no suites" do
+        before { stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []}) }
+
+        it "should show the user '#{Tddium::Text::Status::NO_SUITE}'" do
+          tddium.should_receive(:say).with(Tddium::Text::Status::NO_SUITE)
+          run_status(tddium)
+        end
       end
 
-      it "should show the user the test pattern" do
-        tddium.should_receive(:say).with("  Test pattern: **/*_spec.rb")
-        run_status(tddium)
-      end
+      context "returns some suites" do
+        let(:suite_attributes) { {"id"=>SAMPLE_SUITE_ID, "repo_name"=>SAMPLE_APP_NAME, "ruby_version"=>SAMPLE_RUBY_VERSION, "branch" => SAMPLE_BRANCH_NAME, "test_pattern" => SAMPLE_TEST_PATTERN, "bundler_version" => SAMPLE_BUNDLER_VERSION, "rubygems_version" => SAMPLE_RUBYGEMS_VERSION}}
+        before do
+          suites_response = {"suites"=>[suite_attributes], "status"=>0}
+          stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
+        end
 
-      it "should show the user the ruby version" do
-        tddium.should_receive(:say).with("  Ruby version: 1.8.7")
-        run_status(tddium)
-      end
+        it "should show all suites" do
+          tddium.should_receive(:say).with(Tddium::Text::Status::ALL_SUITES % SAMPLE_APP_NAME)
+          run_status(tddium)
+        end
 
-      it "should not show the user the created at timestamp" do
-        tddium.should_not_receive(:say).with(/Created at/)
-        run_status(tddium)
-      end
+        context "without current suite" do
+          before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => 0}) }
+          it "should show the user '#{Tddium::Text::Status::CURRENT_SUITE_UNAVAILABLE}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::CURRENT_SUITE_UNAVAILABLE)
+            run_status(tddium)
+          end
+        end
 
-      it "should not show the user the updated at timestamp" do
-        tddium.should_not_receive(:say).with(/Updated at/)
-        run_status(tddium)
-      end
+        context "with current suite" do
+          shared_examples_for "attribute details" do
+            it "should show the user the attribute details" do
+              attributes_to_display.each do |attr|
+                if attributes[attr]
+                  tddium.should_receive(:say).with(Tddium::Text::Status::ATTRIBUTE_DETAIL % [attr.gsub("_", " ").capitalize, attributes[attr]])
+                else
+                  tddium.should_not_receive(:say).with(/#{attr.gsub("_", " ").capitalize}/)
+                end
+              end
+              run_status(tddium)
+            end
 
-      it "should not show the user the user id" do
-        tddium.should_not_receive(:say).with(/User id/)
-        run_status(tddium)
-      end
+            it "should not show the user irrelevent attributes" do
+              attributes_to_hide.each do |regexp|
+                tddium.should_not_receive(:say).with(regexp)
+              end
+              run_status(tddium)
+            end
+          end
+          
+          it "should show the separator" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::SEPARATOR)
+            run_status(tddium)
+          end
 
-      it "should not show the user the suite id" do
-        tddium.should_not_receive(:say).with(/id/)
-        run_status(tddium)
+          it "should show user the current suite name" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::CURRENT_SUITE % SAMPLE_APP_NAME)
+            run_status(tddium)
+          end
+
+          it_should_behave_like "attribute details" do
+            let(:attributes_to_display) {Tddium::DisplayedAttributes::SUITE}
+            let(:attributes_to_hide) { [/id/] }
+            let(:attributes) { suite_attributes }
+          end
+
+          context "show active sessions" do
+            context "without any session" do
+              before do
+                sessions_response = {"status"=>0, "sessions"=>[]}
+                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
+              end
+
+              it "should display no active session message" do
+                tddium.should_receive(:say).with(Tddium::Text::Status::NO_ACTIVE_SESSION)
+                run_status(tddium)
+              end
+            end
+
+            context "with some sessions" do
+              let(:session_attributes) { {"id"=>SAMPLE_SESSION_ID, "user_id"=>3} }
+              before do
+                sessions_response = {"status"=>0, "sessions"=>[session_attributes]}
+                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
+              end
+
+              it "should display the active sessions prompt" do
+                tddium.should_receive(:say).with(Tddium::Text::Status::ACTIVE_SESSIONS)
+                run_status(tddium)
+              end
+
+              it_should_behave_like "attribute details" do
+                let(:attributes_to_display) {Tddium::DisplayedAttributes::SESSION}
+                let(:attributes_to_hide) { [/id/] }
+                let(:attributes) { session_attributes }
+              end
+            end
+          end
+        end
       end
     end
 
@@ -816,9 +882,9 @@ describe Tddium do
           run_suite(tddium)
         end
 
-        it "should add a new remote called 'tddium'" do
+        it "should add a new remote called '#{Tddium::Git::REMOTE_NAME}'" do
           stub_default_suite_name
-          tddium.should_receive(:`).with("git remote add tddium #{SAMPLE_GIT_REPO_URI}")
+          tddium.should_receive(:`).with("git remote add #{Tddium::Git::REMOTE_NAME} #{SAMPLE_GIT_REPO_URI}")
           run_suite(tddium)
         end
 

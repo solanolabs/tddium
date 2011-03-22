@@ -194,52 +194,20 @@ class Tddium < Thor
 
     call_api(:get, Api::Path::SUITES) do |api_response|
       if api_response["suites"].size == 0
-        say "You currently do not have any suite"
+        say Text::Status::NO_SUITE
       else
-        say "Your suites: #{api_response["suites"].collect {|suite| suite["suite_name"]}.join(", ")}"
+        say Text::Status::ALL_SUITES % api_response["suites"].collect {|suite| suite["repo_name"]}.join(", ")
 
         if current_suite = api_response["suites"].detect {|suite| suite["id"] == current_suite_id}
-          say "====="
-          say "Your current suite: #{current_suite["suite_name"]}}"
+          say Text::Status::SEPARATOR
+          say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
 
-          displayed_attributes = %w{suite_name ssh_key test_pattern ruby_version}
-          displayed_attributes.each do |attr|
-            say("  #{attr.gsub("_", " ").capitalize}: #{current_suite[attr]}") if current_suite[attr]
-          end
+          display_attributes(DisplayedAttributes::SUITE, current_suite)
 
-          call_api(:get, Api::Path::SESSIONS, {:active => true}) do |api_response|
-            say "====="
-            if api_response["sessions"].size == 0
-              say "There is no active session"
-            else
-              say "Your active sessions:"
-              api_response["sessions"].each do |session|
-                say("  Session #{session["id"]}:")
-                displayed_attributes = %w{start_time end_time suite result}
-                displayed_attributes.each do |attr|
-                  say("    #{attr.gsub("_", " ").capitalize}: #{session[attr]}") if session[attr]
-                end
-              end
-            end
-          end
-
-          call_api(:get, Api::Path::SESSIONS, {:active => false, :order => "date", :limit => 10}) do |api_response|
-            say "====="
-            if api_response["sessions"].size == 0
-              say "There is no session"
-            else
-              say "Your latest sessions:"
-              api_response["sessions"].each do |session|
-                say("  Session #{session["id"]}:")
-                displayed_attributes = %w{start_time end_time suite result}
-                displayed_attributes.each do |attr|
-                  say("    #{attr.gsub("_", " ").capitalize}: #{session[attr]}") if session[attr]
-                end
-              end
-            end
-          end
+          show_session_details({:active => true}, Text::Status::NO_ACTIVE_SESSION, Text::Status::ACTIVE_SESSIONS)
+          show_session_details({:active => false, :order => "date", :limit => 10}, Text::Status::NO_INACTIVE_SESSION, Text::Status::INACTIVE_SESSIONS)
         else
-          say "Your current suite is unavailable"
+          say Text::Status::CURRENT_SUITE_UNAVAILABLE
         end
       end
     end
@@ -322,6 +290,12 @@ class Tddium < Thor
     `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
   end
 
+  def display_attributes(names_to_display, attributes)
+    names_to_display.each do |attr|
+      say Text::Status::ATTRIBUTE_DETAIL % [attr.gsub("_", " ").capitalize, attributes[attr]] if attributes[attr]
+    end
+  end
+
   def environment
     tddium_client.environment
   end
@@ -371,6 +345,21 @@ class Tddium < Thor
       tddium_client.environment = :production unless File.exists?(tddium_file_name)
     else
       tddium_client.environment = env.to_sym
+    end
+  end
+
+  def show_session_details(params, no_session_prompt, all_session_prompt)
+    call_api(:get, Api::Path::SESSIONS, params) do |api_response|
+      say Text::Status::SEPARATOR
+      if api_response["sessions"].size == 0
+        say no_session_prompt
+      else
+        say all_session_prompt
+        api_response["sessions"].each do |session|
+          say Text::Status::SESSION_TITLE % session["id"]
+          display_attributes(DisplayedAttributes::SESSION, session)
+        end
+      end
     end
   end
 
