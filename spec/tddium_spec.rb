@@ -15,6 +15,7 @@ describe Tddium do
   SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
+  SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_PASSWORD = "foobar"
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
@@ -804,7 +805,7 @@ describe Tddium do
 
       context "API response successful" do
         before do
-          response = {"suite"=>{"id"=>SAMPLE_SUITE_ID}}
+          response = {"suite"=>{"id"=>SAMPLE_SUITE_ID, "git_repo_uri" => SAMPLE_GIT_REPO_URI}}
           stub_call_api_response(:post, Tddium::Api::Path::SUITES, response)
           tddium.stub(:`).with(/^git remote/)
           stub_git_push(tddium)
@@ -817,7 +818,7 @@ describe Tddium do
 
         it "should add a new remote called 'tddium'" do
           stub_default_suite_name
-          tddium.should_receive(:`).with("git remote add tddium ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}")
+          tddium.should_receive(:`).with("git remote add tddium #{SAMPLE_GIT_REPO_URI}")
           run_suite(tddium)
         end
 

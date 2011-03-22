@@ -279,7 +279,7 @@ class Tddium < Thor
       call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
         # Manage git
         `git remote rm #{Git::REMOTE_NAME}`
-        `git remote add #{Git::REMOTE_NAME} #{tddium_git_repo_uri(params[:repo_name])}`
+        `git remote add #{Git::REMOTE_NAME} #{api_response["suite"]["git_repo_uri"]}`
         git_push
 
         # Save the created suite
@@ -397,15 +397,6 @@ class Tddium < Thor
   def tddium_file_name
     extension = ".#{environment}" unless environment == :production
     ".tddium#{extension}"
-  end
-
-  def tddium_git_repo_uri(repo_name)
-    git_uri = URI.parse("")
-    git_uri.host = Git::HOST
-    git_uri.scheme = Git::SCHEME
-    git_uri.userinfo = "git"
-    git_uri.path = "#{Git::ABSOLUTE_PATH}/#{repo_name}"
-    git_uri.to_s
   end
 
   def tddium_settings(options = {})

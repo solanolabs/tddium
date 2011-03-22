@@ -18,9 +18,6 @@ module TddiumConstant
 
   module Git
     REMOTE_NAME = "tddium"
-    HOST = "api.tddium.com"
-    SCHEME = "ssh"
-    ABSOLUTE_PATH = "/home/git/repo"
   end
 
   module Api
