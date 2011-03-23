@@ -24,6 +24,7 @@ describe Tddium do
   SAMPLE_RUBY_VERSION = "1.8.7"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
+  SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_PATTERN = "**/*_spec.rb"
 
   def call_api_should_receive(options = {})
@@ -77,7 +78,7 @@ describe Tddium do
     params.merge!(:branches => (options[:branches].is_a?(Hash)) ? options[:branches] : {SAMPLE_BRANCH_NAME => SAMPLE_SUITE_ID}) if options[:branches]
     params.merge!(:api_key => (options[:api_key].is_a?(String)) ? options[:api_key] : SAMPLE_API_KEY) if options[:api_key]
     json = params.to_json unless params.empty?
-    create_file(".tddium.test", json)
+    create_file(SAMPLE_TDDIUM_CONFIG_FILE, json)
   end
 
   def stub_default_suite_name
@@ -99,7 +100,7 @@ describe Tddium do
     tddium.stub(:`).with(/^git push/)
   end
 
-  def stub_ruby_version(tddium, version = "1.9.2")
+  def stub_ruby_version(tddium, version = SAMPLE_RUBY_VERSION)
     tddium.stub(:`).with("ruby -v").and_return("ruby #{version} (2010-08-16 patchlevel 302) [i686-darwin10.5.0]")
   end
 
@@ -261,7 +262,7 @@ describe Tddium do
   shared_examples_for ".tddium file is missing or corrupt" do
     context ".tddium file is missing" do
       before do
-        FileUtils.rm_rf(".tddium.test")
+        FileUtils.rm_rf(SAMPLE_TDDIUM_CONFIG_FILE)
       end
 
       it "should tell the user '#{Tddium::Text::Error::NOT_INITIALIZED}'" do
@@ -272,7 +273,7 @@ describe Tddium do
 
     context ".tddium file is corrupt" do
       before do
-        create_file(".tddium.test", "corrupt file")
+        create_file(SAMPLE_TDDIUM_CONFIG_FILE, "corrupt file")
       end
 
       it "should tell the user '#{Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test'}'" do
@@ -285,7 +286,7 @@ describe Tddium do
   shared_examples_for "writing the api key to the .tddium file" do
     it "should write the api key to the .tddium file" do
       run(tddium)
-      tddium_file = File.open(".tddium.test") { |file| file.read }
+      tddium_file = File.open(SAMPLE_TDDIUM_CONFIG_FILE) { |file| file.read }
       JSON.parse(tddium_file)["api_key"].should == SAMPLE_API_KEY
     end
   end
@@ -452,7 +453,7 @@ describe Tddium do
       before { stub_config_file }
       it "should delete the file" do
         run_logout(tddium)
-        File.should_not be_exists(".tddium.test")
+        File.should_not be_exists(SAMPLE_TDDIUM_CONFIG_FILE)
       end
     end
 
@@ -717,7 +718,7 @@ describe Tddium do
               run_status(tddium)
             end
           end
-          
+
           it "should show the separator" do
             tddium.should_receive(:say).with(Tddium::Text::Status::SEPARATOR)
             run_status(tddium)
@@ -819,94 +820,191 @@ describe Tddium do
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium file is missing or corrupt"
 
-    context "suite has not yet been registered" do
+    context ".tddium file contains no suites" do
+      before {stub_default_suite_name}
+
       it "should ask for a suite name" do
-        stub_default_suite_name
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
         run_suite(tddium)
       end
 
-      it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
-        call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
-        run_suite(tddium)
-      end
-
-      it "should post the current ruby version to the API" do
-        stub_ruby_version(tddium, "1.9.2")
-        call_api_should_receive(:params => {:suite => hash_including(:ruby_version => "1.9.2")})
-        run_suite(tddium)
-      end
-
-      context "using defaults" do
-        before do
-          stub_default_suite_name
-        end
-
-        it "should POST the default values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => SAMPLE_APP_NAME)})
-          run_suite(tddium)
-        end
-      end
-
-      context "passing arguments" do
-        let(:cli_args) { { :name => "my_suite_name", :environment => "test" } }
-
-        it "should POST the passed in values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "my_suite_name")})
+      shared_examples_for "getting the current user's existing suites" do
+        it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES} with the repo name and branch name'" do
+          call_api_should_receive(:method => :get, :path => Tddium::Api::Path::SUITES, :params => hash_including(:repo_name => SAMPLE_APP_NAME, :branch => SAMPLE_BRANCH_NAME))
           run_suite(tddium, cli_args)
         end
       end
 
-      context "interactive mode" do
-        before do
-          tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("foobar")
-          stub_default_suite_name
-        end
-
-        it "should POST the passed values to the API" do
-          call_api_should_receive(:params => {:suite => hash_including(:repo_name => "foobar")})
-          run_suite(tddium)
+      context "passing no cli options" do
+        it_should_behave_like "getting the current user's existing suites" do
+          let(:cli_args) { {} }
         end
       end
 
-      context "API response successful" do
-        before do
-          response = {"suite"=>{"id"=>SAMPLE_SUITE_ID, "git_repo_uri" => SAMPLE_GIT_REPO_URI}}
-          stub_call_api_response(:post, Tddium::Api::Path::SUITES, response)
-          tddium.stub(:`).with(/^git remote/)
-          stub_git_push(tddium)
-        end
-
-        it "should remove any existing remotes named 'tddium'" do
-          tddium.should_receive(:`).with("git remote rm tddium")
-          run_suite(tddium)
-        end
-
-        it "should add a new remote called '#{Tddium::Git::REMOTE_NAME}'" do
-          stub_default_suite_name
-          tddium.should_receive(:`).with("git remote add #{Tddium::Git::REMOTE_NAME} #{SAMPLE_GIT_REPO_URI}")
-          run_suite(tddium)
-        end
-
-        context "in the branch 'oaktree'" do
-          before do
-            tddium.stub(:current_git_branch).and_return("oaktree")
-          end
-
-          it "should push the current git branch to tddium oaktree" do
-            tddium.should_receive(:`).with("git push tddium oaktree")
-            run_suite(tddium)
-          end
-
-          it "should create '.tddium' and write the suite_id and branch name" do
-            run_suite(tddium)
-            tddium_file = File.open(".tddium.test") { |file| file.read }
-            JSON.parse(tddium_file)["branches"]["oaktree"].should == SAMPLE_SUITE_ID
-          end
+      context "passing --use-existing-suite" do
+        it_should_behave_like "getting the current user's existing suites" do
+          let(:cli_args) { {:use_existing_suite => true} }
         end
       end
 
-      it_should_behave_like "an unsuccessful api call"
+      context "passing --use-existing-suite=false" do
+        it "should not send a 'GET' request to '#{Tddium::Api::Path::SUITES}'" do
+          tddium_client.should_not_receive(:call_api).with(:method => :get, :path => Tddium::Api::Path::SUITES)
+          run_suite(tddium, :use_existing_suite => false)
+        end
+      end
+
+      context "but this user has already registered some suites" do
+        before { stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}) }
+
+        shared_examples_for "not asking the user if they want to use an existing suite" do
+          it "should not ask the user if they want to use the existing suite" do
+            tddium_client.should_not_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES)
+            run_suite(tddium, cli_args)
+          end
+        end
+
+        shared_examples_for "writing the suite to file" do
+          it "should write the suite id and branch name to the .tddium file" do
+            run_suite(tddium)
+            tddium_file = File.open(SAMPLE_TDDIUM_CONFIG_FILE) { |file| file.read }
+            JSON.parse(tddium_file)["branches"][SAMPLE_BRANCH_NAME].should == SAMPLE_SUITE_ID
+          end
+        end
+
+        context "passing no cli options" do
+          it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES}' " do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES)
+            run_suite(tddium)
+          end
+        end
+
+        context "passing --use-existing-suite" do
+          it_should_behave_like "not asking the user if they want to use an existing suite"  do
+            let(:cli_args) { {:use_existing_suite => true} }
+          end
+        end
+
+        context "passing --use-existing-suite=false" do
+          it_should_behave_like "not asking the user if they want to use an existing suite"  do
+            let(:cli_args) { {:use_existing_suite => false} }
+          end
+        end
+
+        context "the user wants to use the existing suite" do
+          it "should not send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
+            tddium_client.should_not_receive(:call_api).with(:method => :post, :path => Tddium::Api::Path::SUITES)
+            run_suite(tddium)
+          end
+
+          it_should_behave_like "writing the suite to file"
+
+          it "should show the user: '#{Tddium::Text::Status::USING_SUITE % [SAMPLE_APP_NAME, SAMPLE_BRANCH_NAME]}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::USING_SUITE % [SAMPLE_APP_NAME, SAMPLE_BRANCH_NAME])
+            run_suite(tddium)
+          end
+        end
+
+        context "the user does not want to use the existing suite" do
+          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES).and_return("no")}
+
+          it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
+            call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
+            run_suite(tddium)
+          end
+
+          it "should post the user's current ruby version to the API" do
+            stub_ruby_version(tddium)
+            call_api_should_receive(:params => {:suite => hash_including(:ruby_version => SAMPLE_RUBY_VERSION)})
+            run_suite(tddium)
+          end
+
+          it "should post the user's current branch to the API" do
+            stub_ruby_version(tddium)
+            call_api_should_receive(:params => {:suite => hash_including(:branch => SAMPLE_BRANCH_NAME)})
+            run_suite(tddium)
+          end
+
+          it "should post the user's bundler version to the API" do
+            stub_ruby_version(tddium)
+            call_api_should_receive(:params => {:suite => hash_including(:bundler_version => SAMPLE_BUNDLER_VERSION)})
+            run_suite(tddium)
+          end
+
+          it "should post the user's rubygems version to the API" do
+            stub_ruby_version(tddium)
+            call_api_should_receive(:params => {:suite => hash_including(:rubygems_version => SAMPLE_RUBYGEMS_VERSION)})
+            run_suite(tddium)
+          end
+
+          context "using defaults" do
+            it "should POST the default suite name to the API" do
+              call_api_should_receive(:params => {:suite => hash_including(:repo_name => SAMPLE_APP_NAME)})
+              run_suite(tddium)
+            end
+
+            it "should POST the default test pattern to the API" do
+              call_api_should_receive(:params => {:suite => hash_including(:test_pattern => SAMPLE_TEST_PATTERN)})
+              run_suite(tddium)
+            end
+          end
+
+          context "passing cli options" do
+            let(:cli_args) { { :name => "my_suite_name", :environment => "test", :test_pattern => "**/*_selenium" } }
+
+            it "should POST the passed in values to the API" do
+              call_api_should_receive(:method => :post, :params => {:suite => hash_including(:repo_name => "my_suite_name", :test_pattern => "**/*_selenium")})
+              run_suite(tddium, cli_args)
+            end
+          end
+
+          context "interactive mode" do
+            before do
+              tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("foobar")
+              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_test")
+              stub_default_suite_name
+            end
+
+            it "should POST the user's entered values to the API" do
+              call_api_should_receive(:method => :post, :params => {:suite => hash_including(:repo_name => "foobar", :test_pattern => "**/*_test")})
+              run_suite(tddium)
+            end
+          end
+
+          context "API response successful" do
+            before do
+              stub_call_api_response(:post, Tddium::Api::Path::SUITES, {"suite"=>{"id"=>SAMPLE_SUITE_ID, "git_repo_uri" => SAMPLE_GIT_REPO_URI}})
+              tddium.stub(:`).with(/^git remote/)
+              stub_git_push(tddium)
+            end
+
+            it_should_behave_like("writing the suite to file")
+
+            it "should remove any existing remotes named 'tddium'" do
+              tddium.should_receive(:`).with("git remote rm tddium")
+              run_suite(tddium)
+            end
+
+            it "should add a new remote called '#{Tddium::Git::REMOTE_NAME}'" do
+              stub_default_suite_name
+              tddium.should_receive(:`).with("git remote add #{Tddium::Git::REMOTE_NAME} #{SAMPLE_GIT_REPO_URI}")
+              run_suite(tddium)
+            end
+
+            context "in the branch 'oaktree'" do
+              before do
+                tddium.stub(:current_git_branch).and_return("oaktree")
+              end
+
+              it "should push the current git branch to tddium oaktree" do
+                tddium.should_receive(:`).with("git push tddium oaktree")
+                run_suite(tddium)
+              end
+            end
+          end
+          it_should_behave_like "an unsuccessful api call"
+        end
+      end
     end
 
     context "suite has already been registered" do

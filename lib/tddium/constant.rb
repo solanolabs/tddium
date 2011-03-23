@@ -45,6 +45,7 @@ module TddiumConstant
     module Prompt
       module Response
         AGREE_TO_LICENSE = "I AGREE"
+        YES = "y"
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
@@ -53,6 +54,7 @@ module TddiumConstant
       EMAIL = "Enter your email address:"
       PASSWORD = "Enter a password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
+      USE_EXISTING_SUITE = "Do you want to use the existing suite? (#{Response::YES} for yes, n for no). '%s' is default:"
     end
 
     module Process
@@ -83,6 +85,7 @@ module TddiumConstant
       SESSION_TITLE = "  Session %s:"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
+      USING_SUITE = "Using suite: '%s' on branch: '%s'"
     end
 
     module Error

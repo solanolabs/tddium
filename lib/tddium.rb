@@ -217,6 +217,7 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
+  method_option :use_existing_suite, :type => :boolean, :default => nil
   def suite
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings
@@ -233,29 +234,48 @@ class Tddium < Thor
         end
       end
     else
-      # Inputs for new suite
-      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
+      # Get the suite name
       params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], File.basename(Dir.pwd))
 
       params[:branch] = current_git_branch
+
+      # Check to see if there is an existing suite
+      unless options[:use_existing_suite] == false
+        existing_suite = nil
+        call_api(:get, Api::Path::SUITES, params, nil, false) do |api_response|
+          existing_suite = api_response["suites"].first
+        end
+
+        if existing_suite
+          if options[:use_existing_suite].nil?
+            use_existing_suite = (prompt(Text::Prompt::USE_EXISTING_SUITE, options[:use_existing_suite], Text::Prompt::Response::YES) == Text::Prompt::Response::YES)
+          else
+            use_existing_suite = options[:use_existing_suite]
+          end
+
+          if use_existing_suite
+            write_suite(existing_suite["id"])
+            say Text::Status::USING_SUITE % [existing_suite["repo_name"], existing_suite["branch"]]
+            return
+          end
+        end
+      end
 
       params[:ruby_version] = dependency_version(:ruby)
       params[:bundler_version] = dependency_version(:bundle)
       params[:rubygems_version] = dependency_version(:gem)
 
+      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
+
       # Create new suite if it does not exist yet
       call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
+        # Save the created suite
+        write_suite(api_response["suite"]["id"])
+
         # Manage git
         `git remote rm #{Git::REMOTE_NAME}`
         `git remote add #{Git::REMOTE_NAME} #{api_response["suite"]["git_repo_uri"]}`
         git_push
-
-        # Save the created suite
-        branches = tddium_settings["branches"] || {}
-        branches.merge!({current_git_branch => api_response["suite"]["id"]})
-        File.open(tddium_file_name, "w") do |file|
-          file.write(tddium_settings.merge({"branches" => branches}).to_json)
-        end
       end
     end
   end
@@ -415,4 +435,13 @@ class Tddium < Thor
       file.write(settings.merge({"api_key" => api_key}).to_json)
     end
   end
+
+  def write_suite(suite_id)
+    branches = tddium_settings["branches"] || {}
+    branches.merge!({current_git_branch => suite_id})
+    File.open(tddium_file_name, "w") do |file|
+      file.write(tddium_settings.merge({"branches" => branches}).to_json)
+    end
+  end
+
 end
