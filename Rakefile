@@ -11,21 +11,23 @@ end
 task :default => :spec
 
 namespace :spec do
+  RUBY_VERSIONS = ["1.9.2-p180", "1.8.7-p302"]
+  GEMSET = "tddium"
   desc "Runs the specs across Ruby 1.8.7 and 1.9.2"
   task :xruby do
-    GEMSETS = ["ruby-1.9.2-p180@tddium", "ruby-1.8.7-p302@tddium"]
-    if GEMSETS.include?(`rvm-prompt`.chomp)
-      Kernel.exec("rvm #{GEMSETS.join(",")} specs")
-    else
-      puts "No gemsets named: #{GEMSETS.join(" or ")}"
-      puts "To create gemsets run the following commands:"
-      command = ""
-      GEMSETS.each do |rvm|
-        ruby_version, gemset = rvm.split("@")
-        command << "rvm use #{ruby_version} && rvm gemset create #{gemset} && "
-        command << "rvm use #{rvm} && gem install bundler --no-rdoc --no-ri && bundle && "
-      end
-      puts command << "rake spec:xruby"
+    commands = []
+    gemsets = []
+    RUBY_VERSIONS.each do |ruby_version|
+      current_gemset = "ruby-#{ruby_version}@#{GEMSET}"
+      gemsets << current_gemset
+      commands << "rvm use #{ruby_version}" << "gem install bundler" << "bundle" << "rvm gemset create #{GEMSET}" <<
+                  "rvm use #{current_gemset}" << "gem install bundler --no-rdoc --no-ri" << "bundle"
     end
+    puts ""
+    puts "Attempting to run the specs across ruby #{RUBY_VERSIONS.join(" and ")}..."
+    puts "If you get an error, try running the following commands to get your environment set up:"
+    puts commands.join(" && ")
+    puts ""
+    Kernel.exec("rvm #{gemsets.join(",")} rake spec")
   end
 end
