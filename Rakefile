@@ -17,11 +17,15 @@ namespace :spec do
     if GEMSETS.include?(`rvm-prompt`.chomp)
       Kernel.exec("rvm #{GEMSETS.join(",")} specs")
     else
-      puts "No gemsets named: #{GEMSETS}"
+      puts "No gemsets named: #{GEMSETS.join(" or ")}"
       puts "To create gemsets run the following commands:"
-      puts "rvm use 1.9.2; rvm gemset create tddium; rvm use 1.8.7; rvm gemset create tddium;"
-      puts "rvm use ruby-1.8.7-p302@tddium; bundle;"
-      puts "rvm use ruby-1.9.2-p180@tddium; bundle;"
+      command = ""
+      GEMSETS.each do |rvm|
+        ruby_version, gemset = rvm.split("@")
+        command << "rvm use #{ruby_version} && rvm gemset create #{gemset} && "
+        command << "rvm use #{rvm} && gem install bundler --no-rdoc --no-ri && bundle && "
+      end
+      puts command << "rake spec:xruby"
     end
   end
 end
