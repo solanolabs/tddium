@@ -32,8 +32,6 @@ module TddiumConstant
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
     end
     module ErrorCode
-      INCORRECT_PASSWORD = 2
-      EMAIL_NOT_FOUND = 3
     end
   end
 
@@ -54,6 +52,7 @@ module TddiumConstant
       EMAIL = "Enter your email address:"
       PASSWORD = "Enter a password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
+      INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "Do you want to use the existing suite? (#{Response::YES} for yes, n for no). '%s' is default:"
     end
 
@@ -65,7 +64,6 @@ module TddiumConstant
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
       UPDATE_SUITE = "The suite has been updated successfully"
-      ACCOUNT_TAKEN = "Sorry an account already exists with this email address. If you are the owner of this account try 'tddium login'"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       ACCOUNT_CREATED = "Your account was successfully created"
       ALREADY_LOGGED_IN = "You're already logged in"

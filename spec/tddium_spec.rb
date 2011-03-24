@@ -16,6 +16,7 @@ describe Tddium do
   SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
+  SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
   SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_PASSWORD = "foobar"
@@ -26,6 +27,7 @@ describe Tddium do
   SAMPLE_SUITE_ID = 1
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_PATTERN = "**/*_spec.rb"
+  SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}}
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -301,7 +303,6 @@ describe Tddium do
     end
 
     it_should_behave_like "set the default environment"
-    it_should_behave_like "logging in a user"
 
     shared_examples_for "showing the user's details" do
       it "should show the user's email address" do
@@ -318,94 +319,82 @@ describe Tddium do
     context "the user is already logged in" do
       before do
         stub_config_file(:api_key => SAMPLE_API_KEY)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
       end
 
       it_should_behave_like "showing the user's details"
     end
 
-    context "the user logs in successfully" do
-      before do
-        stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY}, :and_return => SAMPLE_CALL_API_RESPONSE)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, {"user"=> {"email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}})
-      end
-      it_should_behave_like "showing the user's details"
-    end
-
-    context "the user does not log in successfully" do
+    context "the user is not already logged in" do
       let(:call_api_result) {[403, "Forbidden"]}
-      context "because their password was incorrect (i.e. an email already exists)" do
-        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::INCORRECT_PASSWORD))}
-        it "should tell the user that the email address has already been taken" do
-          tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_TAKEN)
+
+      it_should_behave_like "a password prompt" do
+        let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+      end
+
+      context "the user does not confirm their password correctly" do
+        before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
+        it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
+          tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
           run_account(tddium)
         end
       end
-      context "because the email did not exist (i.e. no account with this email)" do
-        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, :and_yield => false, :and_return => call_api_result.unshift(Tddium::Api::ErrorCode::EMAIL_NOT_FOUND))}
 
-        it_should_behave_like "a password prompt" do
-          let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+      context "the user confirms their password correctly" do
+        before do
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
         end
 
-        context "the user does not confirm their password correctly" do
-          before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
-          it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
+        context "--ssh-key-file is not supplied" do
+          it "should prompt the user for their ssh key file" do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
             run_account(tddium)
           end
         end
 
-        context "the user confirms their password correctly" do
+        context "--ssh-key-file is supplied" do
+          it "should not prompt the user for their ssh key file" do
+            tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+            run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
+          end
+        end
+
+        it "should show the user the license" do
+          tddium.should_receive(:say).with(SAMPLE_LICENSE_TEXT)
+          run_account(tddium)
+        end
+
+        it "should ask the user to accept the license" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT)
+          run_account(tddium)
+        end
+
+        context "accepting the license" do
           before do
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
+            tddium.stub(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT).and_return(Tddium::Text::Prompt::Response::AGREE_TO_LICENSE)
+            tddium.stub(:ask).with(Tddium::Text::Prompt::INVITATION_TOKEN).and_return(SAMPLE_INVITATION_TOKEN)
+            create_file(Tddium::Default::SSH_FILE, "ssh-rsa 1234")
           end
 
-          context "--ssh-key-file is not supplied" do
-            it "should prompt the user for their ssh key file" do
-              tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-              run_account(tddium)
-            end
-          end
-
-          context "--ssh-key-file is supplied" do
-            it "should not prompt the user for their ssh key file" do
-              tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-              run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
-            end
-          end
-
-          it "should show the user the license" do
-            tddium.should_receive(:say).with(SAMPLE_LICENSE_TEXT)
+          it "should send a 'POST' request to '#{Tddium::Api::Path::USERS}' with the user's invitation token, password and ssh key" do
+            call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::USERS}$/, :params => {:user => {:invitation_token => SAMPLE_INVITATION_TOKEN, :password => SAMPLE_PASSWORD, :user_git_pubkey => "ssh-rsa 1234"}}, :api_key => false)
             run_account(tddium)
           end
 
-          it "should ask the user to accept the license" do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT)
-            run_account(tddium)
-          end
+          context "'POST #{Tddium::Api::Path::USERS}' is successful" do
+            before{stub_call_api_response(:post, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)}
 
-          context "accepting the license" do
-            before do
-              tddium.stub(:ask).with(Tddium::Text::Prompt::LICENSE_AGREEMENT).and_return(Tddium::Text::Prompt::Response::AGREE_TO_LICENSE)
-              tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(SAMPLE_EMAIL)
-              create_file(Tddium::Default::SSH_FILE, "ssh-rsa 1234")
-            end
-            it "should send a 'POST' request to '#{Tddium::Api::Path::USERS}' with the user's email address, password and ssh key" do
-              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::USERS}$/, :params => {:user => {:email => SAMPLE_EMAIL, :password => SAMPLE_PASSWORD, :user_git_pubkey => "ssh-rsa 1234"}}, :api_key => false)
+            it_should_behave_like "writing the api key to the .tddium file"
+
+            it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
               run_account(tddium)
             end
-            context "'POST #{Tddium::Api::Path::USERS}' is successful" do
-              before{stub_call_api_response(:post, Tddium::Api::Path::USERS, {"api_key" => SAMPLE_API_KEY})}
-              it_should_behave_like "writing the api key to the .tddium file"
-              it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
-                tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
-                run_account(tddium)
-              end
-            end
-            it_should_behave_like "an unsuccessful api call"
+
+            it_should_behave_like "showing the user's details"
           end
+          it_should_behave_like "an unsuccessful api call"
         end
       end
     end

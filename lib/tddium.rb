@@ -38,50 +38,37 @@ class Tddium < Thor
   def account
     set_default_environment(options[:environment])
     if user_logged_in? do |api_response|
+        # User is already logged in, so just display the info
         show_user_details(api_response)
       end
     else
-      params = get_user_credentials(options)
-      login = login_user(:params => params) do |api_response|
-        tddium_settings(:force_reload => true, :fail_with_message => false)
-        # call get_user again and display the email and created at date
-        get_user do |api_response|
-          show_user_details(api_response)
+      params = get_user_credentials(options.merge(:invited => true))
+
+      # Prompt for the password confirmation if password is not from command line
+      unless options[:password]
+        password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+        unless password_confirmation == params[:password]
+          say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
+          return
         end
       end
-      unless login.success?
-        if login.api_status == Api::ErrorCode::INCORRECT_PASSWORD
-          # In the case of a pre-existing account with the same email, say sorry an account already exists with this email address
-          say Text::Process::ACCOUNT_TAKEN
-        else
-          # if no existing user with this email
-          # display the license
-          # confirm its acceptance
-          # POST to create user
-          # write api key
-          unless options[:password]
-            password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-            unless password_confirmation == params[:password]
-              say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
-              return
-            end
-          end
 
-          ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
-          params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+      # Prompt for ssh-key file
+      ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
+      params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
 
-          content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
-            file.read
-          end
-          say content
-          license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
-          return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
+      # Prompt for accepting license
+      content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
+        file.read
+      end
+      say content
+      license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
+      return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
-          call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
-            write_api_key(api_response["api_key"])
-            say Text::Process::ACCOUNT_CREATED
-          end
-        end
+      call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
+        write_api_key(api_response["user"]["api_key"])
+        say Text::Process::ACCOUNT_CREATED
+        show_user_details(api_response)
       end
     end
   end
@@ -326,8 +313,12 @@ class Tddium < Thor
 
   def get_user_credentials(options = {})
     params = {}
-    # prompt for email and password
-    params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+    # prompt for email/invitation and password
+    if options[:invited]
+      params[:invitation_token] = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
+    else
+      params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+    end
     params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
     params
   end
