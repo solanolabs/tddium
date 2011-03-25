@@ -23,12 +23,13 @@ describe Tddium do
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
   SAMPLE_RUBYGEMS_VERSION = "1.3.7"
   SAMPLE_RUBY_VERSION = "1.8.7"
+  SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
+  SAMPLE_SUITES_RESPONSE = {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_PATTERN = "**/*_spec.rb"
-  SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}}
-  SAMPLE_SUITES_RESPONSE = {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}
+  SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -305,7 +306,12 @@ describe Tddium do
 
     it_should_behave_like "set the default environment"
 
-    shared_examples_for "showing the user's details" do
+    context "the user is already logged in" do
+      before do
+        stub_config_file(:api_key => SAMPLE_API_KEY)
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
+      end
+
       it "should show the user's email address" do
         tddium.should_receive(:say).with(SAMPLE_EMAIL)
         run_account(tddium)
@@ -315,15 +321,6 @@ describe Tddium do
         tddium.should_receive(:say).with(SAMPLE_DATE_TIME)
         run_account(tddium)
       end
-    end
-
-    context "the user is already logged in" do
-      before do
-        stub_config_file(:api_key => SAMPLE_API_KEY)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
-      end
-
-      it_should_behave_like "showing the user's details"
     end
 
     context "the user is not already logged in" do
@@ -388,14 +385,23 @@ describe Tddium do
 
             it_should_behave_like "writing the api key to the .tddium file"
 
-            it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED}'" do
-              tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED)
+            it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED % [SAMPLE_EMAIL, SAMPLE_RECURLY_URL]}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED % [SAMPLE_EMAIL, SAMPLE_RECURLY_URL])
               run_account(tddium)
             end
-
-            it_should_behave_like "showing the user's details"
           end
-          it_should_behave_like "an unsuccessful api call"
+          context "'POST #{Tddium::Api::Path::USERS}' is unsuccessful" do
+
+            it_should_behave_like "an unsuccessful api call"
+
+            context "because the invitation is invalid" do
+              before { stub_call_api_response(:post, Tddium::Api::Path::USERS, :and_yield => false, :and_return => [Tddium::Api::ErrorCode::INVALID_INVITATION, 409, "Invitation is invalid"]) }
+              it "should show the user: '#{Tddium::Text::Error::INVALID_INVITATION}'" do
+                tddium.should_receive(:say).with(Tddium::Text::Error::INVALID_INVITATION)
+                run_account(tddium)
+              end
+            end
+          end
         end
       end
     end

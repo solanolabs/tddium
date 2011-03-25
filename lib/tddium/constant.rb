@@ -32,6 +32,7 @@ module TddiumConstant
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
     end
     module ErrorCode
+      INVALID_INVITATION = 2
     end
   end
 
@@ -65,7 +66,21 @@ module TddiumConstant
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
       UPDATE_SUITE = "The suite has been updated successfully"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
-      ACCOUNT_CREATED = "Your account was successfully created"
+      ACCOUNT_CREATED = "
+Congratulations %s, your tddium account has been created!
+
+Next, you should:
+
+1. Register your test suite by running:
+tddium suite
+
+2. Sign up for a billing plan by opening this URL in your browser:
+%s
+
+3. Start tests by running:
+tddium spec
+
+"
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
@@ -91,6 +106,12 @@ module TddiumConstant
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
+      INVALID_INVITATION = "
+Your invitation token wasn't recognized. If you have a token, make sure you enter it correctly.
+If you want an invite, visit this URL to sign up:
+http://blog.tddium.com/home/
+
+"
     end
   end
 

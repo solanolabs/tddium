@@ -65,11 +65,11 @@ class Tddium < Thor
       license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
       return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
-      call_api(:post, Api::Path::USERS, {:user => params}, false) do |api_response|
+      api_result = call_api(:post, Api::Path::USERS, {:user => params}, false, false) do |api_response|
         write_api_key(api_response["user"]["api_key"])
-        say Text::Process::ACCOUNT_CREATED
-        show_user_details(api_response)
+        say Text::Process::ACCOUNT_CREATED % [api_response["user"]["email"], api_response["user"]["recurly_url"]]
       end
+      say((api_result.api_status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : api_result.message) unless api_result.success?
     end
   end
 
