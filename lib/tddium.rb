@@ -204,7 +204,6 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
-  method_option :use_existing_suite, :type => :boolean, :default => nil
   def suite
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings
@@ -221,48 +220,65 @@ class Tddium < Thor
         end
       end
     else
-      # Get the suite name
-      params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], File.basename(Dir.pwd))
-
       params[:branch] = current_git_branch
+      default_suite_name = File.basename(Dir.pwd)
+      params[:repo_name] = options[:name] || default_suite_name
 
-      # Check to see if there is an existing suite
-      unless options[:use_existing_suite] == false
-        existing_suite = nil
-        call_api(:get, Api::Path::SUITES, params, nil, false) do |api_response|
+      existing_suite = nil
+      use_existing_suite = false
+      suite_name_resolved = false
+      api_call_successful = true
+      while !suite_name_resolved && api_call_successful
+        # Check to see if there is an existing suite
+        api_call_successful = call_api(:get, Api::Path::SUITES, params) do |api_response|
           existing_suite = api_response["suites"].first
-        end
 
-        if existing_suite
-          if options[:use_existing_suite].nil?
-            use_existing_suite = (prompt(Text::Prompt::USE_EXISTING_SUITE, options[:use_existing_suite], Text::Prompt::Response::YES) == Text::Prompt::Response::YES)
+          # Get the suite name
+          current_suite_name = params[:repo_name]
+          if existing_suite
+            # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
+            params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE, options[:name], current_suite_name)
+            if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
+              # Use the existing suite, so assign the value back and exit the loop
+              params[:repo_name] = current_suite_name
+              use_existing_suite = true
+              suite_name_resolved = true
+            end
+          elsif current_suite_name == default_suite_name
+            # Prompt for using default suite name or entering new one
+            params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], current_suite_name)
+            suite_name_resolved = true if params[:repo_name] == default_suite_name
           else
-            use_existing_suite = options[:use_existing_suite]
+            # Suite name does not exist yet and already prompted
+            suite_name_resolved = true
           end
-
-          if use_existing_suite
-            write_suite(existing_suite["id"])
-            say Text::Status::USING_SUITE % [existing_suite["repo_name"], existing_suite["branch"]]
-            return
-          end
-        end
+        end.success?
       end
 
-      params[:ruby_version] = dependency_version(:ruby)
-      params[:bundler_version] = dependency_version(:bundle)
-      params[:rubygems_version] = dependency_version(:gem)
+      if api_call_successful
+        if use_existing_suite
+          # Write to file and exit when using the existing suite
+          write_suite(existing_suite["id"])
+          say Text::Status::USING_SUITE % [existing_suite["repo_name"], existing_suite["branch"]]
+          return
+        end
 
-      params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
+        params[:ruby_version] = dependency_version(:ruby)
+        params[:bundler_version] = dependency_version(:bundle)
+        params[:rubygems_version] = dependency_version(:gem)
 
-      # Create new suite if it does not exist yet
-      call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
-        # Save the created suite
-        write_suite(api_response["suite"]["id"])
+        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
 
-        # Manage git
-        `git remote rm #{Git::REMOTE_NAME}`
-        `git remote add #{Git::REMOTE_NAME} #{api_response["suite"]["git_repo_uri"]}`
-        git_push
+        # Create new suite if it does not exist yet
+        call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
+          # Save the created suite
+          write_suite(api_response["suite"]["id"])
+
+          # Manage git
+          `git remote rm #{Git::REMOTE_NAME}`
+          `git remote add #{Git::REMOTE_NAME} #{api_response["suite"]["git_repo_uri"]}`
+          git_push
+        end
       end
     end
   end

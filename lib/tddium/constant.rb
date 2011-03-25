@@ -53,7 +53,7 @@ module TddiumConstant
       PASSWORD = "Enter a password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
-      USE_EXISTING_SUITE = "Do you want to use the existing suite? (#{Response::YES} for yes, n for no). '%s' is default:"
+      USE_EXISTING_SUITE = "The suite name '%s' already exists. Enter '#{Response::YES}' to use it, or enter a new name:"
     end
 
     module Process

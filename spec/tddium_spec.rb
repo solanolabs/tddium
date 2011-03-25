@@ -28,6 +28,7 @@ describe Tddium do
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME}}
+  SAMPLE_SUITES_RESPONSE = {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -773,84 +774,63 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
     end
 
-    it "should ask for a test file pattern" do
-      tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
-      run_suite(tddium)
-    end
-
-    context "using defaults" do
-      before{ stub_default_suite_name }
-      it "should send the default values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => Tddium::Default::TEST_PATTERN, :repo_name => SAMPLE_APP_NAME)})
-        run_suite(tddium)
-      end
-    end
-
-    context "passing arguments" do
-      let(:cli_args) { { :test_pattern => "**/*_test.rb", :environment => "test" } }
-
-      it "should POST the passed in values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_test.rb")})
-        run_suite(tddium, cli_args)
-      end
-    end
-
-    context "interactive mode" do
-      before { tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_selenium.rb") }
-
-      it "should POST the passed in values to the API" do
-        call_api_should_receive(:params => {:suite => hash_including(:test_pattern => "**/*_selenium.rb")})
-        run_suite(tddium)
-      end
-    end
-
     it_should_behave_like "set the default environment"
     it_should_behave_like "sending the api key"
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium file is missing or corrupt"
 
     context ".tddium file contains no suites" do
-      before {stub_default_suite_name}
-
-      it "should ask for a suite name" do
-        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
-        run_suite(tddium)
+      before do
+        stub_default_suite_name
+        stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []}, :and_return => SAMPLE_CALL_API_RESPONSE)
       end
 
-      shared_examples_for "getting the current user's existing suites" do
+      context "using defaults" do
         it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES} with the repo name and branch name'" do
           call_api_should_receive(:method => :get, :path => Tddium::Api::Path::SUITES, :params => hash_including(:repo_name => SAMPLE_APP_NAME, :branch => SAMPLE_BRANCH_NAME))
+          run_suite(tddium)
+        end
+      end
+
+      context "passing '--name=my_suite'" do
+        let(:cli_args) { { :name => "my_suite" } }
+
+        it "should not ask for a suite name" do
+          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
+          run_suite(tddium, cli_args)
+        end
+
+        it "should send a GET request with the passed in values to the API" do
+          call_api_should_receive(:method => :get, :path => Tddium::Api::Path::SUITES, :params => hash_including(:repo_name => "my_suite"))
           run_suite(tddium, cli_args)
         end
       end
 
-      context "passing no cli options" do
-        it_should_behave_like "getting the current user's existing suites" do
-          let(:cli_args) { {} }
+      context "interactive mode" do
+        before { tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("some_other_suite") }
+
+        it "should ask for a suite name" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
+          run_suite(tddium)
+        end
+
+        it "should send a GET request with the user's entries to the API" do
+          call_api_should_receive(:method => :get, :path => Tddium::Api::Path::SUITES, :params => hash_including(:repo_name => "some_other_suite"))
+          run_suite(tddium)
         end
       end
 
-      context "passing --use-existing-suite" do
-        it_should_behave_like "getting the current user's existing suites" do
-          let(:cli_args) { {:use_existing_suite => true} }
-        end
-      end
-
-      context "passing --use-existing-suite=false" do
-        it "should not send a 'GET' request to '#{Tddium::Api::Path::SUITES}'" do
-          tddium_client.should_not_receive(:call_api).with(:method => :get, :path => Tddium::Api::Path::SUITES)
-          run_suite(tddium, :use_existing_suite => false)
+      context "passing '--name=my_suite --test-pattern=**/*_selenium.rb'" do
+        it "should POST request with the passed in values to the API" do
+          call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES, :params => {:suite => hash_including(:repo_name => "my_suite", :test_pattern => "**/*_selenium.rb")})
+          run_suite(tddium, :name => "my_suite", :test_pattern => "**/*_selenium.rb")
         end
       end
 
       context "but this user has already registered some suites" do
-        before { stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}) }
-
-        shared_examples_for "not asking the user if they want to use an existing suite" do
-          it "should not ask the user if they want to use the existing suite" do
-            tddium_client.should_not_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES)
-            run_suite(tddium, cli_args)
-          end
+        before do
+          stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, {"suites" => []}, :and_return => SAMPLE_CALL_API_RESPONSE)
+          tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return(Tddium::Text::Prompt::Response::YES)
         end
 
         shared_examples_for "writing the suite to file" do
@@ -862,25 +842,36 @@ describe Tddium do
         end
 
         context "passing no cli options" do
-          it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES}' " do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES)
+          it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME}' " do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("something")
             run_suite(tddium)
           end
         end
 
-        context "passing --use-existing-suite" do
-          it_should_behave_like "not asking the user if they want to use an existing suite"  do
-            let(:cli_args) { {:use_existing_suite => true} }
+        context "passing --name=my_suite" do
+          before do
+            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, :and_return => SAMPLE_CALL_API_RESPONSE)
           end
-        end
 
-        context "passing --use-existing-suite=false" do
-          it_should_behave_like "not asking the user if they want to use an existing suite"  do
-            let(:cli_args) { {:use_existing_suite => false} }
+          it "should not ask the user if they want to use the existing suite" do
+            tddium_client.should_not_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % "my_suite")
+            run_suite(tddium, :name => "my_suite")
           end
+
+          it "should not POST the passed in values to the API" do
+            tddium_client.should_not_receive(:call_api).with(:post)
+            run_suite(tddium, :name => "my_suite")
+          end
+
+          it_should_behave_like "writing the suite to file"
+
         end
 
         context "the user wants to use the existing suite" do
+          before do
+            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, :and_return => SAMPLE_CALL_API_RESPONSE)
+          end
+
           it "should not send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
             tddium_client.should_not_receive(:call_api).with(:method => :post, :path => Tddium::Api::Path::SUITES)
             run_suite(tddium)
@@ -895,7 +886,12 @@ describe Tddium do
         end
 
         context "the user does not want to use the existing suite" do
-          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % Tddium::Text::Prompt::Response::YES).and_return("no")}
+          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("some_other_suite") }
+
+          it "should ask for a test file pattern" do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
+            run_suite(tddium)
+          end
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
             call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
@@ -927,29 +923,15 @@ describe Tddium do
           end
 
           context "using defaults" do
-            it "should POST the default suite name to the API" do
-              call_api_should_receive(:params => {:suite => hash_including(:repo_name => SAMPLE_APP_NAME)})
-              run_suite(tddium)
-            end
-
             it "should POST the default test pattern to the API" do
               call_api_should_receive(:params => {:suite => hash_including(:test_pattern => SAMPLE_TEST_PATTERN)})
               run_suite(tddium)
             end
           end
 
-          context "passing cli options" do
-            let(:cli_args) { { :name => "my_suite_name", :environment => "test", :test_pattern => "**/*_selenium" } }
-
-            it "should POST the passed in values to the API" do
-              call_api_should_receive(:method => :post, :params => {:suite => hash_including(:repo_name => "my_suite_name", :test_pattern => "**/*_selenium")})
-              run_suite(tddium, cli_args)
-            end
-          end
-
           context "interactive mode" do
             before do
-              tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("foobar")
+              tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("foobar")
               tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_test")
               stub_default_suite_name
             end
