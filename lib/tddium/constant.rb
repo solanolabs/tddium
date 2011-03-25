@@ -91,9 +91,9 @@ tddium spec
       ALL_SUITES = "Your suites: %s"
       CURRENT_SUITE = "Your current suite: %s"
       CURRENT_SUITE_UNAVAILABLE = "Your current suite is unavailable"
-      NO_ACTIVE_SESSION = "There is no active sessions"
+      NO_ACTIVE_SESSION = "There are no active sessions"
       ACTIVE_SESSIONS = "Your active sessions:"
-      NO_INACTIVE_SESSION = "There is no previous sessions"
+      NO_INACTIVE_SESSION = "There are no previous sessions"
       INACTIVE_SESSIONS = "Your latest sessions:"
       SESSION_TITLE = "  Session %s:"
       ATTRIBUTE_DETAIL = "    %s: %s"
@@ -118,7 +118,7 @@ http://blog.tddium.com/home/
   module DisplayedAttributes
     SUITE = %w{repo_name branch test_pattern
                ruby_version bundler_version rubygems_version
-               total_test_scripts total_test_executions}
-    SESSION = %w{start_time end_time suite result report_url}
+               test_scripts test_executions}
+    SESSION = %w{start_time end_time suite test_execution_stats report_url}
   end
 end
