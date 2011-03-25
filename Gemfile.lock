@@ -1,0 +1,45 @@
+PATH
+  remote: .
+  specs:
+    tddium-preview (0.0.2)
+      highline
+      json
+      tddium_client
+      thor
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    crack (0.1.8)
+    diff-lcs (1.1.2)
+    fakefs (0.3.1)
+    highline (1.6.1)
+    httparty (0.7.4)
+      crack (= 0.1.8)
+    json (1.5.1)
+    rake (0.8.7)
+    rspec (2.5.0)
+      rspec-core (~> 2.5.0)
+      rspec-expectations (~> 2.5.0)
+      rspec-mocks (~> 2.5.0)
+    rspec-core (2.5.1)
+    rspec-expectations (2.5.0)
+      diff-lcs (~> 1.1.2)
+    rspec-mocks (2.5.0)
+    simplecov (0.4.1)
+      simplecov-html (~> 0.4.3)
+    simplecov-html (0.4.3)
+    tddium_client (0.0.3)
+      httparty
+      json
+    thor (0.14.6)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  fakefs
+  rake
+  rspec
+  simplecov
+  tddium-preview!

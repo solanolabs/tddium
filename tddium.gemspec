@@ -1,10 +1,14 @@
+=begin
+Copyright (c) 2011 Solano Labs All Rights Reserved
+=end
+
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require "tddium/version"
 
 Gem::Specification.new do |s|
   s.name        = "tddium-preview"
-  s.version     = Tddium::VERSION
+  s.version     = TddiumVersion::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Jay Moorthi"]
   s.email       = ["info@tddium.com"]
@@ -20,11 +24,12 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency("thor")
-  s.add_runtime_dependency("httparty")
+  s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
+  s.add_runtime_dependency("tddium_client")
 
   s.add_development_dependency("rspec")
-  s.add_development_dependency("fakeweb")
-  s.add_development_dependency("rspec")
-  s.add_development_dependency("rack-test")
+  s.add_development_dependency("fakefs")
+  s.add_development_dependency("simplecov")
+  s.add_development_dependency("rake")
 end
