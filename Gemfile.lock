@@ -4,7 +4,7 @@ PATH
     tddium-preview (0.0.2)
       highline
       json
-      tddium_client
+      tddium_client (= 0.0.3)
       thor
 
 GEM

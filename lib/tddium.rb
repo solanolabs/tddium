@@ -158,7 +158,11 @@ class Tddium < Thor
                 get_test_executions_response = api_response
 
                 # If all tests finished, exit the loop else sleep
-                finished_tests.size == api_response["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+                if finished_tests.size == api_response["tests"].size
+                  tests_not_finished_yet = false
+                else
+                  sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+                end
               end
               api_call_successful = call_api_result.success?
             end
