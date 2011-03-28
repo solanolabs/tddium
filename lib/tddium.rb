@@ -383,8 +383,11 @@ class Tddium < Thor
       else
         say all_session_prompt
         api_response["sessions"].each do |session|
-          say Text::Status::SESSION_TITLE % session["id"]
-          display_attributes(DisplayedAttributes::SESSION, session)
+          session_id = session["id"]
+          say Text::Status::SESSION_TITLE % session_id
+          call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
+            display_attributes(DisplayedAttributes::TEST_EXECUTION, api_response)
+          end
         end
       end
     end

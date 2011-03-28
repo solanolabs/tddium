@@ -119,6 +119,6 @@ http://blog.tddium.com/home/
     SUITE = %w{repo_name branch test_pattern
                ruby_version bundler_version rubygems_version
                test_scripts test_executions}
-    SESSION = %w{start_time end_time suite test_execution_stats report_url}
+    TEST_EXECUTION = %w{start_time end_time test_execution_stats report_url}
   end
 end

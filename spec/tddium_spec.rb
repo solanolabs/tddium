@@ -757,7 +757,7 @@ describe Tddium do
               end
 
               it_should_behave_like "attribute details" do
-                let(:attributes_to_display) {Tddium::DisplayedAttributes::SESSION}
+                let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
                 let(:attributes_to_hide) { [/id/] }
                 let(:attributes) { session_attributes }
               end
