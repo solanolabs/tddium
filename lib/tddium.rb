@@ -105,7 +105,7 @@ class Tddium < Thor
     start_time = Time.now
 
     # Push the latest code to git
-    git_push
+    return unless git_push
 
     # Call the API to get the suite and its tests
     call_api(:get, current_suite_path) do |api_response|
@@ -340,7 +340,7 @@ class Tddium < Thor
   end
 
   def git_push
-    `git push #{Git::REMOTE_NAME} #{current_git_branch}`
+    system("git push #{Git::REMOTE_NAME} #{current_git_branch}")
   end
 
   def git_repo?
