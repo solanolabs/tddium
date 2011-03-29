@@ -399,6 +399,7 @@ class Tddium < Thor
     # Account creation date
     say api_response["user"]["email"]
     say api_response["user"]["created_at"]
+    say api_response["user"]["recurly_url"]
   end
 
   def suite_for_current_branch?
