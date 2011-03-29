@@ -105,7 +105,7 @@ class Tddium < Thor
     start_time = Time.now
 
     # Push the latest code to git
-    git_push
+    return unless git_push
 
     # Call the API to get the suite and its tests
     call_api(:get, current_suite_path) do |api_response|
@@ -344,7 +344,7 @@ class Tddium < Thor
   end
 
   def git_push
-    `git push #{Git::REMOTE_NAME} #{current_git_branch}`
+    system("git push #{Git::REMOTE_NAME} #{current_git_branch}")
   end
 
   def git_repo?
@@ -387,8 +387,11 @@ class Tddium < Thor
       else
         say all_session_prompt
         api_response["sessions"].each do |session|
-          say Text::Status::SESSION_TITLE % session["id"]
-          display_attributes(DisplayedAttributes::SESSION, session)
+          session_id = session["id"]
+          say Text::Status::SESSION_TITLE % session_id
+          call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
+            display_attributes(DisplayedAttributes::TEST_EXECUTION, api_response)
+          end
         end
       end
     end

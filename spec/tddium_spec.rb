@@ -100,8 +100,8 @@ describe Tddium do
     tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
   end
 
-  def stub_git_push(tddium)
-    tddium.stub(:`).with(/^git push/)
+  def stub_git_push(tddium, success = true)
+    tddium.stub(:system).with(/^git push/).and_return(success)
   end
 
   def stub_ruby_version(tddium, version = SAMPLE_RUBY_VERSION)
@@ -479,8 +479,16 @@ describe Tddium do
     it_should_behave_like "suite has not been initialized"
 
     it "should push the latest code to tddium" do
-      tddium.should_receive(:`).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
+      tddium.should_receive(:system).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
       run_spec(tddium)
+    end
+
+    context "git push was unsuccessful" do
+      before { stub_git_push(tddium, false) }
+      it "should not try to contact the api" do
+        tddium_client.should_not_receive(:call_api)
+        run_spec(tddium)
+      end
     end
 
     it_should_behave_like "getting the current suite from the API"
@@ -757,7 +765,7 @@ describe Tddium do
               end
 
               it_should_behave_like "attribute details" do
-                let(:attributes_to_display) {Tddium::DisplayedAttributes::SESSION}
+                let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
                 let(:attributes_to_hide) { [/id/] }
                 let(:attributes) { session_attributes }
               end
@@ -974,7 +982,7 @@ describe Tddium do
               end
 
               it "should push the current git branch to tddium oaktree" do
-                tddium.should_receive(:`).with("git push tddium oaktree")
+                tddium.should_receive(:system).with("git push tddium oaktree")
                 run_suite(tddium)
               end
             end
