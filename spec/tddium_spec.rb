@@ -1,4 +1,5 @@
 =begin
+#foo
 Copyright (c) 2011 Solano Labs All Rights Reserved
 =end
 
