@@ -411,7 +411,7 @@ class Tddium < Thor
   end
 
   def tddium_client
-    @tddium_client ||= TddiumClient.new
+    @tddium_client ||= TddiumClient::Client.new
   end
 
   def tddium_file_name

@@ -117,7 +117,7 @@ describe Tddium do
   end
 
   def stub_tddium_client
-    TddiumClient.stub(:new).and_return(tddium_client)
+    TddiumClient::Client.stub(:new).and_return(tddium_client)
     tddium_client.stub(:environment).and_return(:test)
     tddium_client.stub(:call_api).and_return(SAMPLE_CALL_API_ERROR)
   end
@@ -449,7 +449,7 @@ describe Tddium do
   end
 
   describe "#logout" do
-    before { tddium.stub(:say) }
+    before { stub_defaults }
 
     context ".tddium file exists" do
       before { stub_config_file }
