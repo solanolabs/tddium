@@ -322,6 +322,12 @@ describe Tddium do
         tddium.should_receive(:say).with(SAMPLE_DATE_TIME)
         run_account(tddium)
       end
+
+      it "should show the user's recurly account url" do
+        tddium.should_receive(:say).with(SAMPLE_RECURLY_URL)
+        run_account(tddium)
+      end
+
     end
 
     context "the user is not already logged in" do
