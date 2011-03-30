@@ -118,7 +118,7 @@ http://blog.tddium.com/home/
   module DisplayedAttributes
     SUITE = %w{repo_name branch test_pattern
                ruby_version bundler_version rubygems_version
-               test_scripts test_executions}
+               test_scripts test_executions git_repo_uri}
     TEST_EXECUTION = %w{start_time end_time test_execution_stats report}
   end
 end
