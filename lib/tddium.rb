@@ -37,10 +37,9 @@ class Tddium < Thor
   method_option :ssh_key_file, :type => :string, :default => nil
   def account
     set_default_environment(options[:environment])
-    if user_logged_in? do |api_response|
-        # User is already logged in, so just display the info
-        show_user_details(api_response)
-      end
+    if user_details = user_logged_in?
+      # User is already logged in, so just display the info
+      show_user_details(user_details)
     else
       params = get_user_credentials(options.merge(:invited => true))
 
@@ -65,11 +64,15 @@ class Tddium < Thor
       license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
       return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
-      api_result = call_api(:post, Api::Path::USERS, {:user => params}, false, false) do |api_response|
-        write_api_key(api_response["user"]["api_key"])
-        say Text::Process::ACCOUNT_CREATED % [api_response["user"]["email"], api_response["user"]["recurly_url"]]
+      begin
+        new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
+        write_api_key(new_user["user"]["api_key"])
+        say Text::Process::ACCOUNT_CREATED % [new_user["user"]["email"], new_user["user"]["recurly_url"]]
+      rescue TddiumClient::Error::API => e
+        say((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
+      rescue TddiumClient::Error::Base => e
+        say e.message
       end
-      say((api_result.api_status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : api_result.message) unless api_result.success?
     end
   end
 
@@ -82,9 +85,7 @@ class Tddium < Thor
     if user_logged_in?
       say Text::Process::ALREADY_LOGGED_IN
     else
-      login_user(:params => get_user_credentials(options), :show_error => true) do
-        say Text::Process::LOGGED_IN_SUCCESSFULLY
-      end
+      say Text::Process::LOGGED_IN_SUCCESSFULLY if login_user(:params => get_user_credentials(options), :show_error => true)
     end
   end
 
@@ -108,68 +109,62 @@ class Tddium < Thor
     return unless git_push
 
     # Call the API to get the suite and its tests
-    call_api(:get, current_suite_path) do |api_response|
-      test_pattern = api_response["suite"]["test_pattern"]
+    begin
+      suite_details = call_api(:get, current_suite_path)
+      test_pattern = suite_details["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
       # Create a session
-      call_api(:post, Api::Path::SESSIONS) do |api_response|
-        session_id = api_response["session"]["id"]
+      new_session = call_api(:post, Api::Path::SESSIONS)
+      session_id = new_session["session"]["id"]
 
-        # Call the API to register the tests
-        call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files}) do |api_response|
-          # Start the tests
-          call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}") do |api_response|
-            tests_not_finished_yet = true
-            finished_tests = {}
-            test_statuses = Hash.new(0)
-            api_call_successful = true
-            get_test_executions_response = {}
+      # Register the tests
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files})
 
-            say Text::Process::STARTING_TEST % test_files.size
-            say Text::Process::TERMINATE_INSTRUCTION
-            while tests_not_finished_yet && api_call_successful do
-              # Poll the API to check the status
-              call_api_result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
-                # Catch Ctrl-C to interrupt the test
-                Signal.trap(:INT) do
-                  say Text::Process::INTERRUPT
-                  say Text::Process::CHECK_TEST_STATUS
-                  tests_not_finished_yet = false
-                end
+      # Start the tests
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}")
+      tests_not_finished_yet = true
+      finished_tests = {}
+      test_statuses = Hash.new(0)
 
-                # Print out the progress of running tests
-                api_response["tests"].each do |test_name, result_params|
-                  test_status = result_params["status"]
-                  if result_params["end_time"] && !finished_tests[test_name]
-                    message = case test_status
-                                when "passed" then [".", :green, false]
-                                when "failed" then ["F", :red, false]
-                                when "error" then ["E", nil, false]
-                                when "pending" then ["*", :yellow, false]
-                              end
-                    finished_tests[test_name] = test_status
-                    test_statuses[test_status] += 1
-                    say *message
-                  end
-                end
+      say Text::Process::STARTING_TEST % test_files.size
+      say Text::Process::TERMINATE_INSTRUCTION
+      while tests_not_finished_yet do
+        # Poll the API to check the status
+        current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
-                # save response for later use
-                get_test_executions_response = api_response
+        # Catch Ctrl-C to interrupt the test
+        Signal.trap(:INT) do
+          say Text::Process::INTERRUPT
+          say Text::Process::CHECK_TEST_STATUS
+          tests_not_finished_yet = false
+        end
 
-                # If all tests finished, exit the loop else sleep
-                finished_tests.size == api_response["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
-              end
-              api_call_successful = call_api_result.success?
-            end
-
-            # Print out the result
-            say Text::Process::FINISHED_TEST % (Time.now - start_time)
-            say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-            say Text::Process::CHECK_TEST_REPORT % get_test_executions_response["report"]
+        # Print out the progress of running tests
+        current_test_executions["tests"].each do |test_name, result_params|
+          test_status = result_params["status"]
+          if result_params["end_time"] && !finished_tests[test_name]
+            message = case test_status
+                        when "passed" then [".", :green, false]
+                        when "failed" then ["F", :red, false]
+                        when "error" then ["E", nil, false]
+                        when "pending" then ["*", :yellow, false]
+                      end
+            finished_tests[test_name] = test_status
+            test_statuses[test_status] += 1
+            say *message
           end
         end
+
+        # If all tests finished, exit the loop else sleep
+        finished_tests.size == current_test_executions["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
       end
+
+      # Print out the result
+      say Text::Process::FINISHED_TEST % (Time.now - start_time)
+      say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+      say Text::Process::CHECK_TEST_REPORT % current_test_executions["report"]
+    rescue TddiumClient::Error::Base
     end
   end
 
@@ -179,13 +174,14 @@ class Tddium < Thor
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
-    call_api(:get, Api::Path::SUITES) do |api_response|
-      if api_response["suites"].size == 0
+    begin
+      current_suites = call_api(:get, Api::Path::SUITES)
+      if current_suites["suites"].size == 0
         say Text::Status::NO_SUITE
       else
-        say Text::Status::ALL_SUITES % api_response["suites"].collect {|suite| suite["repo_name"]}.join(", ")
+        say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| suite["repo_name"]}.join(", ")
 
-        if current_suite = api_response["suites"].detect {|suite| suite["id"] == current_suite_id}
+        if current_suite = current_suites["suites"].detect {|suite| suite["id"] == current_suite_id}
           say Text::Status::SEPARATOR
           say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
 
@@ -197,6 +193,7 @@ class Tddium < Thor
           say Text::Status::CURRENT_SUITE_UNAVAILABLE
         end
       end
+    rescue TddiumClient::Error::Base
     end
   end
 
@@ -209,29 +206,27 @@ class Tddium < Thor
     return unless git_repo? && tddium_settings
 
     params = {}
-    if current_suite_id
-      call_api(:get, current_suite_path) do |api_response|
+    begin
+      if current_suite_id
+        current_suite = call_api(:get, current_suite_path)
         # Get the current test pattern and prompt for updates
-        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], api_response["suite"]["test_pattern"])
+        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], current_suite["suite"]["test_pattern"])
 
         # Update the current suite if it exists already
-        call_api(:put, current_suite_path, {:suite => params}) do |api_response|
-          say Text::Process::UPDATE_SUITE
-        end
-      end
-    else
-      params[:branch] = current_git_branch
-      default_suite_name = File.basename(Dir.pwd)
-      params[:repo_name] = options[:name] || default_suite_name
+        call_api(:put, current_suite_path, {:suite => params})
+        say Text::Process::UPDATE_SUITE
+      else
+        params[:branch] = current_git_branch
+        default_suite_name = File.basename(Dir.pwd)
+        params[:repo_name] = options[:name] || default_suite_name
 
-      existing_suite = nil
-      use_existing_suite = false
-      suite_name_resolved = false
-      api_call_successful = true
-      while !suite_name_resolved && api_call_successful
-        # Check to see if there is an existing suite
-        api_call_successful = call_api(:get, Api::Path::SUITES, params) do |api_response|
-          existing_suite = api_response["suites"].first
+        existing_suite = nil
+        use_existing_suite = false
+        suite_name_resolved = false
+        while !suite_name_resolved
+          # Check to see if there is an existing suite
+          current_suites = call_api(:get, Api::Path::SUITES, params)
+          existing_suite = current_suites["suites"].first
 
           # Get the suite name
           current_suite_name = params[:repo_name]
@@ -252,10 +247,8 @@ class Tddium < Thor
             # Suite name does not exist yet and already prompted
             suite_name_resolved = true
           end
-        end.success?
-      end
+        end
 
-      if api_call_successful
         if use_existing_suite
           # Write to file and exit when using the existing suite
           write_suite(existing_suite["id"])
@@ -270,31 +263,30 @@ class Tddium < Thor
         params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
 
         # Create new suite if it does not exist yet
-        call_api(:post, Api::Path::SUITES, {:suite => params}) do |api_response|
-          # Save the created suite
-          write_suite(api_response["suite"]["id"])
+        new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
+        # Save the created suite
+        write_suite(new_suite["suite"]["id"])
 
-          # Manage git
-          `git remote rm #{Git::REMOTE_NAME}`
-          `git remote add #{Git::REMOTE_NAME} #{api_response["suite"]["git_repo_uri"]}`
-          git_push
-        end
+        # Manage git
+        `git remote rm #{Git::REMOTE_NAME}`
+        `git remote add #{Git::REMOTE_NAME} #{new_suite["suite"]["git_repo_uri"]}`
+        git_push
       end
+    rescue TddiumClient::Error::Base
     end
   end
 
   private
 
-  def call_api(method, api_path, params = {}, api_key = nil, show_error = true, &block)
+  def call_api(method, api_path, params = {}, api_key = nil, show_error = true)
     api_key =  tddium_settings(:fail_with_message => false)["api_key"] if tddium_settings(:fail_with_message => false) && api_key != false
-    api_status, http_status, error_message = tddium_client.call_api(method, api_path, params, api_key, &block)
-    say error_message if error_message && show_error
-    response = Struct.new(:api_status, :http_status, :message) do
-      def success?
-        self.api_status.to_i.zero?
-      end
+    begin
+      result = tddium_client.call_api(method, api_path, params, api_key)
+    rescue TddiumClient::Error::Base => e
+      say e.message if show_error
+      raise e
     end
-    response.new(api_status, http_status, error_message)
+    result
   end
 
   def current_git_branch
@@ -323,8 +315,8 @@ class Tddium < Thor
     tddium_client.environment
   end
 
-  def get_user(&block)
-    call_api(:get, Api::Path::USERS, {}, nil, false, &block)
+  def get_user
+    call_api(:get, Api::Path::USERS, {}, nil, false) rescue nil
   end
 
   def get_user_credentials(options = {})
@@ -351,12 +343,13 @@ class Tddium < Thor
     message.nil?
   end
 
-  def login_user(options = {}, &block)
+  def login_user(options = {})
     # POST (email, password) to /users/sign_in to retrieve an API key
-    login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error]) do |api_response|
+    begin
+      login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error])
       # On success, write the API key to "~/.tddium.<environment>"
-      write_api_key(api_response["api_key"])
-      yield api_response if block_given?
+      write_api_key(login_result["api_key"])
+    rescue TddiumClient::Error::Base
     end
     login_result
   end
@@ -376,20 +369,21 @@ class Tddium < Thor
   end
 
   def show_session_details(params, no_session_prompt, all_session_prompt)
-    call_api(:get, Api::Path::SESSIONS, params) do |api_response|
+    begin
+      current_sessions = call_api(:get, Api::Path::SESSIONS, params)
       say Text::Status::SEPARATOR
-      if api_response["sessions"].size == 0
+      if current_sessions["sessions"].size == 0
         say no_session_prompt
       else
         say all_session_prompt
-        api_response["sessions"].each do |session|
+        current_sessions["sessions"].each do |session|
           session_id = session["id"]
           say Text::Status::SESSION_TITLE % session_id
-          call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}") do |api_response|
-            display_attributes(DisplayedAttributes::TEST_EXECUTION, api_response)
-          end
+          current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
+          display_attributes(DisplayedAttributes::TEST_EXECUTION, current_test_executions)
         end
       end
+    rescue TddiumClient::Error::Base
     end
   end
 
@@ -435,9 +429,9 @@ class Tddium < Thor
     @tddium_settings
   end
 
-  def user_logged_in?(active = true, &block)
+  def user_logged_in?(active = true)
     result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
-    (result && active) ? get_user(&block).success? : result
+    (result && active) ? get_user : result
   end
 
   def write_api_key(api_key)
@@ -454,5 +448,4 @@ class Tddium < Thor
       file.write(tddium_settings.merge({"branches" => branches}).to_json)
     end
   end
-
 end

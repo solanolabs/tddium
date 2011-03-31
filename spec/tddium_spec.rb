@@ -12,8 +12,6 @@ describe Tddium do
   SAMPLE_APP_NAME = "tddelicious"
   SAMPLE_BRANCH_NAME = "test"
   SAMPLE_BUNDLER_VERSION = "1.10.10"
-  SAMPLE_CALL_API_RESPONSE = [0, 200, nil]
-  SAMPLE_CALL_API_ERROR = [1, 501, "an error"]
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
   SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
@@ -28,13 +26,14 @@ describe Tddium do
   SAMPLE_SUITE_ID = 1
   SAMPLE_SUITES_RESPONSE = {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
+  SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
   SAMPLE_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
-    tddium_client.stub(:call_api).with(*params)                       # To prevent the yield
-    tddium_client.should_receive(:call_api).with(*params).and_return(SAMPLE_CALL_API_ERROR)
+    tddium_client.stub(:call_api).with(*params).and_raise(TddiumClient::Error::Base)
+    tddium_client.should_receive(:call_api).with(*params)
   end
 
   def extract_options!(array, *option_keys)
@@ -63,14 +62,24 @@ describe Tddium do
   end
 
   def stub_call_api_response(method, path, *response)
-    options = extract_options!(response, :and_return, :and_yield)
-    options[:and_yield] = true unless options[:and_yield] == false
     result = tddium_client.stub(:call_api).with(method, path, anything, anything)
-    result = result.and_yield(response.first) if options[:and_yield]
-    result.and_return(options[:and_return] || SAMPLE_CALL_API_ERROR)
-    response.each_with_index do |current_response, index|
-      result = result.and_yield(current_response) unless index.zero? || !options[:and_yield]
+    response = [{}] if response.empty?
+    response_mocks = []
+    response.each do |current_response|
+      current_response["status"] ||= 0
+      status = current_response["status"]
+      if status == 0
+        tddium_client_result = mock(TddiumClient::Result::API)
+        response_mocks << tddium_client_result
+      else
+        tddium_client_result = mock(TddiumClient::Error::API, :body => current_response.to_json)
+        result.and_raise(TddiumClient::Error::API.new(tddium_client_result))
+      end
+      current_response.each do |k, v|
+        tddium_client_result.stub(:[]).with(k).and_return(v)
+      end
     end
+    result.and_return(*response_mocks) unless response_mocks.empty?
   end
 
   def stub_cli_options(tddium, options = {})
@@ -119,12 +128,11 @@ describe Tddium do
   def stub_tddium_client
     TddiumClient::Client.stub(:new).and_return(tddium_client)
     tddium_client.stub(:environment).and_return(:test)
-    tddium_client.stub(:call_api).and_return(SAMPLE_CALL_API_ERROR)
+    tddium_client.stub(:call_api).and_raise(TddiumClient::Error::Base)
   end
 
   let(:tddium) { Tddium.new }
   let(:tddium_client) { mock(TddiumClient).as_null_object }
-
 
   shared_examples_for "a password prompt" do
     context "--password was not passed in" do
@@ -145,8 +153,8 @@ describe Tddium do
 
   shared_examples_for "an unsuccessful api call" do
     it "should show the error" do
-      tddium_client.stub(:call_api).and_return(SAMPLE_CALL_API_ERROR)
-      tddium.should_receive(:say).with(SAMPLE_CALL_API_ERROR[2])
+      tddium_client.stub(:call_api).and_raise(TddiumClient::Error::Base)
+      tddium.should_receive(:say).with(TddiumClient::Error::Base.new.message)
       run(tddium)
     end
   end
@@ -401,7 +409,7 @@ describe Tddium do
             it_should_behave_like "an unsuccessful api call"
 
             context "because the invitation is invalid" do
-              before { stub_call_api_response(:post, Tddium::Api::Path::USERS, :and_yield => false, :and_return => [Tddium::Api::ErrorCode::INVALID_INVITATION, 409, "Invitation is invalid"]) }
+              before { stub_call_api_response(:post, Tddium::Api::Path::USERS, {"status" => Tddium::Api::ErrorCode::INVALID_INVITATION}) }
               it "should show the user: '#{Tddium::Text::Error::INVALID_INVITATION}'" do
                 tddium.should_receive(:say).with(Tddium::Text::Error::INVALID_INVITATION)
                 run_account(tddium)
@@ -426,7 +434,7 @@ describe Tddium do
     context "user is already logged in" do
       before do
         stub_config_file(:api_key => SAMPLE_API_KEY)
-        stub_call_api_response(:get, Tddium::Api::Path::USERS, :and_yield => false, :and_return => SAMPLE_CALL_API_RESPONSE)
+        stub_call_api_response(:get, Tddium::Api::Path::USERS)
       end
 
       it "should show the user: '#{Tddium::Text::Process::ALREADY_LOGGED_IN}'" do
@@ -436,7 +444,7 @@ describe Tddium do
     end
 
     context "the user logs in successfully" do
-      before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {})}
+      before{ stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY})}
       it "should show the user: '#{Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY}'" do
         tddium.should_receive(:say).with(Tddium::Text::Process::LOGGED_IN_SUCCESSFULLY)
         run_login(tddium)
@@ -678,8 +686,13 @@ describe Tddium do
     it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
+    it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}'" do
+      call_api_should_receive(:method => :get, :path => Tddium::Api::Path::SUITES)
+      run_status(tddium)
+    end
+
     context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
-      context "returns no suites" do
+      context "but returns no suites" do
         before { stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []}) }
 
         it "should show the user '#{Tddium::Text::Status::NO_SUITE}'" do
@@ -688,11 +701,10 @@ describe Tddium do
         end
       end
 
-      context "returns some suites" do
+      context "and returns some suites" do
         let(:suite_attributes) { {"id"=>SAMPLE_SUITE_ID, "repo_name"=>SAMPLE_APP_NAME, "ruby_version"=>SAMPLE_RUBY_VERSION, "branch" => SAMPLE_BRANCH_NAME, "test_pattern" => SAMPLE_TEST_PATTERN, "bundler_version" => SAMPLE_BUNDLER_VERSION, "rubygems_version" => SAMPLE_RUBYGEMS_VERSION}}
         before do
-          suites_response = {"suites"=>[suite_attributes], "status"=>0}
-          stub_call_api_response(:get, Tddium::Api::Path::SUITES, suites_response)
+          stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites"=>[suite_attributes]})
         end
 
         it "should show all suites" do
@@ -748,8 +760,7 @@ describe Tddium do
           context "show active sessions" do
             context "without any session" do
               before do
-                sessions_response = {"status"=>0, "sessions"=>[]}
-                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
+                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, {"sessions"=>[]})
               end
 
               it "should display no active session message" do
@@ -761,26 +772,33 @@ describe Tddium do
             context "with some sessions" do
               let(:session_attributes) { {"id"=>SAMPLE_SESSION_ID, "user_id"=>3} }
               before do
-                sessions_response = {"status"=>0, "sessions"=>[session_attributes]}
-                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, sessions_response)
+                stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, {"sessions"=>[session_attributes]})
               end
 
-              it "should display the active sessions prompt" do
+              it "should show the user: '#{Tddium::Text::Status::ACTIVE_SESSIONS}'" do
                 tddium.should_receive(:say).with(Tddium::Text::Status::ACTIVE_SESSIONS)
                 run_status(tddium)
               end
 
-              it_should_behave_like "attribute details" do
-                let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
-                let(:attributes_to_hide) { [/id/] }
-                let(:attributes) { session_attributes }
+              it "should send a 'GET' request to '#{Tddium::Api::Path::TEST_EXECUTIONS}'" do
+                call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::TEST_EXECUTIONS}$/)
+                run_status(tddium)
+              end
+
+              context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
+                let(:test_execution_attributes) { {"report" => SAMPLE_REPORT_URL, "test_execution_stats" => SAMPLE_TEST_EXECUTION_STATS, "start_time" => SAMPLE_DATE_TIME, "end_time" => SAMPLE_DATE_TIME} }
+                before { stub_call_api_response(:get, /#{Tddium::Api::Path::TEST_EXECUTIONS}$/, test_execution_attributes) }
+                it_should_behave_like "attribute details" do
+                  let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
+                  let(:attributes_to_hide) { [] }
+                  let(:attributes) { test_execution_attributes }
+                end
               end
             end
           end
         end
       end
     end
-
     it_should_behave_like "an unsuccessful api call"
   end
 
@@ -802,7 +820,7 @@ describe Tddium do
     context ".tddium file contains no suites" do
       before do
         stub_default_suite_name
-        stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []}, :and_return => SAMPLE_CALL_API_RESPONSE)
+        stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []})
       end
 
       context "using defaults" do
@@ -849,7 +867,7 @@ describe Tddium do
 
       context "but this user has already registered some suites" do
         before do
-          stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, {"suites" => []}, :and_return => SAMPLE_CALL_API_RESPONSE)
+          stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, {"suites" => []})
           tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return(Tddium::Text::Prompt::Response::YES)
         end
 
@@ -870,7 +888,7 @@ describe Tddium do
 
         context "passing --name=my_suite" do
           before do
-            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, :and_return => SAMPLE_CALL_API_RESPONSE)
+            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE)
           end
 
           it "should not ask the user if they want to use the existing suite" do
@@ -889,7 +907,7 @@ describe Tddium do
 
         context "the user wants to use the existing suite" do
           before do
-            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, :and_return => SAMPLE_CALL_API_RESPONSE)
+            stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE)
           end
 
           it "should not send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
