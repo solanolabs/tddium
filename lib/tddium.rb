@@ -313,7 +313,7 @@ class Tddium < Thor
   end
 
   def environment
-    tddium_client.environment
+    tddium_client.environment.to_sym
   end
 
   def get_user

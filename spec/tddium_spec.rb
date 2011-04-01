@@ -127,7 +127,7 @@ describe Tddium do
 
   def stub_tddium_client
     TddiumClient::Client.stub(:new).and_return(tddium_client)
-    tddium_client.stub(:environment).and_return(:test)
+    tddium_client.stub(:environment).and_return("test")
     tddium_client.stub(:call_api).and_raise(TddiumClient::Error::Base)
   end
 
@@ -176,49 +176,6 @@ describe Tddium do
     it "should send a 'GET' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
       call_api_should_receive(:method => :get, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
       run(tddium)
-    end
-  end
-
-  shared_examples_for "logging in a user" do
-    context "there is a tddium config file with an api key" do
-      before {stub_config_file(:api_key => "some api key")}
-
-      it "should send a 'GET' request to '#{Tddium::Api::Path::USERS}'" do
-        call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::USERS}$/)
-        run(tddium)
-      end
-    end
-
-    context "the tddium config file is missing or corrupt or the api key is invalid" do
-      context "--email was not passed in" do
-        it "should prompt for the user's email address" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
-          run(tddium)
-        end
-      end
-
-      context "--email was passed in" do
-        it "should not prompt for the user's email address" do
-          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
-          run(tddium, :email => SAMPLE_EMAIL)
-        end
-      end
-
-      it_should_behave_like "a password prompt" do
-        let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
-      end
-
-      it "should try to sign in the user with their email & password" do
-        tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(SAMPLE_EMAIL)
-        HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
-        call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:user => {:email => SAMPLE_EMAIL, :password => SAMPLE_PASSWORD}}, :api_key => false)
-        run(tddium)
-      end
-    end
-
-    context "the user logs in successfully with their email and password" do
-      before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY})}
-      it_should_behave_like "writing the api key to the .tddium file"
     end
   end
 
@@ -295,11 +252,34 @@ describe Tddium do
     end
   end
 
-  shared_examples_for "writing the api key to the .tddium file" do
-    it "should write the api key to the .tddium file" do
+  shared_examples_for "with the correct environment extension" do
+    it "should write the api key to the .tddium file with the relevent environment extension" do
       run(tddium)
-      tddium_file = File.open(SAMPLE_TDDIUM_CONFIG_FILE) { |file| file.read }
+      tddium_file = File.open(".tddium#{environment_extension}") { |file| file.read }
       JSON.parse(tddium_file)["api_key"].should == SAMPLE_API_KEY
+    end
+  end
+
+  shared_examples_for "writing the api key to the .tddium file" do
+    context "production environment" do
+      before { tddium_client.stub(:environment).and_return("production") }
+      it_should_behave_like "with the correct environment extension" do
+        let(:environment_extension) {""}
+      end
+    end
+
+    context "development environment" do
+      before { tddium_client.stub(:environment).and_return("development") }
+      it_should_behave_like "with the correct environment extension" do
+        let(:environment_extension) {".development"}
+      end
+    end
+
+    context "test environment" do
+      before { tddium_client.stub(:environment).and_return("test") }
+      it_should_behave_like "with the correct environment extension" do
+        let(:environment_extension) {".test"}
+      end
     end
   end
 
@@ -429,7 +409,47 @@ describe Tddium do
     end
 
     it_should_behave_like "set the default environment"
-    it_should_behave_like "logging in a user"
+
+    context "there is a tddium config file with an api key" do
+      before {stub_config_file(:api_key => "some api key")}
+
+      it "should send a 'GET' request to '#{Tddium::Api::Path::USERS}'" do
+        call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::USERS}$/)
+        run(tddium)
+      end
+    end
+
+    context "the tddium config file is missing or corrupt or the api key is invalid" do
+      context "--email was not passed in" do
+        it "should prompt for the user's email address" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
+          run(tddium)
+        end
+      end
+
+      context "--email was passed in" do
+        it "should not prompt for the user's email address" do
+          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::EMAIL)
+          run(tddium, :email => SAMPLE_EMAIL)
+        end
+      end
+
+      it_should_behave_like "a password prompt" do
+        let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
+      end
+
+      it "should try to sign in the user with their email & password" do
+        tddium.stub(:ask).with(Tddium::Text::Prompt::EMAIL).and_return(SAMPLE_EMAIL)
+        HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
+        call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::SIGN_IN}$/, :params => {:user => {:email => SAMPLE_EMAIL, :password => SAMPLE_PASSWORD}}, :api_key => false)
+        run(tddium)
+      end
+
+      context "the user logs in successfully with their email and password" do
+        before{stub_call_api_response(:post, Tddium::Api::Path::SIGN_IN, {"api_key" => SAMPLE_API_KEY})}
+        it_should_behave_like "writing the api key to the .tddium file"
+      end
+    end
 
     context "user is already logged in" do
       before do
