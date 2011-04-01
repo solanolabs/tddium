@@ -161,6 +161,7 @@ class Tddium < Thor
       end
 
       # Print out the result
+      say " "
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
       say Text::Process::CHECK_TEST_REPORT % current_test_executions["report"]

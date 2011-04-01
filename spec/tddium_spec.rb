@@ -584,6 +584,11 @@ describe Tddium do
             it_should_behave_like "sending the api key"
 
             shared_examples_for("test output summary") do
+              it "should put a new line before displaying the summary" do
+                tddium.should_receive(:say).with(" ")
+                run_spec(tddium)
+              end
+
               it "should show the user a link to the report" do
                 tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_REPORT % SAMPLE_REPORT_URL)
                 run_spec(tddium)
