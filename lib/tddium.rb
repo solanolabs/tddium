@@ -122,12 +122,13 @@ class Tddium < Thor
       call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files})
 
       # Start the tests
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}")
+      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}")
       tests_not_finished_yet = true
       finished_tests = {}
       test_statuses = Hash.new(0)
 
       say Text::Process::STARTING_TEST % test_files.size
+      say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"]
       say Text::Process::TERMINATE_INSTRUCTION
       while tests_not_finished_yet do
         # Poll the API to check the status
@@ -164,7 +165,6 @@ class Tddium < Thor
       say " "
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-      say Text::Process::CHECK_TEST_REPORT % current_test_executions["report"]
     rescue TddiumClient::Error::Base
     end
   end

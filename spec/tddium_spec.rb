@@ -581,9 +581,11 @@ describe Tddium do
 
           context "'POST #{Tddium::Api::Path::START_TEST_EXECUTIONS}' is successful" do
             let(:get_test_executions_response) { {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"pending"}, "spec/pig_spec.rb"=>{"end_time"=>nil, "status"=>"started"}, "spec/dog_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"failed"}, "spec/cat_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"passed"}}} }
-            before do
-              response = {"started"=>1, "status"=>0}
-              stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", response)
+            before {stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", {"started"=>1, "status"=>0, "report" => SAMPLE_REPORT_URL})}
+
+            it "should show the user: '#{Tddium::Text::Process::CHECK_TEST_REPORT % SAMPLE_REPORT_URL}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_REPORT % SAMPLE_REPORT_URL)
+              run_spec(tddium)
             end
 
             it "should tell the user to '#{Tddium::Text::Process::TERMINATE_INSTRUCTION}'" do
@@ -606,11 +608,6 @@ describe Tddium do
             shared_examples_for("test output summary") do
               it "should put a new line before displaying the summary" do
                 tddium.should_receive(:say).with(" ")
-                run_spec(tddium)
-              end
-
-              it "should show the user a link to the report" do
-                tddium.should_receive(:say).with(Tddium::Text::Process::CHECK_TEST_REPORT % SAMPLE_REPORT_URL)
                 run_spec(tddium)
               end
 
