@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.0.3)
+    tddium-preview (0.0.4)
       highline
       json
-      tddium_client (= 0.0.3)
+      tddium_client
       thor
 
 GEM
@@ -29,7 +29,7 @@ GEM
     simplecov (0.4.1)
       simplecov-html (~> 0.4.3)
     simplecov-html (0.4.3)
-    tddium_client (0.0.3)
+    tddium_client (0.0.5)
       httparty
       json
     thor (0.14.6)
