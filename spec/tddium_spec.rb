@@ -608,7 +608,7 @@ describe Tddium do
 
             shared_examples_for("test output summary") do
               it "should put a new line before displaying the summary" do
-                tddium.should_receive(:say).with(" ")
+                tddium.should_receive(:say).with("")
                 run_spec(tddium)
               end
 
