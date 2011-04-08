@@ -15,6 +15,7 @@ describe Tddium do
   SAMPLE_BUNDLER_VERSION = "1.10.10"
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
+  SAMPLE_FILE_PATH = "./my_user_file.png"
   SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
   SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
   SAMPLE_LICENSE_TEXT = "LICENSE"
@@ -513,6 +514,25 @@ describe Tddium do
     it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
+    context "--user-data-file=#{SAMPLE_FILE_PATH}" do
+      context "does not exist" do
+        it "should show the user: #{Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH}" do
+          tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
+          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+        end
+
+        it "should not try to git push" do
+          tddium.should_not_receive(:system).with(/^git push/)
+          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+        end
+
+        it "should not call the api" do
+          tddium_client.should_not_receive(:call_api)
+          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+        end
+      end
+    end
+
     it "should push the latest code to tddium" do
       tddium.should_receive(:system).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
       run_spec(tddium)
@@ -576,6 +596,19 @@ describe Tddium do
           it "should send a 'POST' request to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
             call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/)
             run_spec(tddium)
+          end
+
+          context "--user-data-file=#{SAMPLE_FILE_PATH}" do
+            before { create_file(SAMPLE_FILE_PATH, SAMPLE_PASSWORD) }
+            it "should send 'user_data_filename=#{File.basename(SAMPLE_FILE_PATH)}' to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
+              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:user_data_filename => File.basename(SAMPLE_FILE_PATH)))
+              run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+            end
+
+            it "should send 'user_data-text=#{Base64.encode64(SAMPLE_PASSWORD)}' (Base64 encoded file content)" do
+              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:user_data_text => Base64.encode64(SAMPLE_PASSWORD)))
+              run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+            end
           end
 
           it_should_behave_like "sending the api key"

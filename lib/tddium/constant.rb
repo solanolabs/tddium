@@ -112,6 +112,7 @@ If you want an invite, visit this URL to sign up:
 http://blog.tddium.com/home/
 
 "
+      NO_USER_DATA_FILE = "User data file '%s' does not exist"
     end
   end
 

@@ -7,6 +7,7 @@ require "thor"
 require "highline/import"
 require "json"
 require "tddium_client"
+require "base64"
 require File.expand_path("../tddium/constant", __FILE__)
 
 #      Usage:
@@ -99,9 +100,22 @@ class Tddium < Thor
 
   desc "spec", "Run the test suite"
   method_option :environment, :type => :string, :default => nil
+  method_option :user_data_file, :type => :string, :default => nil
   def spec
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
+
+    test_execution_params = {}
+    if user_data_file_path = options[:user_data_file]
+      if File.exists?(user_data_file_path)
+        user_data = File.open(user_data_file_path) { |file| file.read }
+        test_execution_params[:user_data_text] = Base64.encode64(user_data)
+        test_execution_params[:user_data_filename] = File.basename(user_data_file_path)
+      else
+        say Text::Error::NO_USER_DATA_FILE % user_data_file_path
+        return
+      end
+    end
 
     start_time = Time.now
 
@@ -122,7 +136,7 @@ class Tddium < Thor
       call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files})
 
       # Start the tests
-      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}")
+      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
       tests_not_finished_yet = true
       finished_tests = {}
       test_statuses = Hash.new(0)
