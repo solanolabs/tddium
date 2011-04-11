@@ -26,10 +26,11 @@ describe Tddium do
   SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
-  SAMPLE_SUITES_RESPONSE = {"suites" => [{"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID}]}
+  SAMPLE_TEST_PATTERN = "**/*_spec.rb"
+  SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "test_pattern"=>SAMPLE_TEST_PATTERN, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
+  SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
-  SAMPLE_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
 
   def call_api_should_receive(options = {})
@@ -113,6 +114,11 @@ describe Tddium do
 
   def stub_git_push(tddium, success = true)
     tddium.stub(:system).with(/^git push/).and_return(success)
+  end
+
+  def stub_git_remote(tddium, action = :show, success = true)
+    git_response = success ? "some text that contains #{SAMPLE_GIT_REPO_URI}" : "some text that does not contain the git repo uri" if action == :show
+    tddium.stub(:`).with(/^git remote #{action}/).and_return(git_response)
   end
 
   def stub_ruby_version(tddium, version = SAMPLE_RUBY_VERSION)
@@ -251,6 +257,48 @@ describe Tddium do
         tddium.should_receive(:say).with(Tddium::Text::Error::INVALID_TDDIUM_FILE % 'test')
         run(tddium)
       end
+    end
+  end
+
+  shared_examples_for "update the git remote and push" do
+    context "git remote has changed" do
+      before do
+        stub_git_remote(tddium, :show, false)
+        stub_git_remote(tddium, :add)
+        stub_git_remote(tddium, :rm)
+      end
+
+      it "should remove all existing remotes called '#{Tddium::Git::REMOTE_NAME}'" do
+        tddium.should_receive(:`).with("git remote rm #{Tddium::Git::REMOTE_NAME}")
+        run(tddium)
+      end
+
+      it "should add a new remote called '#{Tddium::Git::REMOTE_NAME}' to '#{SAMPLE_GIT_REPO_URI}'" do
+        tddium.should_receive(:`).with("git remote add #{Tddium::Git::REMOTE_NAME} #{SAMPLE_GIT_REPO_URI}")
+        run(tddium)
+      end
+
+    end
+
+    context "git remote has not changed" do
+      before do
+        stub_git_remote(tddium)
+      end
+
+      it "should not remove any existing remotes" do
+        tddium.should_not_receive(:`).with(/git remote rm/)
+        run(tddium)
+      end
+
+      it "should not add any new remotes" do
+        tddium.should_not_receive(:`).with(/git remote add/)
+        run(tddium)
+      end
+    end
+
+    it "should push the latest code to '#{Tddium::Git::REMOTE_NAME}'" do
+      tddium.should_receive(:system).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
+      run(tddium)
     end
   end
 
@@ -506,7 +554,6 @@ describe Tddium do
     before do
       stub_defaults
       stub_config_file(:api_key => true, :branches => true)
-      stub_git_push(tddium)
     end
 
     it_should_behave_like "set the default environment"
@@ -533,29 +580,27 @@ describe Tddium do
       end
     end
 
-    it "should push the latest code to tddium" do
-      tddium.should_receive(:system).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
-      run_spec(tddium)
-    end
-
-    context "git push was unsuccessful" do
-      before { stub_git_push(tddium, false) }
-      it "should not try to contact the api" do
-        tddium_client.should_not_receive(:call_api)
-        run_spec(tddium)
-      end
-    end
-
     it_should_behave_like "getting the current suite from the API"
     it_should_behave_like "sending the api key"
 
     context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
       before do
-        response = {"suite"=>{"test_pattern"=>SAMPLE_TEST_PATTERN, "id"=>SAMPLE_SUITE_ID, "suite_name"=>"tddium/demo", "ruby_version"=>SAMPLE_RUBY_VERSION}}
-        stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", response)
+        stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {"suite"=>SAMPLE_SUITE_RESPONSE})
+        stub_git_push(tddium)
+        stub_git_remote(tddium)
         create_file("spec/mouse_spec.rb")
         create_file("spec/cat_spec.rb")
         create_file("spec/dog_spec.rb")
+      end
+
+      it_should_behave_like "update the git remote and push"
+
+      context "git push was unsuccessful" do
+        before { stub_git_push(tddium, false) }
+        it "should not try to create a new session" do
+          tddium_client.should_not_receive(:call_api).with(:post, Tddium::Api::Path::SESSIONS)
+          run_spec(tddium)
+        end
       end
 
       it "should send a 'POST' request to '#{Tddium::Api::Path::SESSIONS}'" do
@@ -1038,34 +1083,13 @@ describe Tddium do
 
           context "API response successful" do
             before do
-              stub_call_api_response(:post, Tddium::Api::Path::SUITES, {"suite"=>{"id"=>SAMPLE_SUITE_ID, "git_repo_uri" => SAMPLE_GIT_REPO_URI}})
-              tddium.stub(:`).with(/^git remote/)
+              stub_call_api_response(:post, Tddium::Api::Path::SUITES, {"suite"=>SAMPLE_SUITE_RESPONSE})
+              stub_git_remote(tddium)
               stub_git_push(tddium)
             end
 
             it_should_behave_like("writing the suite to file")
-
-            it "should remove any existing remotes named 'tddium'" do
-              tddium.should_receive(:`).with("git remote rm tddium")
-              run_suite(tddium)
-            end
-
-            it "should add a new remote called '#{Tddium::Git::REMOTE_NAME}'" do
-              stub_default_suite_name
-              tddium.should_receive(:`).with("git remote add #{Tddium::Git::REMOTE_NAME} #{SAMPLE_GIT_REPO_URI}")
-              run_suite(tddium)
-            end
-
-            context "in the branch 'oaktree'" do
-              before do
-                tddium.stub(:current_git_branch).and_return("oaktree")
-              end
-
-              it "should push the current git branch to tddium oaktree" do
-                tddium.should_receive(:system).with("git push tddium oaktree")
-                run_suite(tddium)
-              end
-            end
+            it_should_behave_like("update the git remote and push")
           end
           it_should_behave_like "an unsuccessful api call"
         end

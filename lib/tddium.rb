@@ -119,12 +119,14 @@ class Tddium < Thor
 
     start_time = Time.now
 
-    # Push the latest code to git
-    return unless git_push
-
     # Call the API to get the suite and its tests
     begin
       suite_details = call_api(:get, current_suite_path)
+
+      # Push the latest code to git
+      return unless update_git_remote_and_push(suite_details)
+
+      # Get a list of files to be tested
       test_pattern = suite_details["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
@@ -283,9 +285,7 @@ class Tddium < Thor
         write_suite(new_suite["suite"]["id"])
 
         # Manage git
-        `git remote rm #{Git::REMOTE_NAME}`
-        `git remote add #{Git::REMOTE_NAME} #{new_suite["suite"]["git_repo_uri"]}`
-        git_push
+        update_git_remote_and_push(new_suite)
       end
     rescue TddiumClient::Error::Base
     end
@@ -442,6 +442,15 @@ class Tddium < Thor
       end
     end
     @tddium_settings
+  end
+
+  def update_git_remote_and_push(suite_details)
+    git_repo_uri = suite_details["suite"]["git_repo_uri"]
+    unless `git remote show -n #{Git::REMOTE_NAME}` =~ /#{git_repo_uri}/
+      `git remote rm #{Git::REMOTE_NAME}`
+      `git remote add #{Git::REMOTE_NAME} #{git_repo_uri}`
+    end
+    git_push
   end
 
   def user_logged_in?(active = true)
