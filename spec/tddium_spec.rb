@@ -878,7 +878,12 @@ describe Tddium do
             end
 
             context "with some sessions" do
-              let(:session_attributes) { {"id"=>SAMPLE_SESSION_ID, "user_id"=>3} }
+              let(:session_attributes) do
+                {"id" => SAMPLE_SESSION_ID, "user_id" => 3,
+                 "report" => SAMPLE_REPORT_URL, "test_execution_stats" => SAMPLE_TEST_EXECUTION_STATS,
+                 "start_time" => SAMPLE_DATE_TIME, "end_time" => SAMPLE_DATE_TIME}
+              end
+
               before do
                 stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, {"sessions"=>[session_attributes]})
               end
@@ -888,19 +893,10 @@ describe Tddium do
                 run_status(tddium)
               end
 
-              it "should send a 'GET' request to '#{Tddium::Api::Path::TEST_EXECUTIONS}'" do
-                call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::TEST_EXECUTIONS}$/)
-                run_status(tddium)
-              end
-
-              context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
-                let(:test_execution_attributes) { {"report" => SAMPLE_REPORT_URL, "test_execution_stats" => SAMPLE_TEST_EXECUTION_STATS, "start_time" => SAMPLE_DATE_TIME, "end_time" => SAMPLE_DATE_TIME} }
-                before { stub_call_api_response(:get, /#{Tddium::Api::Path::TEST_EXECUTIONS}$/, test_execution_attributes) }
-                it_should_behave_like "attribute details" do
-                  let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
-                  let(:attributes_to_hide) { [] }
-                  let(:attributes) { test_execution_attributes }
-                end
+              it_should_behave_like "attribute details" do
+                let(:attributes_to_display) {Tddium::DisplayedAttributes::TEST_EXECUTION}
+                let(:attributes_to_hide) { [] }
+                let(:attributes) { session_attributes }
               end
             end
           end

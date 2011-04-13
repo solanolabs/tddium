@@ -396,10 +396,9 @@ class Tddium < Thor
       else
         say all_session_prompt
         current_sessions["sessions"].each do |session|
-          session_id = session["id"]
+          session_id = session.delete("id")
           say Text::Status::SESSION_TITLE % session_id
-          current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
-          display_attributes(DisplayedAttributes::TEST_EXECUTION, current_test_executions)
+          display_attributes(DisplayedAttributes::TEST_EXECUTION, session)
         end
       end
     rescue TddiumClient::Error::Base
