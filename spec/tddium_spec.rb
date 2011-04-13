@@ -656,6 +656,13 @@ describe Tddium do
             end
           end
 
+          context "--max_parallelism=5" do
+            it "should send max_parallelism=5 to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
+              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:max_parallelism => 5))
+              run_spec(tddium, :max_parallelism => 5)
+            end
+          end
+
           it_should_behave_like "sending the api key"
 
           context "'POST #{Tddium::Api::Path::START_TEST_EXECUTIONS}' is successful" do
