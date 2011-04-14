@@ -107,7 +107,11 @@ class Tddium < Thor
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     test_execution_params = {}
-    if user_data_file_path = options[:user_data_file]
+
+    # Set the user data for spec
+    if user_data_file_path = options[:user_data_file] || current_suite_options["user_data_file"]
+      say Text::Process::USING_PREVIOUS_USER_DATA_FILE % user_data_file_path if user_data_file_path == current_suite_options["user_data_file"]
+
       if File.exists?(user_data_file_path)
         user_data = File.open(user_data_file_path) { |file| file.read }
         test_execution_params[:user_data_text] = Base64.encode64(user_data)
@@ -119,7 +123,10 @@ class Tddium < Thor
     end
 
     # Set max parallelism param
-    test_execution_params[:max_parallelism] = options[:max_parallelism] if options[:max_parallelism]
+    if max_parallelism = options[:max_parallelism] || current_suite_options["max_parallelism"]
+      say Text::Process::USING_PREVIOUS_MAX_PARALLELISM % max_parallelism if max_parallelism == current_suite_options["max_parallelism"]
+      test_execution_params[:max_parallelism] = max_parallelism
+    end
 
     start_time = Time.now
 
@@ -185,6 +192,9 @@ class Tddium < Thor
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+
+      # Save the spec options
+      write_suite(current_suite_id, {"user_data_file" => user_data_file_path, "max_parallelism" => max_parallelism})
     rescue TddiumClient::Error::Base
     end
   end
@@ -313,7 +323,13 @@ class Tddium < Thor
   end
 
   def current_suite_id
-    tddium_settings["branches"][current_git_branch] if tddium_settings["branches"]
+    tddium_settings["branches"][current_git_branch]["id"] if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
+  end
+
+  def current_suite_options
+    if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
+      tddium_settings["branches"][current_git_branch]["options"]
+    end || {}
   end
 
   def current_suite_path
@@ -468,9 +484,9 @@ class Tddium < Thor
     end
   end
 
-  def write_suite(suite_id)
+  def write_suite(suite_id, options = {})
     branches = tddium_settings["branches"] || {}
-    branches.merge!({current_git_branch => suite_id})
+    branches.merge!({current_git_branch => {"id" => suite_id, "options" => options}})
     File.open(tddium_file_name, "w") do |file|
       file.write(tddium_settings.merge({"branches" => branches}).to_json)
     end

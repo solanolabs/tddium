@@ -84,6 +84,8 @@ tddium spec
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
+      USING_PREVIOUS_USER_DATA_FILE = "Using the previous user data file '%s'"
+      USING_PREVIOUS_MAX_PARALLELISM = "Using the previous value of max_parallelism = %s"
     end
 
     module Status

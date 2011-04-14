@@ -16,6 +16,7 @@ describe Tddium do
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
   SAMPLE_FILE_PATH = "./my_user_file.png"
+  SAMPLE_FILE_PATH2 = "./my_user_file2.png"
   SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
   SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
   SAMPLE_LICENSE_TEXT = "LICENSE"
@@ -91,7 +92,7 @@ describe Tddium do
 
   def stub_config_file(options = {})
     params = {}
-    params.merge!(:branches => (options[:branches].is_a?(Hash)) ? options[:branches] : {SAMPLE_BRANCH_NAME => SAMPLE_SUITE_ID}) if options[:branches]
+    params.merge!(:branches => (options[:branches].is_a?(Hash)) ? options[:branches] : {SAMPLE_BRANCH_NAME => {"id" => SAMPLE_SUITE_ID}}) if options[:branches]
     params.merge!(:api_key => (options[:api_key].is_a?(String)) ? options[:api_key] : SAMPLE_API_KEY) if options[:api_key]
     json = params.to_json unless params.empty?
     create_file(SAMPLE_TDDIUM_CONFIG_FILE, json)
@@ -561,11 +562,22 @@ describe Tddium do
     it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
-    context "--user-data-file=#{SAMPLE_FILE_PATH}" do
+    context "user-data-file" do
       context "does not exist" do
-        it "should show the user: #{Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH}" do
-          tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
-          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+        context "from command line option" do
+          it "should be picked first" do
+            tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
+            run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+          end
+        end
+
+        context "from the previous option" do
+          before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => {"id" => SAMPLE_SUITE_ID, "options" => {"user_data_file" => SAMPLE_FILE_PATH2}}}) }
+
+          it "should be picked if no command line option" do
+            tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH2)
+            run_spec(tddium)
+          end
         end
 
         it "should not try to git push" do
@@ -656,10 +668,21 @@ describe Tddium do
             end
           end
 
-          context "--max_parallelism=5" do
-            it "should send max_parallelism=5 to '#{Tddium::Api::Path::START_TEST_EXECUTIONS}'" do
-              call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:max_parallelism => 5))
-              run_spec(tddium, :max_parallelism => 5)
+          context "max_parallelism" do
+            context "from command line option" do
+              it "should be picked first" do
+                call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:max_parallelism => 5))
+                run_spec(tddium, :max_parallelism => 5)
+              end
+            end
+
+            context "from the previous option" do
+              before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => {"id" => SAMPLE_SUITE_ID, "options" => {"max_parallelism" => 10}}}) }
+
+              it "should be picked if no command line option" do
+                call_api_should_receive(:method => :post, :path => /#{Tddium::Api::Path::START_TEST_EXECUTIONS}$/, :params => hash_including(:max_parallelism => 10))
+                run_spec(tddium)
+              end
             end
           end
 
@@ -765,6 +788,11 @@ describe Tddium do
                 run_spec(tddium)
               end
 
+              it "should save the spec options" do
+                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3})
+                run_spec(tddium, {:max_parallelism => 3})
+              end
+
               it_should_behave_like("test output summary")
             end
 
@@ -821,7 +849,7 @@ describe Tddium do
         end
 
         context "without current suite" do
-          before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => 0}) }
+          before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => {"id" => 0}}) }
           it "should show the user '#{Tddium::Text::Status::CURRENT_SUITE_UNAVAILABLE}'" do
             tddium.should_receive(:say).with(Tddium::Text::Status::CURRENT_SUITE_UNAVAILABLE)
             run_status(tddium)
@@ -979,7 +1007,7 @@ describe Tddium do
           it "should write the suite id and branch name to the .tddium file" do
             run_suite(tddium)
             tddium_file = File.open(SAMPLE_TDDIUM_CONFIG_FILE) { |file| file.read }
-            JSON.parse(tddium_file)["branches"][SAMPLE_BRANCH_NAME].should == SAMPLE_SUITE_ID
+            JSON.parse(tddium_file)["branches"][SAMPLE_BRANCH_NAME]["id"].should == SAMPLE_SUITE_ID
           end
         end
 
