@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.name        = "tddium-preview"
   s.version     = TddiumVersion::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Jay Moorthi"]
+  s.authors     = ["Solano Labs"]
   s.email       = ["info@tddium.com"]
   s.homepage    = "http://www.tddium.com/"
   s.summary     = %q{tddium Hosted Testing}
