@@ -164,7 +164,7 @@ class Tddium < Thor
         # Print out the progress of running tests
         current_test_executions["tests"].each do |test_name, result_params|
           test_status = result_params["status"]
-          if result_params["end_time"] && !finished_tests[test_name]
+          if result_params["finished"] && !finished_tests[test_name]
             message = case test_status
                         when "passed" then [".", :green, false]
                         when "failed" then ["F", :red, false]

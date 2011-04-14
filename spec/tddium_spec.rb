@@ -666,7 +666,7 @@ describe Tddium do
           it_should_behave_like "sending the api key"
 
           context "'POST #{Tddium::Api::Path::START_TEST_EXECUTIONS}' is successful" do
-            let(:get_test_executions_response) { {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"pending"}, "spec/pig_spec.rb"=>{"end_time"=>nil, "status"=>"started"}, "spec/dog_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"failed"}, "spec/cat_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"passed"}}} }
+            let(:get_test_executions_response) { {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"pending"}, "spec/pig_spec.rb"=>{"finished" => false, "status"=>"started"}, "spec/dog_spec.rb"=>{"finished" => true, "status"=>"failed"}, "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}} }
             before {stub_call_api_response(:post, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::START_TEST_EXECUTIONS}", {"started"=>1, "status"=>0, "report" => SAMPLE_REPORT_URL})}
 
             it "should show the user: '#{Tddium::Text::Process::CHECK_TEST_REPORT % SAMPLE_REPORT_URL}'" do
@@ -730,7 +730,7 @@ describe Tddium do
 
             context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
               before do
-              get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"pending"}, "spec/pig_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"error"}, "spec/dog_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"failed"}, "spec/cat_spec.rb"=>{"end_time"=>SAMPLE_DATE_TIME, "status"=>"passed"}}}
+                get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"pending"}, "spec/pig_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/dog_spec.rb"=>{"finished" => true, "status"=>"failed"}, "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}}
                 stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
                 stub_sleep(tddium)
               end
