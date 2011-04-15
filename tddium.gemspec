@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("tddium_client", ">=0.0.6")
+  s.add_runtime_dependency("bundler")
 
   s.add_development_dependency("rspec")
   s.add_development_dependency("fakefs")
