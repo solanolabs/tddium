@@ -929,8 +929,23 @@ describe Tddium do
             end
           end
         end
+
+        it "should send a 'GET' request to '#{Tddium::Api::Path::ACCOUNT_USAGE}'" do
+          call_api_should_receive(:method => :get, :path => Tddium::Api::Path::ACCOUNT_USAGE)
+          run_status(tddium)
+        end
+
+        context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
+          before { stub_call_api_response(:get, Tddium::Api::Path::ACCOUNT_USAGE, {"usage" => "something"}) }
+
+          it "should display the account usage" do
+            tddium.should_receive(:say).with("something")
+            run_status(tddium)
+          end
+        end
       end
     end
+
     it_should_behave_like "an unsuccessful api call"
   end
 

@@ -30,6 +30,7 @@ module TddiumConstant
       REGISTER_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/register"
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
+      ACCOUNT_USAGE = "accounts/usage"
     end
     module ErrorCode
       INVALID_INVITATION = 2

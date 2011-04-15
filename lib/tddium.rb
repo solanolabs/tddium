@@ -224,6 +224,9 @@ class Tddium < Thor
           say Text::Status::CURRENT_SUITE_UNAVAILABLE
         end
       end
+
+      account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
+      say account_usage["usage"]
     rescue TddiumClient::Error::Base
     end
   end
