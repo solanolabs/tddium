@@ -107,6 +107,7 @@ describe Tddium do
     stub_git_branch(tddium)
     stub_tddium_client
     create_file(File.join(".git", "something"), "something")
+    create_file(Tddium::Git::GITIGNORE, "something")
   end
 
   def stub_git_branch(tddium, default_branch_name = SAMPLE_BRANCH_NAME)
@@ -1023,6 +1024,13 @@ describe Tddium do
             run_suite(tddium)
             tddium_file = File.open(SAMPLE_TDDIUM_CONFIG_FILE) { |file| file.read }
             JSON.parse(tddium_file)["branches"][SAMPLE_BRANCH_NAME]["id"].should == SAMPLE_SUITE_ID
+          end
+
+          it "should update the gitignore file with tddium" do
+            run_suite(tddium)
+            gitignore_file = File.open(Tddium::Git::GITIGNORE) { |file| file.read }
+            gitignore_file.should include(".tddium.test")
+            gitignore_file.should include("something")
           end
         end
 
