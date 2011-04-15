@@ -270,7 +270,7 @@ describe Tddium do
       end
 
       it "should remove all existing remotes called '#{Tddium::Git::REMOTE_NAME}'" do
-        tddium.should_receive(:`).with("git remote rm #{Tddium::Git::REMOTE_NAME}")
+        tddium.should_receive(:`).with("git remote rm #{Tddium::Git::REMOTE_NAME} > /dev/null 2>&1")
         run(tddium)
       end
 
@@ -298,7 +298,7 @@ describe Tddium do
     end
 
     it "should push the latest code to '#{Tddium::Git::REMOTE_NAME}'" do
-      tddium.should_receive(:system).with("git push #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
+      tddium.should_receive(:system).with("git push -f #{Tddium::Git::REMOTE_NAME} #{SAMPLE_BRANCH_NAME}")
       run(tddium)
     end
   end

@@ -367,7 +367,7 @@ class Tddium < Thor
   end
 
   def git_push
-    system("git push #{Git::REMOTE_NAME} #{current_git_branch}")
+    system("git push -f #{Git::REMOTE_NAME} #{current_git_branch}")
   end
 
   def git_repo?
@@ -466,7 +466,7 @@ class Tddium < Thor
   def update_git_remote_and_push(suite_details)
     git_repo_uri = suite_details["suite"]["git_repo_uri"]
     unless `git remote show -n #{Git::REMOTE_NAME}` =~ /#{git_repo_uri}/
-      `git remote rm #{Git::REMOTE_NAME}`
+      `git remote rm #{Git::REMOTE_NAME} > /dev/null 2>&1`
       `git remote add #{Git::REMOTE_NAME} #{git_repo_uri}`
     end
     git_push
