@@ -102,6 +102,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   method_option :user_data_file, :type => :string, :default => nil
   method_option :max_parallelism, :type => :numeric, :default => nil
+  method_option :test_pattern, :type => :string, :default => "**/*_spec.rb"
   def spec
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
@@ -127,6 +128,12 @@ class Tddium < Thor
       say Text::Process::USING_PREVIOUS_MAX_PARALLELISM % max_parallelism if max_parallelism == current_suite_options["max_parallelism"]
       test_execution_params[:max_parallelism] = max_parallelism
     end
+    
+    # Set test_pattern param
+    test_pattern = options[:test_pattern]
+    if current_suite_options["test_pattern"]
+      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if test_pattern == current_suite_options["test_pattern"]
+    end
 
     start_time = Time.now
 
@@ -138,8 +145,12 @@ class Tddium < Thor
       return unless update_git_remote_and_push(suite_details)
 
       # Get a list of files to be tested
-      test_pattern = suite_details["suite"]["test_pattern"]
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
+
+      if test_files.empty?
+        say Text::Error::NO_MATCHING_FILES % test_pattern
+        return
+      end
 
       # Create a session
       new_session = call_api(:post, Api::Path::SESSIONS)
@@ -194,7 +205,9 @@ class Tddium < Thor
       say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
       # Save the spec options
-      write_suite(current_suite_id, {"user_data_file" => user_data_file_path, "max_parallelism" => max_parallelism})
+      write_suite(current_suite_id, {"user_data_file" => user_data_file_path,
+                                     "max_parallelism" => max_parallelism,
+                                     "test_pattern" => test_pattern})
     rescue TddiumClient::Error::Base
     end
   end

@@ -87,6 +87,7 @@ tddium spec
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
       USING_PREVIOUS_USER_DATA_FILE = "Using the previous user data file '%s'"
       USING_PREVIOUS_MAX_PARALLELISM = "Using the previous value of max_parallelism = %s"
+      USING_PREVIOUS_TEST_PATTERN = "Using the previous value of test_pattern = %s"
     end
 
     module Status
@@ -116,6 +117,7 @@ http://blog.tddium.com/home/
 
 "
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
+      NO_MATCHING_FILES = "No files match '%s'"
     end
   end
 

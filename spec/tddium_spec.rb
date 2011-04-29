@@ -27,7 +27,9 @@ describe Tddium do
   SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
-  SAMPLE_TEST_PATTERN = "**/*_spec.rb"
+  SAMPLE_TEST_PATTERN = "**/*_spec.rb" # XXX Bogus.  Removeme.
+  DEFAULT_TEST_PATTERN = "**/*_spec.rb"
+  CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
   SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "test_pattern"=>SAMPLE_TEST_PATTERN, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
@@ -48,13 +50,16 @@ describe Tddium do
     (array.last.is_a?(Hash) && is_options) ? array.pop : {}
   end
 
-  def run(tddium, options = {:environment => "test"})
+  def run(tddium, options = {:test_pattern => DEFAULT_TEST_PATTERN, :environment => "test"})
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
   end
 
   [:suite, :spec, :status, :account, :login, :logout].each do |method|
     define_method("run_#{method}") do |tddium, *params|
       options = params.first || {}
+      if method == :spec 
+        options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
+      end
       options[:environment] = "test" unless options.has_key?(:environment)
       stub_cli_options(tddium, options)
       tddium.send(method)
@@ -636,14 +641,26 @@ describe Tddium do
 
         it_should_behave_like "sending the api key"
 
-        it "should POST the names of the file names extracted from the suite's test_pattern" do
-          current_dir = Dir.pwd
-          call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                  :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
-                                             {:test_name => "#{current_dir}/spec/dog_spec.rb"},
-                                             {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
-          run_spec(tddium)
+        context "default test pattern" do
+          it "should POST the names of the file names extracted from the test_pattern parameter" do
+            current_dir = Dir.pwd
+            call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
+                                    :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
+                                               {:test_name => "#{current_dir}/spec/dog_spec.rb"},
+                                               {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
+            run_spec(tddium)
+          end
         end
+
+        context "--test-pattern=#{CUSTOM_TEST_PATTERN}" do
+          it "should POST the names of the file names extracted from the test_pattern parameter" do
+            current_dir = Dir.pwd
+            call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
+                                    :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
+            run_spec(tddium, {:test_pattern=>CUSTOM_TEST_PATTERN})
+          end
+        end
+
 
         context "'POST #{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}' is successful" do
           before do
@@ -790,7 +807,7 @@ describe Tddium do
               end
 
               it "should save the spec options" do
-                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3})
+                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => "**/*_spec.rb"})
                 run_spec(tddium, {:max_parallelism => 3})
               end
 
