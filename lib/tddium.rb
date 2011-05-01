@@ -102,7 +102,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   method_option :user_data_file, :type => :string, :default => nil
   method_option :max_parallelism, :type => :numeric, :default => nil
-  method_option :test_pattern, :type => :string, :default => "**/*_spec.rb"
+  method_option :test_pattern, :type => :string, :default => Default::TEST_PATTERN
   def spec
     set_default_environment(options[:environment])
     return unless git_repo? && tddium_settings && suite_for_current_branch?
@@ -245,7 +245,6 @@ class Tddium < Thor
   end
 
   desc "suite", "Register the suite for this project, or manage its settings"
-  method_option :test_pattern, :type => :string, :default => nil
   method_option :name, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
   def suite
@@ -255,13 +254,9 @@ class Tddium < Thor
     params = {}
     begin
       if current_suite_id
-        current_suite = call_api(:get, current_suite_path)
-        # Get the current test pattern and prompt for updates
-        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], current_suite["suite"]["test_pattern"])
+        current_suite = call_api(:get, current_suite_path)["suite"]
 
-        # Update the current suite if it exists already
-        call_api(:put, current_suite_path, {:suite => params})
-        say Text::Process::UPDATE_SUITE
+        say Text::Process::EXISTING_SUITE % "#{current_suite["repo_name"]}/#{current_suite["branch"]}"
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
@@ -307,9 +302,9 @@ class Tddium < Thor
         params[:bundler_version] = dependency_version(:bundle)
         params[:rubygems_version] = dependency_version(:gem)
 
-        params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::TEST_PATTERN)
 
         # Create new suite if it does not exist yet
+        say Text::Process::CREATING_SUITE % params[:repo_name]
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
         # Save the created suite
         write_suite(new_suite["suite"]["id"])

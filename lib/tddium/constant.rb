@@ -48,7 +48,6 @@ module TddiumConstant
         YES = "y"
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
-      TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
       LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
@@ -65,7 +64,8 @@ module TddiumConstant
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "You can check out the test report details at %s"
-      UPDATE_SUITE = "The suite has been updated successfully"
+      EXISTING_SUITE = "Current suite: %s"
+      CREATING_SUITE = "Creating suite '%s'.  This will take a few seconds."
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       ACCOUNT_CREATED = "
 Congratulations %s, your tddium account has been created!

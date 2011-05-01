@@ -27,10 +27,9 @@ describe Tddium do
   SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
-  SAMPLE_TEST_PATTERN = "**/*_spec.rb" # XXX Bogus.  Removeme.
   DEFAULT_TEST_PATTERN = "**/*_spec.rb"
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
-  SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "test_pattern"=>SAMPLE_TEST_PATTERN, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
+  SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
@@ -856,7 +855,7 @@ describe Tddium do
       end
 
       context "and returns some suites" do
-        let(:suite_attributes) { {"id"=>SAMPLE_SUITE_ID, "repo_name"=>SAMPLE_APP_NAME, "ruby_version"=>SAMPLE_RUBY_VERSION, "branch" => SAMPLE_BRANCH_NAME, "test_pattern" => SAMPLE_TEST_PATTERN, "bundler_version" => SAMPLE_BUNDLER_VERSION, "rubygems_version" => SAMPLE_RUBYGEMS_VERSION}}
+        let(:suite_attributes) { {"id"=>SAMPLE_SUITE_ID, "repo_name"=>SAMPLE_APP_NAME, "ruby_version"=>SAMPLE_RUBY_VERSION, "branch" => SAMPLE_BRANCH_NAME, "bundler_version" => SAMPLE_BUNDLER_VERSION, "rubygems_version" => SAMPLE_RUBYGEMS_VERSION}}
         before do
           stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites"=>[suite_attributes]})
         end
@@ -1023,10 +1022,10 @@ describe Tddium do
         end
       end
 
-      context "passing '--name=my_suite --test-pattern=**/*_selenium.rb'" do
+      context "passing '--name=my_suite'" do
         it "should POST request with the passed in values to the API" do
-          call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES, :params => {:suite => hash_including(:repo_name => "my_suite", :test_pattern => "**/*_selenium.rb")})
-          run_suite(tddium, :name => "my_suite", :test_pattern => "**/*_selenium.rb")
+          call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES, :params => {:suite => hash_including(:repo_name => "my_suite")})
+          run_suite(tddium, :name => "my_suite")
         end
       end
 
@@ -1098,10 +1097,6 @@ describe Tddium do
         context "the user does not want to use the existing suite" do
           before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("some_other_suite") }
 
-          it "should ask for a test file pattern" do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN)
-            run_suite(tddium)
-          end
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
             call_api_should_receive(:method => :post, :path => Tddium::Api::Path::SUITES)
@@ -1132,22 +1127,15 @@ describe Tddium do
             run_suite(tddium)
           end
 
-          context "using defaults" do
-            it "should POST the default test pattern to the API" do
-              call_api_should_receive(:params => {:suite => hash_including(:test_pattern => SAMPLE_TEST_PATTERN)})
-              run_suite(tddium)
-            end
-          end
-
           context "interactive mode" do
             before do
               tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("foobar")
-              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::TEST_PATTERN).and_return("**/*_test")
               stub_default_suite_name
             end
 
             it "should POST the user's entered values to the API" do
-              call_api_should_receive(:method => :post, :params => {:suite => hash_including(:repo_name => "foobar", :test_pattern => "**/*_test")})
+              tddium.should_receive(:say).with(Tddium::Text::Process::CREATING_SUITE % "foobar")
+              call_api_should_receive(:method => :post, :params => {:suite => hash_including(:repo_name => "foobar")})
               run_suite(tddium)
             end
           end
@@ -1173,11 +1161,12 @@ describe Tddium do
       end
 
       context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
-        before do
+        before(:each) do
           response = {
             "suite" => {
-              "test_pattern" => "**/*_test.rb",
-              "id" => SAMPLE_SUITE_ID
+              "id" => SAMPLE_SUITE_ID,
+              "repo_name" => SAMPLE_APP_NAME,
+              "branch" => SAMPLE_BRANCH_NAME
             }
           }
           stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", response)
@@ -1194,22 +1183,9 @@ describe Tddium do
           run_suite(tddium)
         end
 
-        it "should prompt for a test pattern using the current test pattern as the default" do
-          tddium.should_receive(:ask).with(/\*\*\/\*\_test\.rb/)
+        it "should display '#{Tddium::Text::Process::EXISTING_SUITE}'" do
+          tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % "#{SAMPLE_APP_NAME}/#{SAMPLE_BRANCH_NAME}")
           run_suite(tddium)
-        end
-
-        it "should send a 'PUT' request to '#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}'" do
-          call_api_should_receive(:method => :put, :path => "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
-          run_suite(tddium)
-        end
-
-        context "'PUT #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
-          before { stub_call_api_response(:put, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {}) }
-          it "should display '#{Tddium::Text::Process::UPDATE_SUITE}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::UPDATE_SUITE)
-            run_suite(tddium)
-          end
         end
 
         it_should_behave_like "sending the api key"
