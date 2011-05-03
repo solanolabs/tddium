@@ -51,7 +51,8 @@ module TddiumConstant
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
       LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
-      PASSWORD = "Enter a password: "
+      CURRENT_PASSWORD = "Enter your old password: "
+      PASSWORD = "Enter a new password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "The suite name '%s' already exists. Enter '#{Response::YES}' to use it, or enter a new name:"
@@ -67,6 +68,7 @@ module TddiumConstant
       EXISTING_SUITE = "Current suite: %s"
       CREATING_SUITE = "Creating suite '%s'.  This will take a few seconds."
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
+      PASSWORD_CHANGED = "Your password has been changed."
       ACCOUNT_CREATED = "
 Congratulations %s, your tddium account has been created!
 
@@ -118,6 +120,7 @@ http://blog.tddium.com/home/
 "
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
+      PASSWORD_ERROR = "Error changing password: %s"
     end
   end
 

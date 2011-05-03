@@ -27,13 +27,14 @@ describe Tddium do
   SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
+  SAMPLE_USER_ID = 1
   DEFAULT_TEST_PATTERN = "**/*_spec.rb"
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
   SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
-  SAMPLE_USER_RESPONSE = {"user"=> {"api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
+  SAMPLE_USER_RESPONSE = {"user"=> {"id"=>SAMPLE_USER_ID, "api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
 
   def call_api_should_receive(options = {})
     params = [options[:method] || anything, options[:path] || anything, options[:params] || anything, (options[:api_key] || options[:api_key] == false) ? options[:api_key] : anything]
@@ -53,7 +54,7 @@ describe Tddium do
     send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
   end
 
-  [:suite, :spec, :status, :account, :login, :logout].each do |method|
+  [:suite, :spec, :status, :account, :login, :logout, :password].each do |method|
     define_method("run_#{method}") do |tddium, *params|
       options = params.first || {}
       if method == :spec 
@@ -335,6 +336,86 @@ describe Tddium do
       before { tddium_client.stub(:environment).and_return("test") }
       it_should_behave_like "with the correct environment extension" do
         let(:environment_extension) {".test"}
+      end
+    end
+  end
+
+  shared_examples_for "prompting for password" do
+    it "should prompt for a password"  do
+      highline = mock(HighLine)
+      HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
+      highline.should_receive(:echo=).with("*")
+      run(tddium)
+    end
+  end
+
+  describe "#password" do
+    before do
+      stub_defaults
+      stub_config_file(:api_key => true, :branches => true)
+      tddium.stub(:ask).and_return("")
+      HighLine.stub(:ask).and_return("")
+    end
+
+    it_should_behave_like "set the default environment"
+    it_should_behave_like ".tddium file is missing or corrupt"
+
+    context "the user is already logged in" do
+      before do
+        stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
+      end
+
+      it_should_behave_like "prompting for password" do
+        let(:password_prompt) {Tddium::Text::Prompt::CURRENT_PASSWORD}
+      end
+
+      it_should_behave_like "prompting for password" do
+        let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
+      end
+
+      it_should_behave_like "prompting for password" do
+        let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+      end
+
+      context "the user confirms their password correctly" do
+        before do
+          @user_path = "#{Tddium::Api::Path::USERS}/#{SAMPLE_USER_ID}"
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::CURRENT_PASSWORD).and_return(SAMPLE_PASSWORD)
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_NEW_PASSWORD)
+          HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_NEW_PASSWORD)
+        end
+
+
+        it "should send a 'PUT' request to '#{@user_path}' with passwords" do
+          call_api_should_receive(:method => :put,
+                              :path => /#{@user_path}$/,
+                              :params => {:user =>
+                                 {:current_password=>SAMPLE_PASSWORD,
+                                  :password => SAMPLE_NEW_PASSWORD,
+                                  :password_confirmation => SAMPLE_NEW_PASSWORD}})
+          run_password(tddium)
+        end
+
+        context "'PUT #{@user_path}' is successful" do
+          before{stub_call_api_response(:put, @user_path, SAMPLE_PASSWORD_RESPONSE)}
+
+          it "should show the user '#{Tddium::Text::Process::PASSWORD_CHANGED}'" do
+            tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CHANGED)
+            run_password(tddium)
+          end
+        end
+        context "'PUT #{@user_path}' is unsuccessful" do
+
+          it_should_behave_like "an unsuccessful api call"
+
+          context "invalid original password" do
+            before{stub_call_api_response(:put, user_path, PASSWORD_ERROR_RESPONSE)}
+            it "should show the user: '#{Tddium::Text::Error::PASSWORD_ERROR}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Error::PASSWORD_ERROR % PASSWORD_ERROR_EXPLANATION)
+              run_password(tddium)
+            end
+          end
+        end
       end
     end
   end

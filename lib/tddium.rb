@@ -20,6 +20,7 @@ require File.expand_path("../tddium/constant", __FILE__)
 #      tddium logout   # Log out
 #
 #      tddium account  # View/Manage account information
+#      tddium account:password # Change password
 #
 #      tddium dev      # Enter "dev" mode, for single-test quick-turnaround debugging.
 #      tddium stopdev  # Leave "dev" mode.
@@ -74,6 +75,15 @@ class Tddium < Thor
       rescue TddiumClient::Error::Base => e
         say e.message
       end
+    end
+  end
+
+  desc "account:password", "Change password"
+  method_option :environment, :type => :string, :default => nil
+  def password
+    set_default_environment(options[:environment])
+    if user_details = user_logged_in?
+    else
     end
   end
 
