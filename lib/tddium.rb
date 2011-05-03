@@ -78,12 +78,28 @@ class Tddium < Thor
     end
   end
 
-  desc "account:password", "Change password"
+  desc "password", "Change password"
   method_option :environment, :type => :string, :default => nil
   def password
     set_default_environment(options[:environment])
-    if user_details = user_logged_in?
-    else
+    return unless tddium_settings
+    user_details = user_logged_in?
+    return unless user_details
+    
+    params = {}
+    params[:current_password] = HighLine.ask(Text::Prompt::CURRENT_PASSWORD) { |q| q.echo = "*" }
+    params[:password] = HighLine.ask(Text::Prompt::NEW_PASSWORD) { |q| q.echo = "*" }
+    params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+
+    begin
+      user_id = user_details["user"]["id"]
+      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params},
+                        tddium_settings["api_key"], false)
+      say Text::Process::PASSWORD_CHANGED
+    rescue TddiumClient::Error::API => e
+      say Text::Error::PASSWORD_ERROR % e.explanation
+    rescue TddiumClient::Error::Base => e
+      say e.message
     end
   end
 
@@ -493,8 +509,8 @@ class Tddium < Thor
     git_push
   end
 
-  def user_logged_in?(active = true)
-    result = tddium_settings(:fail_with_message => false) && tddium_settings["api_key"]
+  def user_logged_in?(active = true, message = false)
+    result = tddium_settings(:fail_with_message => message) && tddium_settings["api_key"]
     (result && active) ? get_user : result
   end
 

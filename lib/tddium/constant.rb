@@ -52,7 +52,8 @@ module TddiumConstant
       LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
       CURRENT_PASSWORD = "Enter your old password: "
-      PASSWORD = "Enter a new password: "
+      PASSWORD = "Enter password: "
+      NEW_PASSWORD = "Enter a new password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "The suite name '%s' already exists. Enter '#{Response::YES}' to use it, or enter a new name:"
