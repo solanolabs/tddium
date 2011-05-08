@@ -60,12 +60,12 @@ module TddiumConstant
     end
 
     module Process
-      TERMINATE_INSTRUCTION = "Ctrl-C to terminate the process"
+      TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       STARTING_TEST = "Starting %s tests..."
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
-      CHECK_TEST_REPORT = "You can check out the test report details at %s"
+      CHECK_TEST_REPORT = "Test report: %s"
       EXISTING_SUITE = "Current suite: %s"
       CREATING_SUITE = "Creating suite '%s'.  This will take a few seconds."
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"

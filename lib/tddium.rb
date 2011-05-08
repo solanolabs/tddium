@@ -157,8 +157,8 @@ class Tddium < Thor
     
     # Set test_pattern param
     if current_suite_options["test_pattern"]
-      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if options[:test_pattern] == current_suite_options["test_pattern"]
       test_pattern = current_suite_options["test_pattern"]
+      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if options[:test_pattern] == current_suite_options["test_pattern"]
     else
       test_pattern = options[:test_pattern]
     end
@@ -230,7 +230,7 @@ class Tddium < Thor
       # Print out the result
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
-      say "#{finished_tests.size} examples, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+      say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
       # Save the spec options
       write_suite(current_suite_id, {"user_data_file" => user_data_file_path,
