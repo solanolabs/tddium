@@ -156,9 +156,11 @@ class Tddium < Thor
     end
     
     # Set test_pattern param
-    test_pattern = options[:test_pattern]
     if current_suite_options["test_pattern"]
-      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if test_pattern == current_suite_options["test_pattern"]
+      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if options[:test_pattern] == current_suite_options["test_pattern"]
+      test_pattern = current_suite_options["test_pattern"]
+    else
+      test_pattern = options[:test_pattern]
     end
 
     start_time = Time.now
@@ -532,7 +534,7 @@ class Tddium < Thor
   end
 
   def write_tddium_to_gitignore
-    content = File.read(Git::GITIGNORE)
+    content = File.exists?(Git::GITIGNORE) ? File.read(Git::GITIGNORE) : ''
     unless content.include?("#{tddium_file_name}\n")
       File.open(Git::GITIGNORE, "a") do |file|
         file.write("#{tddium_file_name}\n")

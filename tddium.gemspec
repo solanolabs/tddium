@@ -13,8 +13,13 @@ Gem::Specification.new do |s|
   s.authors     = ["Solano Labs"]
   s.email       = ["info@tddium.com"]
   s.homepage    = "http://www.tddium.com/"
-  s.summary     = %q{tddium Hosted Testing}
-  s.description = %q{tddium runs your rspec (and Selenium) tests in the cloud, in parallel!}
+  s.summary     = %q{tddium Hosted Ruby Testing}
+  s.description = <<-EOF
+tddium runs your rspec, cucumber, and test::unit tests in our managed
+cloud environment. Tests run in parallel to save you time, and, if you use
+Rails, tddium takes care of setting up fresh isolated DB instances for each test
+instance.  Tests can also access a limited set of private Selenium RC servers.
+EOF
 
   s.rubyforge_project = "tddium"
 

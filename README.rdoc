@@ -1,23 +1,14 @@
 = tddium
 
-tddium takes the pain out of running Selenium testing in cloud.
+tddium takes the pain out of Ruby TDD.
 
-It automatically starts private Amazon EC2 Instances, runs your test,
-collect results, and cleans up the EC2 resources it used so you only
-pay for what you use.
+It automatically starts private Amazon EC2 Instances, runs your tests, collects
+results, and cleans up the EC2 resources it used so you only pay for what you
+use.
 
 == Getting Started
 
-1. Install rvm (https://rvm.beginrescueend.com).  As of this writing,
-version 1.2.x is supported but version 1.5.x is not.
-
-2. Install ruby into your rvm and create a gemset
-
-3. Install the tddium-preview gem into your new gemset
-
-4. In your GIT repo run tddium suite to create a new suite
-
-4. Run tddium spec to run your hosted tests
+See http://www.tddium.com/support for more information.
 
 == Copyright
 

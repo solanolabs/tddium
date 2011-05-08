@@ -29,7 +29,7 @@ describe Tddium do
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
   SAMPLE_USER_ID = 1
-  DEFAULT_TEST_PATTERN = "**/*_spec.rb"
+  DEFAULT_TEST_PATTERN = Tddium::Default::TEST_PATTERN
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
   SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME, "branch" => SAMPLE_BRANCH_NAME, "id" => SAMPLE_SUITE_ID, "ruby_version"=>SAMPLE_RUBY_VERSION, "git_repo_uri" => SAMPLE_GIT_REPO_URI}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
@@ -724,26 +724,37 @@ describe Tddium do
 
         it_should_behave_like "sending the api key"
 
-        context "default test pattern" do
-          it "should POST the names of the file names extracted from the test_pattern parameter" do
-            current_dir = Dir.pwd
-            call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                    :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
-                                               {:test_name => "#{current_dir}/spec/dog_spec.rb"},
-                                               {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
-            run_spec(tddium)
+        context "test pattern" do
+          context "default test pattern" do
+            it "should POST the names of the file names extracted from the test_pattern parameter" do
+              current_dir = Dir.pwd
+              call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
+                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
+                                                 {:test_name => "#{current_dir}/spec/dog_spec.rb"},
+                                                 {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
+              run_spec(tddium)
+            end
+          end
+
+          context "--test-pattern=#{CUSTOM_TEST_PATTERN}" do
+            it "should POST the names of the file names extracted from the test_pattern parameter" do
+              current_dir = Dir.pwd
+              call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
+                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
+              run_spec(tddium, {:test_pattern=>CUSTOM_TEST_PATTERN})
+            end
+          end
+
+          context "remembered from last run" do
+            it "should POST the names of the file names extracted from the remembered test_pattern" do
+              tddium.stub(:current_suite_options).and_return({'test_pattern'=>CUSTOM_TEST_PATTERN})
+              current_dir = Dir.pwd
+              call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
+                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
+              run_spec(tddium)
+            end
           end
         end
-
-        context "--test-pattern=#{CUSTOM_TEST_PATTERN}" do
-          it "should POST the names of the file names extracted from the test_pattern parameter" do
-            current_dir = Dir.pwd
-            call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                    :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
-            run_spec(tddium, {:test_pattern=>CUSTOM_TEST_PATTERN})
-          end
-        end
-
 
         context "'POST #{Tddium::Api::Path::REGISTER_TEST_EXECUTIONS}' is successful" do
           before do
@@ -890,7 +901,7 @@ describe Tddium do
               end
 
               it "should save the spec options" do
-                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => "**/*_spec.rb"})
+                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
                 run_spec(tddium, {:max_parallelism => 3})
               end
 
@@ -1131,6 +1142,13 @@ describe Tddium do
             gitignore_file = File.open(Tddium::Git::GITIGNORE) { |file| file.read }
             gitignore_file.should include(".tddium.test")
             gitignore_file.should include("something")
+          end
+
+          it "it should create .gitignore with tddium if it doesn't exist" do
+            FileUtils.rm_f(Tddium::Git::GITIGNORE)
+            run_suite(tddium)
+            gitignore_file = File.open(Tddium::Git::GITIGNORE) { |file| file.read }
+            gitignore_file.should include(".tddium.test")
           end
         end
 

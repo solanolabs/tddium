@@ -12,7 +12,7 @@ module TddiumConstant
     SLEEP_TIME_BETWEEN_POLLS = 2
     ENVIRONMENT = "production"
     SSH_FILE = "~/.ssh/id_rsa.pub"
-    TEST_PATTERN = "**/*_spec.rb"
+    TEST_PATTERN = "spec/**/*_spec.rb"
   end
 
   module Git
