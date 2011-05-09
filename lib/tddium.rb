@@ -22,11 +22,6 @@ require File.expand_path("../tddium/constant", __FILE__)
 #      tddium account  # View/Manage account information
 #      tddium account:password # Change password
 #
-#      tddium dev      # Enter "dev" mode, for single-test quick-turnaround debugging.
-#      tddium stopdev  # Leave "dev" mode.
-#
-#      tddium clean    # Clean up test results, especially large objects like videos
-#
 #      tddium help     # Print this usage message
 
 class Tddium < Thor
@@ -131,7 +126,7 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => Default::TEST_PATTERN
   def spec
     set_default_environment(options[:environment])
-    return unless git_repo? && tddium_settings && suite_for_current_branch?
+    exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
 
     test_execution_params = {}
 
@@ -144,8 +139,7 @@ class Tddium < Thor
         test_execution_params[:user_data_text] = Base64.encode64(user_data)
         test_execution_params[:user_data_filename] = File.basename(user_data_file_path)
       else
-        say Text::Error::NO_USER_DATA_FILE % user_data_file_path
-        return
+        exit_failure Text::Error::NO_USER_DATA_FILE % user_data_file_path
       end
     end
 
@@ -170,14 +164,13 @@ class Tddium < Thor
       suite_details = call_api(:get, current_suite_path)
 
       # Push the latest code to git
-      return unless update_git_remote_and_push(suite_details)
+      exit_failure unless update_git_remote_and_push(suite_details)
 
       # Get a list of files to be tested
       test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
 
       if test_files.empty?
-        say Text::Error::NO_MATCHING_FILES % test_pattern
-        return
+        exit_failure Text::Error::NO_MATCHING_FILES % test_pattern
       end
 
       # Create a session
@@ -224,7 +217,11 @@ class Tddium < Thor
         end
 
         # If all tests finished, exit the loop else sleep
-        finished_tests.size == current_test_executions["tests"].size ? tests_not_finished_yet = false : sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+        if finished_tests.size == current_test_executions["tests"].size
+          tests_not_finished_yet = false
+        else
+          sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+        end
       end
 
       # Print out the result
@@ -236,6 +233,8 @@ class Tddium < Thor
       write_suite(current_suite_id, {"user_data_file" => user_data_file_path,
                                      "max_parallelism" => max_parallelism,
                                      "test_pattern" => test_pattern})
+
+      exit_failure if test_statuses["failed"] > 0 || test_statuses["errors"] > 0
     rescue TddiumClient::Error::Base
     end
   end
@@ -387,6 +386,10 @@ class Tddium < Thor
 
   def environment
     tddium_client.environment.to_sym
+  end
+
+  def exit_failure(msg='')
+    abort msg
   end
 
   def get_user

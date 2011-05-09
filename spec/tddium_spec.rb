@@ -5,6 +5,8 @@ Copyright (c) 2011 Solano Labs All Rights Reserved
 
 require 'spec_helper'
 
+class EXIT_FAILURE_EXCEPTION < RuntimeError; end
+
 describe Tddium do
   include FakeFS::SpecHelpers
   include TddiumSpecHelpers
@@ -54,7 +56,8 @@ describe Tddium do
   end
 
   def run(tddium, options = {:test_pattern => DEFAULT_TEST_PATTERN, :environment => "test"})
-    send("run_#{example.example_group.ancestors.map(&:description)[-2][1..-1]}", tddium, options)
+    method = example.example_group.ancestors.map(&:description)[-2][1..-1]
+    send("run_#{method}", tddium, options)
   end
 
   [:suite, :spec, :status, :account, :login, :logout, :password].each do |method|
@@ -62,10 +65,14 @@ describe Tddium do
       options = params.first || {}
       if method == :spec 
         options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
+        stub_exit_failure
       end
       options[:environment] = "test" unless options.has_key?(:environment)
       stub_cli_options(tddium, options)
-      tddium.send(method)
+      begin
+        tddium.send(method)
+      rescue EXIT_FAILURE_EXCEPTION
+      end
     end
   end
 
@@ -141,6 +148,10 @@ describe Tddium do
 
   def stub_sleep(tddium)
     tddium.stub(:sleep).with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
+  end
+
+  def stub_exit_failure
+    tddium.stub(:exit_failure).and_raise(EXIT_FAILURE_EXCEPTION)
   end
 
   def stub_tddium_client
@@ -646,17 +657,38 @@ describe Tddium do
       stub_config_file(:api_key => true, :branches => true)
     end
 
-    it_should_behave_like "set the default environment"
+    it_should_behave_like "set the default environment" do
+      let(:run_function) {spec_should_fail}
+    end
     it_should_behave_like "git repo has not been initialized"
     it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
+
+    def spec_should_fail(options={})
+      options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
+      options[:environment] = "test" unless options.has_key?(:environment)
+      stub_cli_options(tddium, options)
+      tddium.stub(:exit_failure).and_raise(SystemExit)
+      yield if block_given?
+      expect { tddium.spec }.to raise_error(SystemExit)
+    end
+
+    def spec_should_pass(options={})
+      options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
+      options[:environment] = "test" unless options.has_key?(:environment)
+      stub_cli_options(tddium, options)
+      tddium.stub(:exit_failure).and_raise(SystemExit)
+      yield if block_given?
+      expect { tddium.spec }.not_to raise_error
+    end
 
     context "user-data-file" do
       context "does not exist" do
         context "from command line option" do
           it "should be picked first" do
-            tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
-            run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+            spec_should_fail(:user_data_file => SAMPLE_FILE_PATH) do
+              tddium.should_receive(:exit_failure).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
+            end
           end
         end
 
@@ -664,19 +696,20 @@ describe Tddium do
           before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => {"id" => SAMPLE_SUITE_ID, "options" => {"user_data_file" => SAMPLE_FILE_PATH2}}}) }
 
           it "should be picked if no command line option" do
-            tddium.should_receive(:say).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH2)
-            run_spec(tddium)
+            spec_should_fail do
+              tddium.should_receive(:exit_failure).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH2)
+            end
           end
         end
 
         it "should not try to git push" do
           tddium.should_not_receive(:system).with(/^git push/)
-          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+          spec_should_fail(:user_data_file => SAMPLE_FILE_PATH)
         end
 
         it "should not call the api" do
           tddium_client.should_not_receive(:call_api)
-          run_spec(tddium, :user_data_file => SAMPLE_FILE_PATH)
+          spec_should_fail(:user_data_file => SAMPLE_FILE_PATH)
         end
       end
     end
@@ -699,6 +732,7 @@ describe Tddium do
       context "git push was unsuccessful" do
         before { stub_git_push(tddium, false) }
         it "should not try to create a new session" do
+          tddium.should_receive(:exit_failure)
           tddium_client.should_not_receive(:call_api).with(:post, Tddium::Api::Path::SESSIONS)
           run_spec(tddium)
         end
@@ -856,7 +890,7 @@ describe Tddium do
               end
 
               it "should show the user a summary of all the tests" do
-                tddium.should_receive(:say).with("3 examples, 1 failures, 0 errors, 1 pending")
+                tddium.should_receive(:say).with("3 tests, 1 failures, 0 errors, 1 pending")
                 run_spec(tddium)
               end
 
@@ -864,48 +898,98 @@ describe Tddium do
             end
 
             context "'GET #{Tddium::Api::Path::TEST_EXECUTIONS}' is successful" do
-              before do
-                get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"pending"}, "spec/pig_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/dog_spec.rb"=>{"finished" => true, "status"=>"failed"}, "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}}
-                stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
-                stub_sleep(tddium)
-              end
+              context "with mixed results" do
+                before do
+                  get_test_executions_response_all_finished = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"pending"}, "spec/pig_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/dog_spec.rb"=>{"finished" => true, "status"=>"failed"}, "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}}
+                  stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response, get_test_executions_response_all_finished)
+                  stub_sleep(tddium)
+                end
 
-              it "should sleep for #{Tddium::Default::SLEEP_TIME_BETWEEN_POLLS} seconds" do
-                tddium.should_receive(:sleep).exactly(1).times.with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
-                run_spec(tddium)
-              end
+                it "should sleep for #{Tddium::Default::SLEEP_TIME_BETWEEN_POLLS} seconds" do
+                  tddium.should_receive(:sleep).exactly(1).times.with(Tddium::Default::SLEEP_TIME_BETWEEN_POLLS)
+                  run_spec(tddium)
+                end
 
-              it "should display a green '.'" do
-                tddium.should_receive(:say).with(".", :green, false)
-                run_spec(tddium)
-              end
+                it "should display a green '.'" do
+                  tddium.should_receive(:say).with(".", :green, false)
+                  run_spec(tddium)
+                end
 
-              it "should display a red 'F'" do
-                tddium.should_receive(:say).with("F", :red, false)
-                run_spec(tddium)
-              end
+                it "should display a red 'F'" do
+                  tddium.should_receive(:say).with("F", :red, false)
+                  run_spec(tddium)
+                end
 
-              it "should display a yellow '*'" do
-                tddium.should_receive(:say).with("*", :yellow, false)
-                run_spec(tddium)
-              end
+                it "should display a yellow '*'" do
+                  tddium.should_receive(:say).with("*", :yellow, false)
+                  run_spec(tddium)
+                end
 
-              it "should display 'E' with no color" do
-                tddium.should_receive(:say).with("E", nil, false)
-                run_spec(tddium)
-              end
+                it "should display 'E' with no color" do
+                  tddium.should_receive(:say).with("E", nil, false)
+                  run_spec(tddium)
+                end
 
-              it "should display a summary of all the tests" do
-                tddium.should_receive(:say).with("4 examples, 1 failures, 1 errors, 1 pending")
-                run_spec(tddium)
-              end
+                it "should display a summary of all the tests" do
+                  tddium.should_receive(:say).with("4 tests, 1 failures, 1 errors, 1 pending")
+                  spec_should_fail do
+                    tddium.should_receive(:exit_failure).once
+                  end
+                end
 
-              it "should save the spec options" do
-                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
-                run_spec(tddium, {:max_parallelism => 3})
-              end
+                it "should save the spec options" do
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
+                  run_spec(tddium, {:max_parallelism => 3})
+                end
 
-              it_should_behave_like("test output summary")
+                it_should_behave_like("test output summary")
+              end
+              context "with no errors" do
+                before do
+                  get_test_executions_response_all_passed = {
+                    "report"=>SAMPLE_REPORT_URL, 
+                    "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"passed"},
+                              "spec/pig_spec.rb"=>{"finished" => true, "status"=>"passed"},
+                              "spec/dog_spec.rb"=>{"finished" => true, "status"=>"passed"},
+                              "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}}
+                  stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response_all_passed)
+                  stub_sleep(tddium)
+                end
+
+                it "should display a green '.'" do
+                  tddium.should_receive(:say).with(".", :green, false)
+                  run_spec(tddium)
+                end
+
+                it "should not display a red 'F'" do
+                  tddium.should_not_receive(:say).with("F", :red, false)
+                  run_spec(tddium)
+                end
+
+                it "should not display a yellow '*'" do
+                  tddium.should_not_receive(:say).with("*", :yellow, false)
+                  run_spec(tddium)
+                end
+
+                it "should not display 'E' with no color" do
+                  tddium.should_not_receive(:say).with("E", nil, false)
+                  run_spec(tddium)
+                end
+
+                it "should display a summary of all the tests" do
+                  tddium.should_receive(:say).with("4 tests, 0 failures, 0 errors, 0 pending")
+                  spec_should_pass do
+                    tddium.should_not_receive(:exit_failure)
+                  end
+                end
+
+                it "should save the spec options" do
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
+                  run_spec(tddium, {:max_parallelism => 3})
+                end
+
+                it_should_behave_like("test output summary")
+              end
             end
 
             it_should_behave_like "an unsuccessful api call"
