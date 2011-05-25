@@ -21,7 +21,7 @@ describe Tddium do
   SAMPLE_FILE_PATH2 = "./my_user_file2.png"
   SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
   SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
-  SAMPLE_HEROKU_CONFIG = {"TDDIUM_API_KEY" => "abcdefg", "TDDIUM_USER_NAME" => "app123456@heroku.com"}
+  SAMPLE_HEROKU_CONFIG = {"TDDIUM_API_KEY" => SAMPLE_API_KEY, "TDDIUM_USER_NAME" => SAMPLE_EMAIL}
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_PASSWORD = "foobar"
   SAMPLE_NEW_PASSWORD = "foobar2"
@@ -38,7 +38,20 @@ describe Tddium do
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
-  SAMPLE_USER_RESPONSE = {"user"=> {"id"=>SAMPLE_USER_ID, "api_key" => SAMPLE_API_KEY, "email" => SAMPLE_EMAIL, "created_at" => SAMPLE_DATE_TIME, "recurly_url" => SAMPLE_RECURLY_URL}}
+  SAMPLE_USER_RESPONSE = {"user"=>
+    { "id"=>SAMPLE_USER_ID, 
+      "api_key" => SAMPLE_API_KEY, 
+      "email" => SAMPLE_EMAIL, 
+      "created_at" => SAMPLE_DATE_TIME, 
+      "recurly_url" => SAMPLE_RECURLY_URL}}
+  SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
+  SAMPLE_USER_RESPONSE_WITH_PUBKEY = {"user"=>
+    { "id"=>SAMPLE_USER_ID, 
+      "api_key" => SAMPLE_API_KEY, 
+      "email" => SAMPLE_EMAIL, 
+      "created_at" => SAMPLE_DATE_TIME, 
+      "user_git_pubkey" => SAMPLE_SSH_PUBKEY,
+      "recurly_url" => SAMPLE_RECURLY_URL}}
   PASSWORD_ERROR_EXPLANATION = "bad confirmation"
   PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
 
@@ -488,13 +501,30 @@ describe Tddium do
     context "the user is logged in to heroku, but not to tddium" do
       before do
         HerokuConfig.stub(:read_config).and_return(SAMPLE_HEROKU_CONFIG)
+        @user_path = "#{Tddium::Api::Path::USERS}/#{SAMPLE_USER_ID}/"
       end
 
       context "the user has a properly configured add-on" do
-        context "user has no ssh key" do
-          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+        shared_examples_for "getting current user info" do
+          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key" do
+            call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::USERS}$/, :api_key => SAMPLE_API_KEY)
+            run_account(tddium)
+          end
+        end
 
-          it_behaves_like "a password prompt" do
+        context "user has no ssh key" do
+          before do 
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
+            stub_call_api_response(:put, @user_path, SAMPLE_USER_RESPONSE)
+          end
+
+          it_behaves_like "getting current user info"
+
+          it_behaves_like "prompting for password" do
+            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
+          end
+
+          it_behaves_like "prompting for password" do
             let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
           end
 
@@ -502,29 +532,51 @@ describe Tddium do
 
           it "should display the heroku welcome" do
             tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME)
+            run_account(tddium)
           end
 
-          it "should PUT #{Tddium::Api::Path::USERS} with the ssh key and password"
+          it "should send a 'PUT' request to user_path with passwords" do
+            call_api_should_receive(:method => :put,
+                                :path => /#{@user_path}$/,
+                                :params => {:user =>
+                                   {:current_password=>SAMPLE_PASSWORD,
+                                    :password => SAMPLE_NEW_PASSWORD,
+                                    :password_confirmation => SAMPLE_NEW_PASSWORD,
+                                    :user_git_pubkey => SAMPLE_SSH_PUBKEY}},
+                                :api_key => SAMPLE_API_KEY)
+            run_account(tddium)
+          end
 
           it "should display the heroku configured welcome" do
+            before{stub_call_api_response(:put, @user_path, {"status"=>0})}
             tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+            run_account(tddium)
           end
         end
 
         context "user has configured an ssh key" do
-          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+          before do 
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE_WITH_PUBKEY)
+          end
+
+          it_behaves_like "getting current user info"
+
           it "should display the heroku configured welcome" do
             tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+            run_account(tddium)
           end
         end
       end
 
       context "the heroku config contains an unrecognized API key" do
-        it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+        let(:call_api_result) {[403, "Forbidden"]}
+
+        it_behaves_like "getting current user info"
+
         it "should display an error message" do
           tddium.should_receive(:say).with(Tddium::Text::Error::HEROKU_MISCONFIGURED)
+          run_account(tddium)
         end
-        it "should not update the user"
       end
     end
 
