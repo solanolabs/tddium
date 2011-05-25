@@ -468,6 +468,61 @@ describe Tddium do
 
     end
 
+    shared_examples_for "prompt for ssh key" do
+      context "--ssh-key-file is not supplied" do
+        it "should prompt the user for their ssh key file" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+          run_account(tddium)
+        end
+      end
+
+      context "--ssh-key-file is supplied" do
+        it "should not prompt the user for their ssh key file" do
+          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+          run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
+        end
+      end
+    end
+
+    context "the user is logged in to heroku, but not to tddium" do
+      before do
+        tddium.stub(:get_heroku_config).and_return(SAMPLE_HEROKU_CONFIG)
+      end
+
+      context "the user has a properly configured add-on" do
+        context "user has no ssh key" do
+          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+
+          it_behaves_like "a password prompt" do
+            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+          end
+
+          it_behaves_like "prompt for ssh key"
+
+          it "should display the heroku welcome" do
+            tddium.should_receive(:say).with(Tddium::Text::Prompt::HEROKU_FIRST_WELCOME)
+          end
+
+          it "should PUT #{Tddium::Api::Path::USERS} with the ssh key and password"
+        end
+
+        context "user has configured an ssh key" do
+          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+          it "should display the heroku configured welcome" do
+            tddium.should_receive(:say).with(Tddium::Text::Prompt::HEROKU_CONFIGURED_WELCOME)
+          end
+        end
+      end
+
+      context "the heroku config contains an unrecognized API key" do
+        it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
+        it "should display an error message" do
+          tddium.should_receive(:say).with(Tddium::Text::Error::HEROKU_MISCONFIGURED)
+        end
+        it "should not update the user"
+      end
+    end
+
     context "the user is not already logged in" do
       let(:call_api_result) {[403, "Forbidden"]}
 
@@ -489,19 +544,7 @@ describe Tddium do
           HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
         end
 
-        context "--ssh-key-file is not supplied" do
-          it "should prompt the user for their ssh key file" do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-            run_account(tddium)
-          end
-        end
-
-        context "--ssh-key-file is supplied" do
-          it "should not prompt the user for their ssh key file" do
-            tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-            run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
-          end
-        end
+        it_behaves_like "prompt for ssh key"
 
         it "should show the user the license" do
           tddium.should_receive(:say).with(SAMPLE_LICENSE_TEXT)

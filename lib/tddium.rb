@@ -37,6 +37,10 @@ class Tddium < Thor
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
       show_user_details(user_details)
+    elsif heroku_config = get_heroku_config
+      # User has logged in to heroku, and TDDIUM environment variables are
+      # present
+      handle_heroku_user(heroku_config)
     else
       params = get_user_credentials(options.merge(:invited => true))
 
