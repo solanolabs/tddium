@@ -9,6 +9,7 @@ require "json"
 require "tddium_client"
 require "base64"
 require File.expand_path("../tddium/constant", __FILE__)
+require File.expand_path("../tddium/heroku", __FILE__)
 
 #      Usage:
 #
@@ -37,7 +38,7 @@ class Tddium < Thor
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
       show_user_details(user_details)
-    elsif heroku_config = get_heroku_config
+    elsif heroku_config = HerokuConfig.read_config
       # User has logged in to heroku, and TDDIUM environment variables are
       # present
       handle_heroku_user(heroku_config)
@@ -422,6 +423,9 @@ class Tddium < Thor
       say message
     end
     message.nil?
+  end
+
+  def handle_heroku_user(heroku_config)
   end
 
   def login_user(options = {})

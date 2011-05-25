@@ -91,6 +91,11 @@ tddium spec
       USING_PREVIOUS_USER_DATA_FILE = "Using the previous user data file '%s'"
       USING_PREVIOUS_MAX_PARALLELISM = "Using the previous value of max_parallelism = %s"
       USING_PREVIOUS_TEST_PATTERN = "Using the previous value of test_pattern = %s"
+      HEROKU_WELCOME = "
+Thanks for installing the Tddium Heroku Add-On!
+
+Next, set a password and provide an SSH key to authenticate your communication with Tddium.
+"
     end
 
     module Status
@@ -106,6 +111,7 @@ tddium spec
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "Using suite: '%s' on branch: '%s'"
+      HEROKU_CONFIG = "Tddium is configured to work with your Heroku app."
     end
 
     module Error
@@ -122,6 +128,7 @@ http://blog.tddium.com/home/
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
+      HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium."
     end
   end
 

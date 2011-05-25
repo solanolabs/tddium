@@ -21,6 +21,7 @@ describe Tddium do
   SAMPLE_FILE_PATH2 = "./my_user_file2.png"
   SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
   SAMPLE_GIT_REPO_URI = "ssh://git@api.tddium.com/home/git/repo/#{SAMPLE_APP_NAME}"
+  SAMPLE_HEROKU_CONFIG = {"TDDIUM_API_KEY" => "abcdefg", "TDDIUM_USER_NAME" => "app123456@heroku.com"}
   SAMPLE_LICENSE_TEXT = "LICENSE"
   SAMPLE_PASSWORD = "foobar"
   SAMPLE_NEW_PASSWORD = "foobar2"
@@ -486,7 +487,7 @@ describe Tddium do
 
     context "the user is logged in to heroku, but not to tddium" do
       before do
-        tddium.stub(:get_heroku_config).and_return(SAMPLE_HEROKU_CONFIG)
+        HerokuConfig.stub(:read_config).and_return(SAMPLE_HEROKU_CONFIG)
       end
 
       context "the user has a properly configured add-on" do
@@ -500,16 +501,20 @@ describe Tddium do
           it_behaves_like "prompt for ssh key"
 
           it "should display the heroku welcome" do
-            tddium.should_receive(:say).with(Tddium::Text::Prompt::HEROKU_FIRST_WELCOME)
+            tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME)
           end
 
           it "should PUT #{Tddium::Api::Path::USERS} with the ssh key and password"
+
+          it "should display the heroku configured welcome" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+          end
         end
 
         context "user has configured an ssh key" do
           it "should GET #{Tddium::Api::Path::USERS} with the user's api_key"
           it "should display the heroku configured welcome" do
-            tddium.should_receive(:say).with(Tddium::Text::Prompt::HEROKU_CONFIGURED_WELCOME)
+            tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
           end
         end
       end
