@@ -128,7 +128,7 @@ http://blog.tddium.com/home/
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
-      HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium."
+      HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium: %s"
     end
   end
 

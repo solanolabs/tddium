@@ -38,19 +38,19 @@ describe Tddium do
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
-  SAMPLE_USER_RESPONSE = {"user"=>
+  SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
     { "id"=>SAMPLE_USER_ID, 
       "api_key" => SAMPLE_API_KEY, 
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
       "recurly_url" => SAMPLE_RECURLY_URL}}
   SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
-  SAMPLE_USER_RESPONSE_WITH_PUBKEY = {"user"=>
+  SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
     { "id"=>SAMPLE_USER_ID, 
       "api_key" => SAMPLE_API_KEY, 
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
-      "user_git_pubkey" => SAMPLE_SSH_PUBKEY,
+      "heroku_needs_activation" => true,
       "recurly_url" => SAMPLE_RECURLY_URL}}
   PASSWORD_ERROR_EXPLANATION = "bad confirmation"
   PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
@@ -105,7 +105,10 @@ describe Tddium do
         tddium_client_result = mock(TddiumClient::Result::API)
         response_mocks << tddium_client_result
       else
-        tddium_client_result = mock(TddiumClient::Error::API, :body => current_response.to_json)
+        tddium_client_result = mock(TddiumClient::Error::API)
+        tddium_client_result.stub(:body => current_response.to_json,
+                                    :code => 200,
+                                    :response => mock(:header => mock(:msg => "OK")))
         result.and_raise(TddiumClient::Error::API.new(tddium_client_result))
       end
       current_response.each do |k, v|
@@ -171,7 +174,9 @@ describe Tddium do
   def stub_tddium_client
     TddiumClient::Client.stub(:new).and_return(tddium_client)
     tddium_client.stub(:environment).and_return("test")
-    tddium_client.stub(:call_api).and_raise(TddiumClient::Error::Base)
+    tddium_client.stub(:call_api) do |x,y,z,k|
+      raise TddiumClient::Error::Base.new("unstubbed call_api(#{x.inspect},#{y.inspect},#{z.inspect},#{k.inspect})")
+    end
   end
 
   let(:tddium) { Tddium.new }
@@ -454,7 +459,7 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
       HighLine.stub(:ask).and_return("")
       create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), SAMPLE_LICENSE_TEXT)
-      create_file(Tddium::Default::SSH_FILE, "ssh-rsa blah")
+      create_file(Tddium::Default::SSH_FILE, SAMPLE_SSH_PUBKEY)
     end
 
     it_should_behave_like "set the default environment"
@@ -498,6 +503,14 @@ describe Tddium do
       end
     end
 
+    def account_should_fail(options={})
+      options[:environment] = "test" unless options.has_key?(:environment)
+      stub_cli_options(tddium, options)
+      tddium.stub(:exit_failure).and_raise(SystemExit)
+      yield if block_given?
+      expect { tddium.account }.to raise_error(SystemExit)
+    end
+
     context "the user is logged in to heroku, but not to tddium" do
       before do
         HerokuConfig.stub(:read_config).and_return(SAMPLE_HEROKU_CONFIG)
@@ -505,20 +518,12 @@ describe Tddium do
       end
 
       context "the user has a properly configured add-on" do
-        shared_examples_for "getting current user info" do
-          it "should GET #{Tddium::Api::Path::USERS} with the user's api_key" do
-            call_api_should_receive(:method => :get, :path => /#{Tddium::Api::Path::USERS}$/, :api_key => SAMPLE_API_KEY)
-            run_account(tddium)
-          end
-        end
 
-        context "user has no ssh key" do
-          before do 
-            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
-            stub_call_api_response(:put, @user_path, SAMPLE_USER_RESPONSE)
+        context "first-time account activation" do
+          before do
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_HEROKU_USER_RESPONSE)
+            stub_call_api_response(:put, @user_path, {"status"=>0})
           end
-
-          it_behaves_like "getting current user info"
 
           it_behaves_like "prompting for password" do
             let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
@@ -536,30 +541,49 @@ describe Tddium do
           end
 
           it "should send a 'PUT' request to user_path with passwords" do
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
             call_api_should_receive(:method => :put,
                                 :path => /#{@user_path}$/,
                                 :params => {:user =>
-                                   {:current_password=>SAMPLE_PASSWORD,
-                                    :password => SAMPLE_NEW_PASSWORD,
-                                    :password_confirmation => SAMPLE_NEW_PASSWORD,
+                                   {:email => SAMPLE_EMAIL,
+                                    :password => SAMPLE_PASSWORD,
+                                    :password_confirmation => SAMPLE_PASSWORD,
                                     :user_git_pubkey => SAMPLE_SSH_PUBKEY}},
                                 :api_key => SAMPLE_API_KEY)
-            run_account(tddium)
+            account_should_fail # call_api_should_receive stubs call_api with an error
           end
 
-          it "should display the heroku configured welcome" do
-            before{stub_call_api_response(:put, @user_path, {"status"=>0})}
-            tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
-            run_account(tddium)
+          context "PUT with passwords is successful" do
+            before do
+              stub_call_api_response(:put, @user_path, {"status"=>0})
+            end
+
+            it_should_behave_like "writing the api key to the .tddium file"
+
+            it "should display the heroku configured welcome" do
+              tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+              run_account(tddium)
+            end
+          end
+
+          context "PUT is unsuccessful" do
+            before do
+              stub_call_api_response(:put, @user_path, {"status" => 1, "explanation"=> "PUT error"})
+            end
+
+            it "should display an error message and fail" do
+              account_should_fail do
+                tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "200 OK (1) PUT error")
+              end
+            end
           end
         end
 
-        context "user has configured an ssh key" do
+        context "re-run after account is activated" do
           before do 
-            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE_WITH_PUBKEY)
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
           end
-
-          it_behaves_like "getting current user info"
 
           it "should display the heroku configured welcome" do
             tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
@@ -571,11 +595,10 @@ describe Tddium do
       context "the heroku config contains an unrecognized API key" do
         let(:call_api_result) {[403, "Forbidden"]}
 
-        it_behaves_like "getting current user info"
-
-        it "should display an error message" do
-          tddium.should_receive(:say).with(Tddium::Text::Error::HEROKU_MISCONFIGURED)
-          run_account(tddium)
+        it "should display an error message and fail" do
+          account_should_fail do
+            tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user")
+          end
         end
       end
     end

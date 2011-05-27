@@ -27,7 +27,7 @@ require File.expand_path("../tddium/heroku", __FILE__)
 
 class Tddium < Thor
   include TddiumConstant
-
+  
   desc "account", "View/Manage account information"
   method_option :environment, :type => :string, :default => nil
   method_option :email, :type => :string, :default => nil
@@ -41,7 +41,7 @@ class Tddium < Thor
     elsif heroku_config = HerokuConfig.read_config
       # User has logged in to heroku, and TDDIUM environment variables are
       # present
-      handle_heroku_user(heroku_config)
+      handle_heroku_user(options, heroku_config)
     else
       params = get_user_credentials(options.merge(:invited => true))
 
@@ -54,9 +54,7 @@ class Tddium < Thor
         end
       end
 
-      # Prompt for ssh-key file
-      ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
-      params[:user_git_pubkey] = File.open(File.expand_path(ssh_file)) {|file| file.read}
+      params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key_file])
 
       # Prompt for accepting license
       content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
@@ -425,7 +423,30 @@ class Tddium < Thor
     message.nil?
   end
 
-  def handle_heroku_user(heroku_config)
+  def handle_heroku_user(options, heroku_config)
+    api_key = heroku_config['TDDIUM_API_KEY']
+    user = tddium_client.call_api(:get, Api::Path::USERS, {}, api_key) rescue nil
+    if user && user["user"]["heroku_needs_activation"] != true
+      say Text::Status::HEROKU_CONFIG
+    elsif user
+      say Text::Process::HEROKU_WELCOME
+      params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
+      params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+      params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key])
+
+      begin
+        user_id = user["user"]["id"]
+        result = tddium_client.call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params}, api_key)
+        write_api_key(user["user"]["api_key"])
+        say Text::Status::HEROKU_CONFIG
+      rescue TddiumClient::Error::API => e
+        exit_failure Text::Error::HEROKU_MISCONFIGURED % e
+      rescue TddiumClient::Error::Base => e
+        exit_failure Text::Error::HEROKU_MISCONFIGURED % e
+      end
+    else
+      exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user"
+    end
   end
 
   def login_user(options = {})
@@ -443,6 +464,14 @@ class Tddium < Thor
     value = current_value || ask(text % default_value)
     value.empty? ? default_value : value
   end
+
+  def prompt_ssh_key(current)
+    # Prompt for ssh-key file
+    ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
+    data = File.open(File.expand_path(ssh_file)) {|file| file.read}
+    data
+  end
+
 
   def set_default_environment(env)
     if env.nil?
