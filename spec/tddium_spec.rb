@@ -546,10 +546,10 @@ describe Tddium do
             call_api_should_receive(:method => :put,
                                 :path => /#{@user_path}$/,
                                 :params => {:user =>
-                                   {:email => SAMPLE_EMAIL,
-                                    :password => SAMPLE_PASSWORD,
+                                   {:password => SAMPLE_PASSWORD,
                                     :password_confirmation => SAMPLE_PASSWORD,
-                                    :user_git_pubkey => SAMPLE_SSH_PUBKEY}},
+                                    :user_git_pubkey => SAMPLE_SSH_PUBKEY},
+                                   :heroku_activation => true},
                                 :api_key => SAMPLE_API_KEY)
             account_should_fail # call_api_should_receive stubs call_api with an error
           end

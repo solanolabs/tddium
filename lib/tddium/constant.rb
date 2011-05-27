@@ -94,7 +94,9 @@ tddium spec
       HEROKU_WELCOME = "
 Thanks for installing the Tddium Heroku Add-On!
 
-Next, set a password and provide an SSH key to authenticate your communication with Tddium.
+Next, set a password and provide an SSH key to authenticate your communication
+with Tddium.
+
 "
     end
 
@@ -111,7 +113,20 @@ Next, set a password and provide an SSH key to authenticate your communication w
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "Using suite: '%s' on branch: '%s'"
-      HEROKU_CONFIG = "Tddium is configured to work with your Heroku app."
+      HEROKU_CONFIG = "
+Tddium is configured to work with your Heroku app.
+
+Next, you should:
+
+1. Register your test suite by running:
+
+$ tddium suite
+
+2. Start tests by running:
+
+$ tddium spec
+
+"
     end
 
     module Error

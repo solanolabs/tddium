@@ -431,12 +431,13 @@ class Tddium < Thor
     elsif user
       say Text::Process::HEROKU_WELCOME
       params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
+      params.delete(:email)
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
       params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key])
 
       begin
         user_id = user["user"]["id"]
-        result = tddium_client.call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params}, api_key)
+        result = tddium_client.call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
         write_api_key(user["user"]["api_key"])
         say Text::Status::HEROKU_CONFIG
       rescue TddiumClient::Error::API => e
