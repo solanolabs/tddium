@@ -94,6 +94,8 @@ tddium spec
       HEROKU_WELCOME = "
 Thanks for installing the Tddium Heroku Add-On!
 
+Your tddium username is: %s
+
 Next, set a password and provide an SSH key to authenticate your communication
 with Tddium.
 

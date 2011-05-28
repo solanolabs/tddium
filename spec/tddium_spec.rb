@@ -536,7 +536,7 @@ describe Tddium do
           it_behaves_like "prompt for ssh key"
 
           it "should display the heroku welcome" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME)
+            tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME % SAMPLE_EMAIL)
             run_account(tddium)
           end
 

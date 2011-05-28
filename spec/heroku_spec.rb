@@ -7,9 +7,13 @@ require "rspec"
 require "tddium/heroku"
 
 describe HerokuConfig do
+  SAMPLE_APP = "testapp"
   SAMPLE_HEROKU_CONFIG_TDDIUM = "
 TDDIUM_API_KEY=abcdefg
 TDDIUM_USER_NAME=app1234@heroku.com
+"
+  SAMPLE_HEROKU_CONFIG_PARTIAL = "
+TDDIUM_API_KEY=abcdefg
 "
   SAMPLE_HEROKU_CONFIG_NO_TDDIUM = "
 DB_URL=postgres://foo/bar
@@ -29,6 +33,28 @@ DB_URL=postgres://foo/bar
         end
         result.should include('TDDIUM_API_KEY')
         result['TDDIUM_API_KEY'].should == 'abcdefg'
+      end
+    end
+
+    context "with app specified" do
+      before do
+        HerokuConfig.stub(:`).with("heroku config -s --app #{SAMPLE_APP}").and_return(SAMPLE_HEROKU_CONFIG_TDDIUM)
+        HerokuConfig.should_receive(:`).with("heroku config -s --app #{SAMPLE_APP}")
+      end
+
+      it "should pass the app to heroku config" do
+        result = HerokuConfig.read_config(SAMPLE_APP)
+        result.should_not be_nil
+      end
+    end
+
+    context "missing config" do
+      before do
+        HerokuConfig.stub(:`).with("heroku config -s").and_return(SAMPLE_HEROKU_CONFIG_PARTIAL)
+      end
+
+      it "should return nil" do
+        HerokuConfig.read_config.should be_nil
       end
     end
 

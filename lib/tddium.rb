@@ -33,12 +33,13 @@ class Tddium < Thor
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
   method_option :ssh_key_file, :type => :string, :default => nil
+  method_option :app, :type => :string, :default => nil
   def account
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
       show_user_details(user_details)
-    elsif heroku_config = HerokuConfig.read_config
+    elsif heroku_config = HerokuConfig.read_config(options[:app])
       # User has logged in to heroku, and TDDIUM environment variables are
       # present
       handle_heroku_user(options, heroku_config)
@@ -429,7 +430,7 @@ class Tddium < Thor
     if user && user["user"]["heroku_needs_activation"] != true
       say Text::Status::HEROKU_CONFIG
     elsif user
-      say Text::Process::HEROKU_WELCOME
+      say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
       params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
       params.delete(:email)
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
