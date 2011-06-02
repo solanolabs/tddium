@@ -56,13 +56,14 @@ module TddiumConstant
       NEW_PASSWORD = "Enter a new password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
-      USE_EXISTING_SUITE = "The suite name '%s' already exists. Enter '#{Response::YES}' to use it, or enter a new name:"
+      USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
     end
 
     module Process
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
-      STARTING_TEST = "Starting %s tests..."
+      GIT_PUSH = "Pushing changes to Tddium."
+      STARTING_TEST = "Startng %s tests..."
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
@@ -88,9 +89,10 @@ tddium spec
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
-      USING_PREVIOUS_USER_DATA_FILE = "Using the previous user data file '%s'"
-      USING_PREVIOUS_MAX_PARALLELISM = "Using the previous value of max_parallelism = %s"
-      USING_PREVIOUS_TEST_PATTERN = "Using the previous value of test_pattern = %s"
+      USING_SPEC_OPTION = {:max_parallelism => "Max number of tests in parallel = %s",
+                           :user_data_file => "Sending user data from %s",
+                           :test_pattern => "Running tests that match '%s'"}
+      REMEMBERED = " (Remembered value)"
       HEROKU_WELCOME = "
 Thanks for installing the Tddium Heroku Add-On!
 

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.5.0)
+    tddium-preview (0.5.1)
       bundler
       highline
       json

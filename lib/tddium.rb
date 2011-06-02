@@ -134,10 +134,7 @@ class Tddium < Thor
 
     test_execution_params = {}
 
-    # Set the user data for spec
-    if user_data_file_path = options[:user_data_file] || current_suite_options["user_data_file"]
-      say Text::Process::USING_PREVIOUS_USER_DATA_FILE % user_data_file_path if user_data_file_path == current_suite_options["user_data_file"]
-
+    user_data_file_path = get_remembered_option(options, :user_data_file, nil) do |user_data_file_path|
       if File.exists?(user_data_file_path)
         user_data = File.open(user_data_file_path) { |file| file.read }
         test_execution_params[:user_data_text] = Base64.encode64(user_data)
@@ -147,19 +144,11 @@ class Tddium < Thor
       end
     end
 
-    # Set max parallelism param
-    if max_parallelism = options[:max_parallelism] || current_suite_options["max_parallelism"]
-      say Text::Process::USING_PREVIOUS_MAX_PARALLELISM % max_parallelism if max_parallelism == current_suite_options["max_parallelism"]
+    max_parallelism = get_remembered_option(options, :max_parallelism, nil) do |max_parallelism|
       test_execution_params[:max_parallelism] = max_parallelism
     end
     
-    # Set test_pattern param
-    if current_suite_options["test_pattern"]
-      test_pattern = current_suite_options["test_pattern"]
-      say Text::Process::USING_PREVIOUS_TEST_PATTERN % test_pattern if options[:test_pattern] == current_suite_options["test_pattern"]
-    else
-      test_pattern = options[:test_pattern]
-    end
+    test_pattern = get_remembered_option(options, :test_pattern, Default::TEST_PATTERN)
 
     start_time = Time.now
 
@@ -184,13 +173,13 @@ class Tddium < Thor
       # Register the tests
       call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files})
 
+      say Text::Process::STARTING_TEST % test_files.size
       # Start the tests
       start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
       tests_not_finished_yet = true
       finished_tests = {}
       test_statuses = Hash.new(0)
 
-      say Text::Process::STARTING_TEST % test_files.size
       say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"]
       say Text::Process::TERMINATE_INSTRUCTION
       while tests_not_finished_yet do
@@ -305,7 +294,7 @@ class Tddium < Thor
           current_suite_name = params[:repo_name]
           if existing_suite
             # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
-            params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE, options[:name], current_suite_name)
+            params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE % params[:branch], options[:name], current_suite_name)
             if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
               # Use the existing suite, so assign the value back and exit the loop
               params[:repo_name] = current_suite_name
@@ -396,6 +385,24 @@ class Tddium < Thor
     abort msg
   end
 
+  def get_remembered_option(options, key, default, &block)
+    remembered = false
+    if options[key] != default
+      result = options[key]
+    elsif remembered = current_suite_options[key.to_s]
+      result = remembered
+      remembered = true
+    else
+      result = default
+    end
+    msg = Text::Process::USING_SPEC_OPTION[key] % result
+    msg +=  Text::Process::REMEMBERED if remembered
+    say msg
+    yield result if block_given? && result
+    result
+  end
+
+
   def get_user
     call_api(:get, Api::Path::USERS, {}, nil, false) rescue nil
   end
@@ -413,6 +420,7 @@ class Tddium < Thor
   end
 
   def git_push
+    say Text::Process::GIT_PUSH
     system("git push -f #{Git::REMOTE_NAME} #{current_git_branch}")
   end
 

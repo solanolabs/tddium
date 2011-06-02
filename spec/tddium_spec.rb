@@ -1334,7 +1334,7 @@ describe Tddium do
       context "but this user has already registered some suites" do
         before do
           stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, {"suites" => []})
-          tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return(Tddium::Text::Prompt::Response::YES)
+          tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return(Tddium::Text::Prompt::Response::YES)
         end
 
         shared_examples_for "writing the suite to file" do
@@ -1360,8 +1360,8 @@ describe Tddium do
         end
 
         context "passing no cli options" do
-          it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME}' " do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("something")
+          it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME}' " do
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("something")
             run_suite(tddium)
           end
         end
@@ -1404,7 +1404,7 @@ describe Tddium do
         end
 
         context "the user does not want to use the existing suite" do
-          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("some_other_suite") }
+          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("some_other_suite") }
 
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
@@ -1438,7 +1438,7 @@ describe Tddium do
 
           context "interactive mode" do
             before do
-              tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_APP_NAME).and_return("foobar")
+              tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("foobar")
               stub_default_suite_name
             end
 
