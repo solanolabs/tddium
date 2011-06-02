@@ -20,8 +20,7 @@ class HerokuConfig
       end
       return nil if REQUIRED_KEYS.inject(false) {|missing, x| !config[x]}
       result = config if config.keys.length > 0
-    rescue Errno::ENOENT
-    rescue Errno::EPERM
+    rescue 
     end
     result
   end
