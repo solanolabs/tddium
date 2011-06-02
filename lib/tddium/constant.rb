@@ -62,7 +62,7 @@ module TddiumConstant
     module Process
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
-      GIT_PUSH = "Pushing changes to Tddium."
+      GIT_PUSH = "Pushing changes to Tddium..."
       STARTING_TEST = "Startng %s tests..."
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
@@ -91,7 +91,7 @@ tddium spec
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
       USING_SPEC_OPTION = {:max_parallelism => "Max number of tests in parallel = %s",
                            :user_data_file => "Sending user data from %s",
-                           :test_pattern => "Running tests that match '%s'"}
+                           :test_pattern => "Selecting tests that match '%s'"}
       REMEMBERED = " (Remembered value)"
       HEROKU_WELCOME = "
 Thanks for installing the Tddium Heroku Add-On!

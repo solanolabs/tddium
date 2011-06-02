@@ -395,10 +395,14 @@ class Tddium < Thor
     else
       result = default
     end
-    msg = Text::Process::USING_SPEC_OPTION[key] % result
-    msg +=  Text::Process::REMEMBERED if remembered
-    say msg
-    yield result if block_given? && result
+    
+    if result
+      msg = Text::Process::USING_SPEC_OPTION[key] % result
+      msg +=  Text::Process::REMEMBERED if remembered
+      msg += "\n"
+      say msg
+      yield result if block_given?
+    end
     result
   end
 
