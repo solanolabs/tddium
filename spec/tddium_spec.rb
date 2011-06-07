@@ -460,6 +460,7 @@ describe Tddium do
       HighLine.stub(:ask).and_return("")
       create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), SAMPLE_LICENSE_TEXT)
       create_file(Tddium::Default::SSH_FILE, SAMPLE_SSH_PUBKEY)
+      HerokuConfig.stub(:read_config).and_return(nil)
     end
 
     it_should_behave_like "set the default environment"
