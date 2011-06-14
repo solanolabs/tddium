@@ -118,6 +118,15 @@ describe Tddium do
     result.and_return(*response_mocks) unless response_mocks.empty?
   end
 
+  def stub_call_api_error(method, path, code=500, response="Server Error")
+    result = tddium_client.stub(:call_api).with(method, path, anything, anything)
+    http_response = mock(TddiumClient::Error::Server)
+    http_response.stub(:body => nil,
+                              :code => code,
+                              :response => mock(:header => mock(:msg => response)))
+    result.and_raise(TddiumClient::Error::Server.new(http_response))
+  end
+
   def stub_cli_options(tddium, options = {})
     tddium.stub(:options).and_return(options)
   end
@@ -868,6 +877,16 @@ describe Tddium do
       end
 
       it_should_behave_like "sending the api key"
+
+      it "should fail on an API error" do
+        stub_call_api_error(:post, Tddium::Api::Path::SESSIONS, 403, "Access Denied")
+        spec_should_fail
+      end
+
+      it "should fail on any other error" do
+        tddium_client.stub(:call_api).with(anything, anything, anything, anything).and_raise("generic runtime error")
+        spec_should_fail
+      end
 
       context "'POST #{Tddium::Api::Path::SESSIONS}' is successful" do
         before do

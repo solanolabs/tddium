@@ -229,6 +229,9 @@ class Tddium < Thor
 
       exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
     rescue TddiumClient::Error::Base
+      exit_failure "Failed due to error communicating with Tddium"
+    rescue RuntimeError => e
+      exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
     end
   end
 
