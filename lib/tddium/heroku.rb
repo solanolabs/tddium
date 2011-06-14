@@ -16,7 +16,7 @@ class HerokuConfig
 
       output = ''
       Timeout::timeout(5) {
-        output = `#{command}`
+        output = `#{command} 2>&1`
       }
 
       output.lines.each do |line|

@@ -227,7 +227,7 @@ class Tddium < Thor
                                      "max_parallelism" => max_parallelism,
                                      "test_pattern" => test_pattern})
 
-      exit_failure if test_statuses["failed"] > 0 || test_statuses["errors"] > 0
+      exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
     rescue TddiumClient::Error::Base
     end
   end
@@ -518,9 +518,14 @@ class Tddium < Thor
     # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
     # Email address
     # Account creation date
-    say api_response["user"]["email"]
-    say api_response["user"]["created_at"]
-    say api_response["user"]["recurly_url"]
+    say "Username: "+api_response["user"]["email"]
+    say "Account Created: " + api_response["user"]["created_at"]
+    say "Recurly Management URL: " + api_response["user"]["recurly_url"]
+    say "CI Public Key: " + api_response["user"]["ci_ssh_pubkey"] if api_response["user"]["ci_ssh_pubkey"]
+    say "Suites: " + api_response["user"]["suites"] if api_response["user"]["suites"]
+  end
+
+  def show_ci_info(api_response)
   end
 
   def suite_for_current_branch?

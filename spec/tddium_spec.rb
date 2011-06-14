@@ -472,17 +472,17 @@ describe Tddium do
       end
 
       it "should show the user's email address" do
-        tddium.should_receive(:say).with(SAMPLE_EMAIL)
+        tddium.should_receive(:say).with(/#{SAMPLE_EMAIL}/)
         run_account(tddium)
       end
 
       it "should show the user's account creation date" do
-        tddium.should_receive(:say).with(SAMPLE_DATE_TIME)
+        tddium.should_receive(:say).with(/#{SAMPLE_DATE_TIME}/)
         run_account(tddium)
       end
 
       it "should show the user's recurly account url" do
-        tddium.should_receive(:say).with(SAMPLE_RECURLY_URL)
+        tddium.should_receive(:say).with(/#{SAMPLE_RECURLY_URL}/)
         run_account(tddium)
       end
 
@@ -1068,6 +1068,21 @@ describe Tddium do
 
                 it_should_behave_like("test output summary")
               end
+
+              context "with only errors" do
+                before do
+                  get_test_executions_response_errors = {"report"=>SAMPLE_REPORT_URL, "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/pig_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/dog_spec.rb"=>{"finished" => true, "status"=>"error"}, "spec/cat_spec.rb"=>{"finished" => true, "status"=>"error"}}}
+                  stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response_errors)
+                  stub_sleep(tddium)
+                end
+                it "should display a summary of all the tests and exit failure" do
+                  tddium.should_receive(:say).with("4 tests, 0 failures, 4 errors, 0 pending")
+                  spec_should_fail do
+                    tddium.should_receive(:exit_failure).once
+                  end
+                end
+              end
+
               context "with no errors" do
                 before do
                   get_test_executions_response_all_passed = {
