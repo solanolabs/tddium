@@ -297,6 +297,9 @@ class Tddium < Thor
 
   desc "suite", "Register the suite for this project, or manage its settings"
   method_option :name, :type => :string, :default => nil
+  method_option :pull_url, :type => :string, :default => nil
+  method_option :push_url, :type => :string, :default => nil
+  method_option :test_pattern, :type => :string, :default => nil
   method_option :environment, :type => :string, :default => nil
   def suite
     set_default_environment(options[:environment])
@@ -307,45 +310,20 @@ class Tddium < Thor
       if current_suite_id
         current_suite = call_api(:get, current_suite_path)["suite"]
 
-        say Text::Process::EXISTING_SUITE % "#{current_suite["repo_name"]}/#{current_suite["branch"]}"
+        say Text::Process::EXISTING_SUITE % suite_details(current_suite)
+        prompt_update_suite(current_suite, options)
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
         params[:repo_name] = options[:name] || default_suite_name
 
-        existing_suite = nil
-        use_existing_suite = false
-        suite_name_resolved = false
-        while !suite_name_resolved
-          # Check to see if there is an existing suite
-          current_suites = call_api(:get, Api::Path::SUITES, params)
-          existing_suite = current_suites["suites"].first
-
-          # Get the suite name
-          current_suite_name = params[:repo_name]
-          if existing_suite
-            # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
-            params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE % params[:branch], options[:name], current_suite_name)
-            if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
-              # Use the existing suite, so assign the value back and exit the loop
-              params[:repo_name] = current_suite_name
-              use_existing_suite = true
-              suite_name_resolved = true
-            end
-          elsif current_suite_name == default_suite_name
-            # Prompt for using default suite name or entering new one
-            params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], current_suite_name)
-            suite_name_resolved = true if params[:repo_name] == default_suite_name
-          else
-            # Suite name does not exist yet and already prompted
-            suite_name_resolved = true
-          end
-        end
+        use_existing_suite, existing_suite = resolve_suite_name(options, params)
 
         if use_existing_suite
           # Write to file and exit when using the existing suite
           write_suite(existing_suite["id"])
-          say Text::Status::USING_SUITE % [existing_suite["repo_name"], existing_suite["branch"]]
+          say Text::Status::USING_SUITE % suite_details(existing_suite)
+          prompt_update_suite(existing_suite, options)
           return
         end
 
@@ -353,17 +331,21 @@ class Tddium < Thor
         params[:bundler_version] = dependency_version(:bundle)
         params[:rubygems_version] = dependency_version(:gem)
 
+        prompt_suite_params(options, params)
 
         # Create new suite if it does not exist yet
-        say Text::Process::CREATING_SUITE % params[:repo_name]
+        say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
         # Save the created suite
         write_suite(new_suite["suite"]["id"])
 
         # Manage git
         update_git_remote_and_push(new_suite)
+
+        say Text::Process::CREATED_SUITE % suite_details(new_suite)
       end
     rescue TddiumClient::Error::Base
+      exit_failure
     end
   end
 
@@ -517,6 +499,38 @@ class Tddium < Thor
     data
   end
 
+  def resolve_suite_name(options, params)
+    # XXX updates params
+    existing_suite = nil
+    use_existing_suite = false
+    suite_name_resolved = false
+    while !suite_name_resolved
+      # Check to see if there is an existing suite
+      current_suites = call_api(:get, Api::Path::SUITES, params)
+      existing_suite = current_suites["suites"].first
+
+      # Get the suite name
+      current_suite_name = params[:repo_name]
+      if existing_suite
+        # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
+        params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE % params[:branch], options[:name], current_suite_name)
+        if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
+          # Use the existing suite, so assign the value back and exit the loop
+          params[:repo_name] = current_suite_name
+          use_existing_suite = true
+          suite_name_resolved = true
+        end
+      elsif current_suite_name == default_suite_name
+        # Prompt for using default suite name or entering new one
+        params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], current_suite_name)
+        suite_name_resolved = true if params[:repo_name] == default_suite_name
+      else
+        # Suite name does not exist yet and already prompted
+        suite_name_resolved = true
+      end
+    end
+    [use_existing_suite, existing_suite]
+  end
 
   def set_default_environment(env)
     if env.nil?
@@ -557,7 +571,23 @@ class Tddium < Thor
     say "Heroku Account Linked: #{api_response["user"]["heroku_activation_done"]}" if api_response["user"]["heroku"]
   end
 
-  def show_ci_info(api_response)
+  def suite_details(api_response)
+    # Given an API response containing a "suite" key, compose a string with
+    # important information about the suite
+    suite = api_response["suite"]
+    details =<<EOF;
+Repo: #{suite["repo_name"]}/#{suite["branch"]}
+Test Pattern: #{suite.fetch("test_pattern", "-default-")}
+EOF
+    if suite["ci_pull_url"]
+      details +=<<EOF;
+CI Pull URL: #{suite["ci_pull_url"]}
+CI Push URL: #{suite.fetch("ci_push_url", "-not set-")}
+CI Notifications:
+#{suite["ci_notifications"]}
+EOF
+    end
+    details
   end
 
   def suite_for_current_branch?
