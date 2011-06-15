@@ -74,19 +74,40 @@ describe Tddium do
     send("run_#{method}", tddium, options)
   end
 
-  [:suite, :spec, :status, :account, :login, :logout, :password].each do |method|
-    define_method("run_#{method}") do |tddium, *params|
+  [:suite, :spec, :status, :account, :login, :logout, :password, :heroku].each do |method|
+    def prep_params(method, params=nil)
       options = params.first || {}
       if method == :spec 
         options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
-        stub_exit_failure
       end
       options[:environment] = "test" unless options.has_key?(:environment)
+      options
+    end
+
+    define_method("run_#{method}") do |tddium, *params|
+      options = prep_params(method, params)
+      stub_exit_failure
       stub_cli_options(tddium, options)
       begin
         tddium.send(method)
       rescue EXIT_FAILURE_EXCEPTION
       end
+    end
+
+    define_method("#{method}_should_fail") do |tddium, *params|
+      options = prep_params(method, params)
+      stub_cli_options(tddium, options)
+      tddium.stub(:exit_failure).and_raise(SystemExit)
+      yield if block_given?
+      expect { tddium.send(method) }.to raise_error(SystemExit)
+    end
+
+    define_method("#{method}_should_pass") do |tddium, *params|
+      options = prep_params(method, params)
+      stub_cli_options(tddium, options)
+      tddium.stub(:exit_failure).and_raise(SystemExit)
+      yield if block_given?
+      expect { tddium.send(method) }.not_to raise_error
     end
   end
 
@@ -462,6 +483,126 @@ describe Tddium do
     end
   end
 
+  shared_examples_for "prompt for ssh key" do
+    context "--ssh-key-file is not supplied" do
+      it "should prompt the user for their ssh key file" do
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+        run(tddium)
+      end
+    end
+
+    context "--ssh-key-file is supplied" do
+      it "should not prompt the user for their ssh key file" do
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+        run(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
+      end
+    end
+  end
+
+  describe "#heroku" do
+    before do
+      stub_defaults
+      tddium.stub(:ask).and_return("")
+      HighLine.stub(:ask).and_return("")
+      create_file(File.join(File.dirname(__FILE__), "..", Tddium::License::FILE_NAME), SAMPLE_LICENSE_TEXT)
+      create_file(Tddium::Default::SSH_FILE, SAMPLE_SSH_PUBKEY)
+      HerokuConfig.stub(:read_config).and_raise(HerokuConfig::HerokuNotFound)
+    end
+
+    context "the user is logged in to heroku, but not to tddium" do
+      before do
+        HerokuConfig.stub(:read_config).and_return(SAMPLE_HEROKU_CONFIG)
+        @user_path = "#{Tddium::Api::Path::USERS}/#{SAMPLE_USER_ID}/"
+      end
+
+      context "the user has a properly configured add-on" do
+
+        context "first-time account activation" do
+          before do
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_HEROKU_USER_RESPONSE)
+            stub_call_api_response(:put, @user_path, {"status"=>0})
+          end
+
+          it_behaves_like "prompting for password" do
+            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
+          end
+
+          it_behaves_like "prompting for password" do
+            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
+          end
+
+          it_behaves_like "prompt for ssh key"
+
+          it "should display the heroku welcome" do
+            tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME % SAMPLE_EMAIL)
+            run_heroku(tddium)
+          end
+
+          it "should send a 'PUT' request to user_path with passwords" do
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
+            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
+            call_api_should_receive(:method => :put,
+                                :path => /#{@user_path}$/,
+                                :params => {:user =>
+                                   {:password => SAMPLE_PASSWORD,
+                                    :password_confirmation => SAMPLE_PASSWORD,
+                                    :user_git_pubkey => SAMPLE_SSH_PUBKEY},
+                                   :heroku_activation => true},
+                                :api_key => SAMPLE_API_KEY)
+            account_should_fail(tddium) # call_api_should_receive stubs call_api with an error
+          end
+
+          context "PUT with passwords is successful" do
+            before do
+              stub_call_api_response(:put, @user_path, {"status"=>0})
+            end
+
+            it_should_behave_like "writing the api key to the .tddium file"
+
+            it "should display the heroku configured welcome" do
+              tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+              run_heroku(tddium)
+            end
+          end
+
+          context "PUT is unsuccessful" do
+            before do
+              stub_call_api_response(:put, @user_path, {"status" => 1, "explanation"=> "PUT error"})
+            end
+
+            it "should display an error message and fail" do
+              account_should_fail(tddium) do
+                tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "200 OK (1) PUT error")
+              end
+            end
+          end
+        end
+
+        context "re-run after account is activated" do
+          before do 
+            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
+          end
+
+          it "should display the heroku configured welcome" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
+            run_heroku(tddium)
+          end
+        end
+      end
+
+      context "the heroku config contains an unrecognized API key" do
+        let(:call_api_result) {[403, "Forbidden"]}
+
+        it "should display an error message and fail" do
+          heroku_should_fail(tddium) do
+            tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user")
+          end
+        end
+      end
+    end
+  end
+
+
   describe "#account" do
     before do
       stub_defaults
@@ -495,122 +636,6 @@ describe Tddium do
         run_account(tddium)
       end
 
-    end
-
-    shared_examples_for "prompt for ssh key" do
-      context "--ssh-key-file is not supplied" do
-        it "should prompt the user for their ssh key file" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-          run_account(tddium)
-        end
-      end
-
-      context "--ssh-key-file is supplied" do
-        it "should not prompt the user for their ssh key file" do
-          tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
-          run_account(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
-        end
-      end
-    end
-
-    def account_should_fail(options={})
-      options[:environment] = "test" unless options.has_key?(:environment)
-      stub_cli_options(tddium, options)
-      tddium.stub(:exit_failure).and_raise(SystemExit)
-      yield if block_given?
-      expect { tddium.account }.to raise_error(SystemExit)
-    end
-
-    context "the user is logged in to heroku, but not to tddium" do
-      before do
-        HerokuConfig.stub(:read_config).and_return(SAMPLE_HEROKU_CONFIG)
-        @user_path = "#{Tddium::Api::Path::USERS}/#{SAMPLE_USER_ID}/"
-      end
-
-      context "the user has a properly configured add-on" do
-
-        context "first-time account activation" do
-          before do
-            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_HEROKU_USER_RESPONSE)
-            stub_call_api_response(:put, @user_path, {"status"=>0})
-          end
-
-          it_behaves_like "prompting for password" do
-            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD}
-          end
-
-          it_behaves_like "prompting for password" do
-            let(:password_prompt) {Tddium::Text::Prompt::PASSWORD_CONFIRMATION}
-          end
-
-          it_behaves_like "prompt for ssh key"
-
-          it "should display the heroku welcome" do
-            tddium.should_receive(:say).with(Tddium::Text::Process::HEROKU_WELCOME % SAMPLE_EMAIL)
-            run_account(tddium)
-          end
-
-          it "should send a 'PUT' request to user_path with passwords" do
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD).and_return(SAMPLE_PASSWORD)
-            HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return(SAMPLE_PASSWORD)
-            call_api_should_receive(:method => :put,
-                                :path => /#{@user_path}$/,
-                                :params => {:user =>
-                                   {:password => SAMPLE_PASSWORD,
-                                    :password_confirmation => SAMPLE_PASSWORD,
-                                    :user_git_pubkey => SAMPLE_SSH_PUBKEY},
-                                   :heroku_activation => true},
-                                :api_key => SAMPLE_API_KEY)
-            account_should_fail # call_api_should_receive stubs call_api with an error
-          end
-
-          context "PUT with passwords is successful" do
-            before do
-              stub_call_api_response(:put, @user_path, {"status"=>0})
-            end
-
-            it_should_behave_like "writing the api key to the .tddium file"
-
-            it "should display the heroku configured welcome" do
-              tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
-              run_account(tddium)
-            end
-          end
-
-          context "PUT is unsuccessful" do
-            before do
-              stub_call_api_response(:put, @user_path, {"status" => 1, "explanation"=> "PUT error"})
-            end
-
-            it "should display an error message and fail" do
-              account_should_fail do
-                tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "200 OK (1) PUT error")
-              end
-            end
-          end
-        end
-
-        context "re-run after account is activated" do
-          before do 
-            stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
-          end
-
-          it "should display the heroku configured welcome" do
-            tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
-            run_account(tddium)
-          end
-        end
-      end
-
-      context "the heroku config contains an unrecognized API key" do
-        let(:call_api_result) {[403, "Forbidden"]}
-
-        it "should display an error message and fail" do
-          account_should_fail do
-            tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user")
-          end
-        end
-      end
     end
 
     context "the user is not already logged in" do
@@ -797,29 +822,11 @@ describe Tddium do
     it_should_behave_like ".tddium file is missing or corrupt"
     it_should_behave_like "suite has not been initialized"
 
-    def spec_should_fail(options={})
-      options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
-      options[:environment] = "test" unless options.has_key?(:environment)
-      stub_cli_options(tddium, options)
-      tddium.stub(:exit_failure).and_raise(SystemExit)
-      yield if block_given?
-      expect { tddium.spec }.to raise_error(SystemExit)
-    end
-
-    def spec_should_pass(options={})
-      options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
-      options[:environment] = "test" unless options.has_key?(:environment)
-      stub_cli_options(tddium, options)
-      tddium.stub(:exit_failure).and_raise(SystemExit)
-      yield if block_given?
-      expect { tddium.spec }.not_to raise_error
-    end
-
     context "user-data-file" do
       context "does not exist" do
         context "from command line option" do
           it "should be picked first" do
-            spec_should_fail(:user_data_file => SAMPLE_FILE_PATH) do
+            spec_should_fail(tddium, :user_data_file => SAMPLE_FILE_PATH) do
               tddium.should_receive(:exit_failure).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH)
             end
           end
@@ -829,7 +836,7 @@ describe Tddium do
           before { stub_config_file(:branches => {SAMPLE_BRANCH_NAME => {"id" => SAMPLE_SUITE_ID, "options" => {"user_data_file" => SAMPLE_FILE_PATH2}}}) }
 
           it "should be picked if no command line option" do
-            spec_should_fail do
+            spec_should_fail(tddium) do
               tddium.should_receive(:exit_failure).with(Tddium::Text::Error::NO_USER_DATA_FILE % SAMPLE_FILE_PATH2)
             end
           end
@@ -837,12 +844,12 @@ describe Tddium do
 
         it "should not try to git push" do
           tddium.should_not_receive(:system).with(/^git push/)
-          spec_should_fail(:user_data_file => SAMPLE_FILE_PATH)
+          spec_should_fail(tddium, :user_data_file => SAMPLE_FILE_PATH)
         end
 
         it "should not call the api" do
           tddium_client.should_not_receive(:call_api)
-          spec_should_fail(:user_data_file => SAMPLE_FILE_PATH)
+          spec_should_fail(tddium, :user_data_file => SAMPLE_FILE_PATH)
         end
       end
     end
@@ -880,12 +887,12 @@ describe Tddium do
 
       it "should fail on an API error" do
         stub_call_api_error(:post, Tddium::Api::Path::SESSIONS, 403, "Access Denied")
-        spec_should_fail
+        spec_should_fail(tddium)
       end
 
       it "should fail on any other error" do
         tddium_client.stub(:call_api).with(anything, anything, anything, anything).and_raise("generic runtime error")
-        spec_should_fail
+        spec_should_fail(tddium)
       end
 
       context "'POST #{Tddium::Api::Path::SESSIONS}' is successful" do
@@ -1075,7 +1082,7 @@ describe Tddium do
 
                 it "should display a summary of all the tests" do
                   tddium.should_receive(:say).with("4 tests, 1 failures, 1 errors, 1 pending")
-                  spec_should_fail do
+                  spec_should_fail(tddium) do
                     tddium.should_receive(:exit_failure).once
                   end
                 end
@@ -1096,7 +1103,7 @@ describe Tddium do
                 end
                 it "should display a summary of all the tests and exit failure" do
                   tddium.should_receive(:say).with("4 tests, 0 failures, 4 errors, 0 pending")
-                  spec_should_fail do
+                  spec_should_fail(tddium) do
                     tddium.should_receive(:exit_failure).once
                   end
                 end
@@ -1136,7 +1143,7 @@ describe Tddium do
 
                 it "should display a summary of all the tests" do
                   tddium.should_receive(:say).with("4 tests, 0 failures, 0 errors, 0 pending")
-                  spec_should_pass do
+                  spec_should_pass(tddium) do
                     tddium.should_not_receive(:exit_failure)
                   end
                 end

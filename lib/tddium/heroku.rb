@@ -5,6 +5,10 @@ Copyright (c) 2011 Solano Labs All Rights Reserved
 require 'timeout'
 
 class HerokuConfig
+  class HerokuNotFound < RuntimeError; end
+  class TddiumNotAdded < RuntimeError; end
+  class InvalidFormat < RuntimeError; end
+
   REQUIRED_KEYS = %w{TDDIUM_API_KEY TDDIUM_USER_NAME}
   def self.read_config(app=nil)
     result = nil

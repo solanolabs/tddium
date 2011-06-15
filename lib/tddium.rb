@@ -33,16 +33,11 @@ class Tddium < Thor
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
   method_option :ssh_key_file, :type => :string, :default => nil
-  method_option :app, :type => :string, :default => nil
   def account
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
       show_user_details(user_details)
-    elsif heroku_config = HerokuConfig.read_config(options[:app])
-      # User has logged in to heroku, and TDDIUM environment variables are
-      # present
-      handle_heroku_user(options, heroku_config)
     else
       params = get_user_credentials(options.merge(:invited => true))
 
@@ -73,6 +68,34 @@ class Tddium < Thor
         say((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
       rescue TddiumClient::Error::Base => e
         say e.message
+      end
+    end
+  end
+
+  desc "heroku", "Connect Heroku account with Tddium"
+  method_option :environment, :type => :string, :default => nil
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  method_option :ssh_key_file, :type => :string, :default => nil
+  method_option :app, :type => :string, :default => nil
+  def heroku
+    set_default_environment(options[:environment])
+    if user_details = user_logged_in?
+      # User is already logged in, so just display the info
+      say Text::Status::HEROKU_CONFIG
+      show_user_details(user_details)
+    else
+      begin
+        heroku_config = HerokuConfig.read_config(options[:app])
+        # User has logged in to heroku, and TDDIUM environment variables are
+        # present
+        handle_heroku_user(options, heroku_config)
+      rescue HerokuConfig::HerokuNotFound
+        exit_failure Text::Error::Heroku::NotFound
+      rescue HerokuConfig::TddiumNotAdded
+        exit_failure Text::Error::Heroku::NotAdded
+      rescue HerokuConfig::InvalidFormat
+        exit_failure Text::Error::Heroku::InvalidFormat
       end
     end
   end

@@ -53,8 +53,8 @@ DB_URL=postgres://foo/bar
         HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_return(SAMPLE_HEROKU_CONFIG_PARTIAL)
       end
 
-      it "should return nil" do
-        HerokuConfig.read_config.should be_nil
+      it "should raise InvalidFormat" do
+        expect { HerokuConfig.read_config }.to raise_error(HerokuConfig::InvalidFormat)
       end
     end
 
@@ -63,8 +63,8 @@ DB_URL=postgres://foo/bar
         HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_return(SAMPLE_HEROKU_CONFIG_NO_TDDIUM)
       end
 
-      it "should return nil" do
-        HerokuConfig.read_config.should be_nil
+      it "should raise NotAdded" do
+        expect { HerokuConfig.read_config }.to raise_error(HerokuConfig::TddiumNotAdded)
       end
     end
 
@@ -72,8 +72,8 @@ DB_URL=postgres://foo/bar
       before do
         HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_raise(Errno::ENOENT)
       end
-      it "should return nil" do
-        HerokuConfig.read_config.should be_nil
+      it "should raise HerokuNotFound" do
+        expect { HerokuConfig.read_config }.to raise_error(HerokuConfig::HerokuNotFound)
       end
     end
   end
