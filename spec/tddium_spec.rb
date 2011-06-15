@@ -549,7 +549,7 @@ describe Tddium do
                                     :user_git_pubkey => SAMPLE_SSH_PUBKEY},
                                    :heroku_activation => true},
                                 :api_key => SAMPLE_API_KEY)
-            account_should_fail(tddium) # call_api_should_receive stubs call_api with an error
+            heroku_should_fail(tddium) # call_api_should_receive stubs call_api with an error
           end
 
           context "PUT with passwords is successful" do
@@ -571,7 +571,7 @@ describe Tddium do
             end
 
             it "should display an error message and fail" do
-              account_should_fail(tddium) do
+              heroku_should_fail(tddium) do
                 tddium.should_receive(:exit_failure).with(Tddium::Text::Error::HEROKU_MISCONFIGURED % "200 OK (1) PUT error")
               end
             end

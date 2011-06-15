@@ -82,7 +82,6 @@ class Tddium < Thor
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
-      say Text::Status::HEROKU_CONFIG
       show_user_details(user_details)
     else
       begin
@@ -91,11 +90,17 @@ class Tddium < Thor
         # present
         handle_heroku_user(options, heroku_config)
       rescue HerokuConfig::HerokuNotFound
-        exit_failure Text::Error::Heroku::NotFound
+        gemlist = `gem list heroku`
+        msg = Text::Error::Heroku::NOT_FOUND % gemlist
+        exit_failure msg
       rescue HerokuConfig::TddiumNotAdded
-        exit_failure Text::Error::Heroku::NotAdded
+        exit_failure Text::Error::Heroku::NOT_ADDED
       rescue HerokuConfig::InvalidFormat
-        exit_failure Text::Error::Heroku::InvalidFormat
+        exit_failure Text::Error::Heroku::INVALID_FORMAT
+      rescue HerokuConfig::NotLoggedIn
+        exit_failure Text::Error::Heroku::NOT_LOGGED_IN
+      rescue HerokuConfig::AppNotFound
+        exit_failure Text::Error::Heroku::APP_NOT_FOUND % options[:app]
       end
     end
   end
@@ -549,6 +554,7 @@ class Tddium < Thor
     say "Recurly Management URL: " + api_response["user"]["recurly_url"]
     say "CI Public Key: " + api_response["user"]["ci_ssh_pubkey"] if api_response["user"]["ci_ssh_pubkey"]
     say "Suites: " + api_response["user"]["suites"] if api_response["user"]["suites"]
+    say "Heroku Account Linked: #{api_response["user"]["heroku_activation_done"]}" if api_response["user"]["heroku"]
   end
 
   def show_ci_info(api_response)

@@ -18,10 +18,11 @@ TDDIUM_API_KEY=abcdefg
   SAMPLE_HEROKU_CONFIG_NO_TDDIUM = "
 DB_URL=postgres://foo/bar
 "
+  SAMPLE_HEROKU_COMMAND = "heroku config -s < /dev/null 2>&1"
   describe ".read_config" do
     context "addon installed" do
       before do
-        HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_return(SAMPLE_HEROKU_CONFIG_TDDIUM)
+        HerokuConfig.stub(:`).with(SAMPLE_HEROKU_COMMAND).and_return(SAMPLE_HEROKU_CONFIG_TDDIUM)
       end
 
       it "should return a hash of the TDDIUM config vars" do
@@ -38,8 +39,9 @@ DB_URL=postgres://foo/bar
 
     context "with app specified" do
       before do
-        HerokuConfig.stub(:`).with("heroku config -s --app #{SAMPLE_APP} 2>&1").and_return(SAMPLE_HEROKU_CONFIG_TDDIUM)
-        HerokuConfig.should_receive(:`).with("heroku config -s --app #{SAMPLE_APP} 2>&1")
+        cmd = "heroku config -s --app #{SAMPLE_APP} < /dev/null 2>&1"
+        HerokuConfig.stub(:`).with(cmd).and_return(SAMPLE_HEROKU_CONFIG_TDDIUM)
+        HerokuConfig.should_receive(:`).with(cmd)
       end
 
       it "should pass the app to heroku config" do
@@ -50,7 +52,7 @@ DB_URL=postgres://foo/bar
 
     context "missing config" do
       before do
-        HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_return(SAMPLE_HEROKU_CONFIG_PARTIAL)
+        HerokuConfig.stub(:`).with(SAMPLE_HEROKU_COMMAND).and_return(SAMPLE_HEROKU_CONFIG_PARTIAL)
       end
 
       it "should raise InvalidFormat" do
@@ -60,7 +62,7 @@ DB_URL=postgres://foo/bar
 
     context "addon not installed" do
       before do
-        HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_return(SAMPLE_HEROKU_CONFIG_NO_TDDIUM)
+        HerokuConfig.stub(:`).with(SAMPLE_HEROKU_COMMAND).and_return(SAMPLE_HEROKU_CONFIG_NO_TDDIUM)
       end
 
       it "should raise NotAdded" do
@@ -70,7 +72,7 @@ DB_URL=postgres://foo/bar
 
     context "heroku not installed" do
       before do
-        HerokuConfig.stub(:`).with("heroku config -s 2>&1").and_raise(Errno::ENOENT)
+        HerokuConfig.stub(:`).with(SAMPLE_HEROKU_COMMAND).and_raise(Errno::ENOENT)
       end
       it "should raise HerokuNotFound" do
         expect { HerokuConfig.read_config }.to raise_error(HerokuConfig::HerokuNotFound)
