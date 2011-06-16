@@ -16,9 +16,13 @@ Gem::Specification.new do |s|
   s.summary     = %q{tddium Hosted Ruby Testing}
   s.description = <<-EOF
 tddium runs your rspec, cucumber, and test::unit tests in our managed
-cloud environment. Tests run in parallel to save you time, and, if you use
-Rails, tddium takes care of setting up fresh isolated DB instances for each test
-instance.  Tests can also access a limited set of private Selenium RC servers.
+cloud environment.  You can run tests by hand, or enable our hosted CI to watch
+your git repos automatically.
+
+Tests run in parallel to save you time, and, if you use Rails, tddium takes care
+of setting up fresh isolated DB instances for each test instance.
+
+Tests can access a limited set of private Selenium RC servers.
 EOF
 
   s.rubyforge_project = "tddium"

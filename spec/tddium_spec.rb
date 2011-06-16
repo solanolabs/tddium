@@ -917,12 +917,10 @@ describe Tddium do
 
         context "test pattern" do
           context "default test pattern" do
-            it "should POST the names of the file names extracted from the test_pattern parameter" do
+            it "should POST the test_pattern parameter" do
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"},
-                                                 {:test_name => "#{current_dir}/spec/dog_spec.rb"},
-                                                 {:test_name => "#{current_dir}/spec/mouse_spec.rb"}]})
+                                                  :test_pattern => DEFAULT_TEST_PATTERN})
               run_spec(tddium)
             end
           end
@@ -931,7 +929,7 @@ describe Tddium do
             it "should POST the names of the file names extracted from the test_pattern parameter" do
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
+                                      :test_pattern => CUSTOM_TEST_PATTERN})
               run_spec(tddium, {:test_pattern=>CUSTOM_TEST_PATTERN})
             end
           end
@@ -941,7 +939,7 @@ describe Tddium do
               tddium.stub(:current_suite_options).and_return({'test_pattern'=>CUSTOM_TEST_PATTERN})
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                      :tests => [{:test_name => "#{current_dir}/spec/cat_spec.rb"}]})
+                                      :test_pattern => CUSTOM_TEST_PATTERN})
               run_spec(tddium)
             end
           end
@@ -1005,8 +1003,8 @@ describe Tddium do
               run_spec(tddium)
             end
 
-            it "should tell the user '#{Tddium::Text::Process::STARTING_TEST % 3}'" do
-              tddium.should_receive(:say).with(Tddium::Text::Process::STARTING_TEST % 3)
+            it "should tell the user '#{Tddium::Text::Process::STARTING_TEST % 1}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::STARTING_TEST % 1)
               run_spec(tddium)
             end
 

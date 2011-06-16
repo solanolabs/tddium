@@ -188,23 +188,18 @@ class Tddium < Thor
       # Push the latest code to git
       exit_failure unless update_git_remote_and_push(suite_details)
 
-      # Get a list of files to be tested
-      test_files = Dir.glob(test_pattern).collect {|file_path| {:test_name => file_path}}
-
-      if test_files.empty?
-        exit_failure Text::Error::NO_MATCHING_FILES % test_pattern
-      end
-
       # Create a session
       new_session = call_api(:post, Api::Path::SESSIONS)
       session_id = new_session["session"]["id"]
 
       # Register the tests
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :tests => test_files})
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :test_pattern => test_pattern})
 
-      say Text::Process::STARTING_TEST % test_files.size
       # Start the tests
       start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
+      
+      say Text::Process::STARTING_TEST % start_test_executions["started"]
+
       tests_not_finished_yet = true
       finished_tests = {}
       test_statuses = Hash.new(0)
