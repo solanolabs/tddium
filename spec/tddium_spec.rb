@@ -32,7 +32,7 @@ describe Tddium do
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
   SAMPLE_USER_ID = 1
-  DEFAULT_TEST_PATTERN = Tddium::Default::TEST_PATTERN
+  DEFAULT_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_SUITE_PATTERN = "features/*.feature, spec/**/*_spec.rb"
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
   SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME,
@@ -84,9 +84,6 @@ describe Tddium do
   [:suite, :spec, :status, :account, :login, :logout, :password, :heroku].each do |method|
     def prep_params(method, params=nil)
       options = params.first || {}
-      if method == :spec 
-        options[:test_pattern] = DEFAULT_TEST_PATTERN unless options.has_key?(:test_pattern)
-      end
       options[:environment] = "test" unless options.has_key?(:environment)
       options
     end
@@ -920,13 +917,13 @@ describe Tddium do
             it "should POST the test_pattern parameter" do
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
-                                                  :test_pattern => DEFAULT_TEST_PATTERN})
+                                                  :test_pattern => nil})
               run_spec(tddium)
             end
           end
 
           context "--test-pattern=#{CUSTOM_TEST_PATTERN}" do
-            it "should POST the names of the file names extracted from the test_pattern parameter" do
+            it "should post the test_pattern extracted from the test_pattern parameter" do
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
                                       :test_pattern => CUSTOM_TEST_PATTERN})
@@ -935,7 +932,7 @@ describe Tddium do
           end
 
           context "remembered from last run" do
-            it "should POST the names of the file names extracted from the remembered test_pattern" do
+            it "should POST the remembered test_pattern" do
               tddium.stub(:current_suite_options).and_return({'test_pattern'=>CUSTOM_TEST_PATTERN})
               current_dir = Dir.pwd
               call_api_should_receive(:params => {:suite_id => SAMPLE_SUITE_ID,
@@ -1093,7 +1090,7 @@ describe Tddium do
                 end
 
                 it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
                   run_spec(tddium, {:max_parallelism => 3})
                 end
 
@@ -1154,7 +1151,7 @@ describe Tddium do
                 end
 
                 it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => DEFAULT_TEST_PATTERN})
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
                   run_spec(tddium, {:max_parallelism => 3})
                 end
 

@@ -177,7 +177,7 @@ class Tddium < Thor
       test_execution_params[:max_parallelism] = max_parallelism
     end
     
-    test_pattern = get_remembered_option(options, :test_pattern, Default::TEST_PATTERN)
+    test_pattern = get_remembered_option(options, :test_pattern, nil)
 
     start_time = Time.now
 
