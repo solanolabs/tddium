@@ -156,7 +156,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   method_option :user_data_file, :type => :string, :default => nil
   method_option :max_parallelism, :type => :numeric, :default => nil
-  method_option :test_pattern, :type => :string, :default => Default::TEST_PATTERN
+  method_option :test_pattern, :type => :string, :default => nil
   def spec
     set_default_environment(options[:environment])
     exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
