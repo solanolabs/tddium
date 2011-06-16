@@ -312,7 +312,7 @@ class Tddium < Thor
         current_suite = call_api(:get, current_suite_path)["suite"]
 
         say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
-        prompt_update_suite(current_suite, options)
+        #prompt_update_suite(current_suite, options)
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
@@ -324,7 +324,7 @@ class Tddium < Thor
           # Write to file and exit when using the existing suite
           write_suite(existing_suite["id"])
           say Text::Status::USING_SUITE % format_suite_details(existing_suite)
-          prompt_update_suite(existing_suite, options)
+          #prompt_update_suite(existing_suite, options)
           return
         end
 

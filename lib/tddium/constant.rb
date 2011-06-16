@@ -77,9 +77,9 @@ module TddiumConstant
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
-      EXISTING_SUITE = "Current suite:\n%s"
+      EXISTING_SUITE = "Current suite...\n\n%s"
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
-      CREATED_SUITE = "Created suite:\n%s"
+      CREATED_SUITE = "Created suite...\n\n%s"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
       ACCOUNT_CREATED = "
@@ -127,7 +127,7 @@ with Tddium.
       SESSION_TITLE = "  Session %s:"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
-      USING_SUITE = "Using suite:\n%s"
+      USING_SUITE = "Using suite...\n\n%s"
       USER_DETAILS =<<EOF;
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
@@ -154,23 +154,21 @@ $ tddium spec
 Repo: <%=suite["repo_name"]%>/<%=suite["branch"]%>
 Default Test Pattern: <%=suite["test_pattern"]%>
 <% if suite["ci_pull_url"] %>
-
 Tddium Hosted CI is enabled with the following parameters:
 
 Pull URL: <%=suite["ci_pull_url"]%>
 Push URL: <%=suite["ci_push_url"]%>
-Notifications:
-:ci_notifications
 
-Tddium git pulls and pushes via SSH need to be authenticated.
-Create a git user for tddium, and paste this key into it's authorized_keys file:
+Notifications:
+<%=suite["ci_notifications"]%>
+
+Authorize the following SSH key to let Tddium's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
 
 To trigger CI builds, POST to the following URL from a post-commit hook:
 
-<%=suite["hook_url"]%>
-
+<%=suite["hook_uri"]%>
 <% end %>
 EOF
     end
