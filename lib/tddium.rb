@@ -336,7 +336,7 @@ class Tddium < Thor
         write_suite(new_suite["suite"]["id"])
 
         # Manage git
-        update_git_remote_and_push(new_suite)
+        exit_failure("Failed to push repo to Tddium!") unless update_git_remote_and_push(new_suite)
 
         say Text::Process::CREATED_SUITE % format_suite_details(new_suite["suite"])
       end
