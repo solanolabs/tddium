@@ -57,15 +57,15 @@ module TddiumConstant
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
-      TEST_PATTERN = "Default test pattern: "
+      TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       ENABLE_CI = "Do you want to configure Hosted Continuous Integration?"
       UPDATE_SUITE = "Do you want to edit settings for this suite?"
-      CI_PULL_URL = "git URL to pull from:"
-      CI_PUSH_URL = "git URL to push on passing tests (blank to disable):"
+      CI_PULL_URL = "Enter a git URL to pull from:"
+      CI_PUSH_URL = "Enter a git URL to push when tests pass (blank to disable):"
       ENABLE_CAMPFIRE = "Setup Campfire CI notifications?"
-      CAMPFIRE_SUBDOMAIN = "Campfire Subdomain:"
-      CAMPFIRE_ROOM = "Campfire Room:"
-      CAMPFIRE_TOKEN = "Campfire API Token:"
+      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain:"
+      CAMPFIRE_ROOM = "Enter the Campfire room name:"
+      CAMPFIRE_TOKEN = "Enter your Campfire API Token:"
     end
 
     module Process

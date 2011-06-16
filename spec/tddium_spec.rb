@@ -1483,7 +1483,7 @@ describe Tddium do
           context "interactive mode" do
             before do
               tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("foobar")
-              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN).and_return(SAMPLE_SUITE_PATTERN)
+              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::SUITE_TEST_PATTERN).and_return(SAMPLE_SUITE_PATTERN)
               stub_default_suite_name
             end
 
