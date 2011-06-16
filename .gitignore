@@ -49,4 +49,5 @@ nbproject
 #
 # For vim:
 *.swp
+*.swo
 .tddium.staging

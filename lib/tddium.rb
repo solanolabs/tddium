@@ -8,6 +8,7 @@ require "highline/import"
 require "json"
 require "tddium_client"
 require "base64"
+require 'erb'
 require File.expand_path("../tddium/constant", __FILE__)
 require File.expand_path("../tddium/heroku", __FILE__)
 
@@ -310,19 +311,19 @@ class Tddium < Thor
       if current_suite_id
         current_suite = call_api(:get, current_suite_path)["suite"]
 
-        say Text::Process::EXISTING_SUITE % suite_details(current_suite)
+        say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
         prompt_update_suite(current_suite, options)
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
         params[:repo_name] = options[:name] || default_suite_name
 
-        use_existing_suite, existing_suite = resolve_suite_name(options, params)
+        use_existing_suite, existing_suite = resolve_suite_name(options, params, default_suite_name)
 
         if use_existing_suite
           # Write to file and exit when using the existing suite
           write_suite(existing_suite["id"])
-          say Text::Status::USING_SUITE % suite_details(existing_suite)
+          say Text::Status::USING_SUITE % format_suite_details(existing_suite)
           prompt_update_suite(existing_suite, options)
           return
         end
@@ -342,7 +343,7 @@ class Tddium < Thor
         # Manage git
         update_git_remote_and_push(new_suite)
 
-        say Text::Process::CREATED_SUITE % suite_details(new_suite)
+        say Text::Process::CREATED_SUITE % format_suite_details(new_suite["suite"])
       end
     rescue TddiumClient::Error::Base
       exit_failure
@@ -499,7 +500,24 @@ class Tddium < Thor
     data
   end
 
-  def resolve_suite_name(options, params)
+  def prompt_suite_params(options, params)
+    params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::SUITE_TEST_PATTERN)
+    if prompt(Text::Prompt::ENABLE_CI, options[:pull_url] ? 'y' : nil, 'n') == Text::Prompt::Response::YES
+      params[:ci_pull_url] = prompt(Text::Prompt::CI_PULL_URL, options[:pull_url], nil)
+      params[:ci_push_url] = prompt(Text::Prompt::CI_PUSH_URL, options[:push_url], nil)
+      if prompt(Text::Prompt::ENABLE_CAMPFIRE, nil, 'n') == Text::Prompt::Response::YES
+        params[:campfire_subdomain] = prompt(Text::Prompt::CAMPFIRE_SUBDOMAIN, options[:campfire_subdomain], nil)
+        params[:campfire_token] = prompt(Text::Prompt::CAMPFIRE_TOKEN, options[:campfire_token], nil)
+        params[:campfire_room] = prompt(Text::Prompt::CAMPFIRE_ROOM, options[:campfire_room], nil)
+      end
+    end
+  end
+
+  def prompt_update_suite(api_response, options)
+    say Text::Prompt::UPDATE_SUITE
+  end
+
+  def resolve_suite_name(options, params, default_suite_name)
     # XXX updates params
     existing_suite = nil
     use_existing_suite = false
@@ -563,30 +581,14 @@ class Tddium < Thor
     # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
     # Email address
     # Account creation date
-    say "Username: "+api_response["user"]["email"]
-    say "Account Created: " + api_response["user"]["created_at"]
-    say "Recurly Management URL: " + api_response["user"]["recurly_url"]
-    say "CI Public Key: " + api_response["user"]["ci_ssh_pubkey"] if api_response["user"]["ci_ssh_pubkey"]
-    say "Suites: " + api_response["user"]["suites"] if api_response["user"]["suites"]
-    say "Heroku Account Linked: #{api_response["user"]["heroku_activation_done"]}" if api_response["user"]["heroku"]
+    user = api_response["user"]
+    say ERB.new(Text::Status::USER_DETAILS).result(binding)
   end
 
-  def suite_details(api_response)
+  def format_suite_details(suite)
     # Given an API response containing a "suite" key, compose a string with
     # important information about the suite
-    suite = api_response["suite"]
-    details =<<EOF;
-Repo: #{suite["repo_name"]}/#{suite["branch"]}
-Test Pattern: #{suite.fetch("test_pattern", "-default-")}
-EOF
-    if suite["ci_pull_url"]
-      details +=<<EOF;
-CI Pull URL: #{suite["ci_pull_url"]}
-CI Push URL: #{suite.fetch("ci_push_url", "-not set-")}
-CI Notifications:
-#{suite["ci_notifications"]}
-EOF
-    end
+    details = ERB.new(Text::Status::SUITE_DETAILS).result(binding)
     details
   end
 

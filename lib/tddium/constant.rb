@@ -13,6 +13,7 @@ module TddiumConstant
     ENVIRONMENT = "production"
     SSH_FILE = "~/.ssh/id_rsa.pub"
     TEST_PATTERN = "spec/**/*_spec.rb"
+    SUITE_TEST_PATTERN = "features/*.feature, spec/**/*_spec.rb, test/**/test_*.rb"
   end
 
   module Git
@@ -57,6 +58,15 @@ module TddiumConstant
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
+      TEST_PATTERN = "Default test pattern: "
+      ENABLE_CI = "Do you want to configure Hosted Continuous Integration?"
+      UPDATE_SUITE = "Do you want to edit settings for this suite?"
+      CI_PULL_URL = "git URL to pull from:"
+      CI_PUSH_URL = "git URL to push on passing tests (blank to disable):"
+      ENABLE_CAMPFIRE = "Setup Campfire CI notifications?"
+      CAMPFIRE_SUBDOMAIN = "Campfire Subdomain:"
+      CAMPFIRE_ROOM = "Campfire Room:"
+      CAMPFIRE_TOKEN = "Campfire API Token:"
     end
 
     module Process
@@ -67,8 +77,9 @@ module TddiumConstant
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
-      EXISTING_SUITE = "Current suite: %s"
-      CREATING_SUITE = "Creating suite '%s'.  This will take a few seconds."
+      EXISTING_SUITE = "Current suite:\n%s"
+      CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
+      CREATED_SUITE = "Created suite:\n%s"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
       ACCOUNT_CREATED = "
@@ -116,7 +127,15 @@ with Tddium.
       SESSION_TITLE = "  Session %s:"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
-      USING_SUITE = "Using suite: '%s' on branch: '%s'"
+      USING_SUITE = "Using suite:\n%s"
+      USER_DETAILS =<<EOF;
+Username: <%=user["email"]%>
+Account Created: <%=user["created_at"]%>
+Recurly Management URL: <%=user["recurly_url"]%>
+<% if user["heroku"] %>
+Heroku Account Linked: <%=user["heroku_activation_done"]%>
+<% end %>
+EOF
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
 
@@ -131,6 +150,29 @@ $ tddium suite
 $ tddium spec
 
 "
+      SUITE_DETAILS =<<EOF;
+Repo: <%=suite["repo_name"]%>/<%=suite["branch"]%>
+Default Test Pattern: <%=suite["test_pattern"]%>
+<% if suite["ci_pull_url"] %>
+
+Tddium Hosted CI is enabled with the following parameters:
+
+Pull URL: <%=suite["ci_pull_url"]%>
+Push URL: <%=suite["ci_push_url"]%>
+Notifications:
+:ci_notifications
+
+Tddium git pulls and pushes via SSH need to be authenticated.
+Create a git user for tddium, and paste this key into it's authorized_keys file:
+
+<%=suite["ci_ssh_pubkey"]%>
+
+To trigger CI builds, POST to the following URL from a post-commit hook:
+
+<%=suite["hook_url"]%>
+
+<% end %>
+EOF
     end
 
     module Error
