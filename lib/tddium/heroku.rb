@@ -33,6 +33,7 @@ class HerokuConfig
       line.chomp!
       k, v = line.split('=')
       if k =~ /^TDDIUM_/ && v.length > 0
+        k.sub!("TDDIUM_STAGE", "TDDIUM")
         config[k] = v
       end
     end

@@ -60,12 +60,12 @@ module TddiumConstant
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
       ENABLE_CI = "Do you want to configure Hosted Continuous Integration?"
       UPDATE_SUITE = "Do you want to edit settings for this suite?"
-      CI_PULL_URL = "Enter a git URL to pull from:"
-      CI_PUSH_URL = "Enter a git URL to push when tests pass (blank to disable):"
+      CI_PULL_URL = "Enter a git URL to pull from (default '%s'):"
+      CI_PUSH_URL = "Push to git URL on tests pass (unset=disable) (default '%s'):"
       ENABLE_CAMPFIRE = "Setup Campfire CI notifications?"
-      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain:"
-      CAMPFIRE_ROOM = "Enter the Campfire room name:"
-      CAMPFIRE_TOKEN = "Enter your Campfire API Token:"
+      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s'):"
+      CAMPFIRE_ROOM = "Enter the Campfire room name (default '%s'):"
+      CAMPFIRE_TOKEN = "Enter your Campfire API Token (default '%s'):"
     end
 
     module Process
@@ -108,10 +108,13 @@ Thanks for installing the Tddium Heroku Add-On!
 
 Your tddium username is: %s
 
+"
+      HEROKU_ACTIVATE = "
 Next, set a password and provide an SSH key to authenticate your communication
 with Tddium.
-
 "
+      UPDATED_SUITE = "Updated suite successfully."
+
     end
 
     module Status

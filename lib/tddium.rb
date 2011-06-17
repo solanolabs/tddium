@@ -307,7 +307,7 @@ class Tddium < Thor
         current_suite = call_api(:get, current_suite_path)["suite"]
 
         say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
-        #prompt_update_suite(current_suite, options)
+        prompt_update_suite(current_suite, options)
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
@@ -319,13 +319,8 @@ class Tddium < Thor
           # Write to file and exit when using the existing suite
           write_suite(existing_suite["id"])
           say Text::Status::USING_SUITE % format_suite_details(existing_suite)
-          #prompt_update_suite(existing_suite, options)
           return
         end
-
-        params[:ruby_version] = dependency_version(:ruby)
-        params[:bundler_version] = dependency_version(:bundle)
-        params[:rubygems_version] = dependency_version(:gem)
 
         prompt_suite_params(options, params)
 
@@ -452,6 +447,7 @@ class Tddium < Thor
     say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
 
     if user["user"]["heroku_needs_activation"] == true
+      say Text::Process::HEROKU_ACTIVATE
       params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
       params.delete(:email)
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
@@ -494,21 +490,40 @@ class Tddium < Thor
     data
   end
 
-  def prompt_suite_params(options, params)
-    params[:test_pattern] = prompt(Text::Prompt::TEST_PATTERN, options[:test_pattern], Default::SUITE_TEST_PATTERN)
-    if prompt(Text::Prompt::ENABLE_CI, options[:pull_url] ? 'y' : nil, 'n') == Text::Prompt::Response::YES
-      params[:ci_pull_url] = prompt(Text::Prompt::CI_PULL_URL, options[:pull_url], nil)
-      params[:ci_push_url] = prompt(Text::Prompt::CI_PUSH_URL, options[:push_url], nil)
-      if prompt(Text::Prompt::ENABLE_CAMPFIRE, nil, 'n') == Text::Prompt::Response::YES
-        params[:campfire_subdomain] = prompt(Text::Prompt::CAMPFIRE_SUBDOMAIN, options[:campfire_subdomain], nil)
-        params[:campfire_token] = prompt(Text::Prompt::CAMPFIRE_TOKEN, options[:campfire_token], nil)
-        params[:campfire_room] = prompt(Text::Prompt::CAMPFIRE_ROOM, options[:campfire_room], nil)
+  def prompt_suite_params(options, params, current={})
+    params[:ruby_version] = dependency_version(:ruby)
+    params[:bundler_version] = dependency_version(:bundle)
+    params[:rubygems_version] = dependency_version(:gem)
+
+    ask_or_update = lambda do |key, text, default|
+      params[key] = prompt(text, options[key], current.fetch(key.to_s, default))
+    end
+
+    ask_subsection = lambda do |key, text|
+      current[key.to_s] ||
+      prompt(text, options[key] ? 'y' : nil, 'n') == Text::Prompt::Response::YES
+    end
+
+    ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
+
+    if ask_subsection.call(:ci_pull_url, Text::Prompt::ENABLE_CI)
+      ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, nil)
+      ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
+      if ask_subsection.call(:campfire_subdomain, Text::Prompt::ENABLE_CAMPFIRE)
+        ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
+        ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
+        ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
       end
     end
   end
 
-  def prompt_update_suite(api_response, options)
-    say Text::Prompt::UPDATE_SUITE
+  def prompt_update_suite(suite, options)
+    if prompt(Text::Prompt::UPDATE_SUITE, nil, 'n') == Text::Prompt::Response::YES
+      params = {}
+      prompt_suite_params(options, params, suite)
+      call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
+      say Text::Process::UPDATED_SUITE
+    end
   end
 
   def resolve_suite_name(options, params, default_suite_name)

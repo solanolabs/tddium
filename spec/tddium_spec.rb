@@ -1541,6 +1541,7 @@ describe Tddium do
       context "'GET #{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}' is successful" do
         before(:each) do
           stub_call_api_response(:get, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {"suite"=>SAMPLE_SUITE_RESPONSE})
+          stub_call_api_response(:put, "#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}", {"status"=>0})
         end
 
         it "should not ask for a suite name" do
@@ -1557,6 +1558,18 @@ describe Tddium do
         it "should display '#{Tddium::Text::Process::EXISTING_SUITE}'" do
           tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % SAMPLE_SUITE_OUTPUT)
           run_suite(tddium)
+        end
+
+        it "should check if the user wants to update the suite" do
+          tddium.should_receive(:prompt).with(Tddium::Text::Prompt::UPDATE_SUITE, nil, 'n')
+          run_suite(tddium)
+        end
+
+        context "user wants to update the suite" do
+          before(:each) do
+            tddium.stub(:prompt).with(Tddium::Text::Prompt::UPDATE_SUITE, nil, 'n').and_return(Tddium::Text::Prompt::Response::YES)
+          end
+          it "should PUT to /suites/#{SAMPLE_SUITE_ID}"
         end
 
         it_should_behave_like "sending the api key"
