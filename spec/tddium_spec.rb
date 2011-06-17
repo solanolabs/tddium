@@ -591,6 +591,8 @@ describe Tddium do
             tddium.should_receive(:say).with(Tddium::Text::Status::HEROKU_CONFIG)
             run_heroku(tddium)
           end
+
+          it_should_behave_like "writing the api key to the .tddium file"
         end
       end
 

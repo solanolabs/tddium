@@ -448,10 +448,10 @@ class Tddium < Thor
   def handle_heroku_user(options, heroku_config)
     api_key = heroku_config['TDDIUM_API_KEY']
     user = tddium_client.call_api(:get, Api::Path::USERS, {}, api_key) rescue nil
-    if user && user["user"]["heroku_needs_activation"] != true
-      say Text::Status::HEROKU_CONFIG
-    elsif user
-      say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
+    exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
+    say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
+
+    if user["user"]["heroku_needs_activation"] == true
       params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
       params.delete(:email)
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
@@ -460,16 +460,15 @@ class Tddium < Thor
       begin
         user_id = user["user"]["id"]
         result = tddium_client.call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
-        write_api_key(user["user"]["api_key"])
-        say Text::Status::HEROKU_CONFIG
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::HEROKU_MISCONFIGURED % e
       rescue TddiumClient::Error::Base => e
         exit_failure Text::Error::HEROKU_MISCONFIGURED % e
       end
-    else
-      exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user"
     end
+    
+    write_api_key(user["user"]["api_key"])
+    say Text::Status::HEROKU_CONFIG 
   end
 
   def login_user(options = {})
