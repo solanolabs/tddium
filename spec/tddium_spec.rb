@@ -1324,6 +1324,28 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
     end
 
+    shared_examples_for "prompting for suite configuration" do
+      context "enable ci and campfire" do
+        before do
+          tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CI).and_return(Tddium::Text::Prompt::Response::YES)
+          tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CAMPFIRE).and_return(Tddium::Text::Prompt::Response::YES)
+        end
+
+        it "should prompt for URLs" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current['ci_pull_url'])
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'])
+          run_suite(tddium)
+        end
+
+        it "should prompt for campfire" do
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'])
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'])
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'])
+          run_suite(tddium)
+        end
+      end
+    end
+
     it_should_behave_like "set the default environment"
     it_should_behave_like "sending the api key"
     it_should_behave_like "git repo has not been initialized"
@@ -1497,24 +1519,8 @@ describe Tddium do
               end
             end
 
-            context "enable ci and campfire" do
-              before do
-                tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CI).and_return(Tddium::Text::Prompt::Response::YES)
-                tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CAMPFIRE).and_return(Tddium::Text::Prompt::Response::YES)
-              end
-
-              it "should prompt for URLs" do
-                tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL)
-                tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL)
-                run_suite(tddium)
-              end
-
-              it "should prompt for campfire" do
-                tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN)
-                tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN)
-                tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM)
-                run_suite(tddium)
-              end
+            it_behaves_like "prompting for suite configuration" do
+              let(:current) { {} }
             end
           end
 
@@ -1561,15 +1567,21 @@ describe Tddium do
         end
 
         it "should check if the user wants to update the suite" do
-          tddium.should_receive(:prompt).with(Tddium::Text::Prompt::UPDATE_SUITE, nil, 'n')
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE)
           run_suite(tddium)
         end
 
         context "user wants to update the suite" do
           before(:each) do
-            tddium.stub(:prompt).with(Tddium::Text::Prompt::UPDATE_SUITE, nil, 'n').and_return(Tddium::Text::Prompt::Response::YES)
+            tddium.stub(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE).and_return(Tddium::Text::Prompt::Response::YES)
           end
-          it "should PUT to /suites/#{SAMPLE_SUITE_ID}"
+          it_behaves_like "prompting for suite configuration" do
+            let(:current) { SAMPLE_SUITE_RESPONSE }
+          end
+          it "should PUT to /suites/#{SAMPLE_SUITE_ID}" do
+            call_api_should_receive(:method=>:put, :path=>"#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
+            run_suite(tddium)
+          end
         end
 
         it_should_behave_like "sending the api key"
