@@ -39,10 +39,12 @@ describe Tddium do
                            "branch" => SAMPLE_BRANCH_NAME, 
                            "id" => SAMPLE_SUITE_ID, 
                            "ruby_version"=>SAMPLE_RUBY_VERSION,
+                           "rubygems_version"=>SAMPLE_RUBYGEMS_VERSION,
+                           "bundler_version"=>SAMPLE_BUNDLER_VERSION,
                            "git_repo_uri" => SAMPLE_GIT_REPO_URI,
                            "test_pattern" => SAMPLE_SUITE_PATTERN}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
-  SAMPLE_SUITE_OUTPUT = "Repo: #{SAMPLE_APP_NAME}/#{SAMPLE_BRANCH_NAME}\nDefault Test Pattern: #{SAMPLE_SUITE_PATTERN}\n\n"
+  SAMPLE_SUITE_OUTPUT = "Repo: #{SAMPLE_APP_NAME}/#{SAMPLE_BRANCH_NAME}\nDefault Test Pattern: #{SAMPLE_SUITE_PATTERN}\nRuby Version: #{SAMPLE_RUBY_VERSION}\nRubygems Version: #{SAMPLE_RUBYGEMS_VERSION}\nBundler Version: #{SAMPLE_BUNDLER_VERSION}\n\n"
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
   SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>

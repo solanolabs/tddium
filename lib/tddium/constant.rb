@@ -114,7 +114,7 @@ Next, set a password and provide an SSH key to authenticate your communication
 with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
-
+      DEPENDENCY_VERSION = "Detected %s %s"
     end
 
     module Status
@@ -155,6 +155,9 @@ $ tddium spec
       SUITE_DETAILS =<<EOF;
 Repo: <%=suite["repo_name"]%>/<%=suite["branch"]%>
 Default Test Pattern: <%=suite["test_pattern"]%>
+Ruby Version: <%=suite["ruby_version"]%>
+Rubygems Version: <%=suite["rubygems_version"]%>
+Bundler Version: <%=suite["bundler_version"]%>
 <% if suite["ci_pull_url"] %>
 Tddium Hosted CI is enabled with the following parameters:
 

@@ -372,7 +372,9 @@ class Tddium < Thor
   end
 
   def dependency_version(command)
-    `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
+    result = `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
+    say Text::Process::DEPENDENCY_VERSION % [command, result]
+    result
   end
 
   def display_attributes(names_to_display, attributes)
