@@ -116,25 +116,22 @@ with Tddium.
       DEPENDENCY_VERSION = "Detected %s %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
-Tddium includes a Hosted Continuous Integration service.
+Tddium includes a Hosted Continuous Integration service that will run a
+CI build when it's triggered by a POST:
 
-Tddium Hosted CI will wait for a POST from a git post-receive hook.
-When the hook runs, Tddium will:
+1. Pull from your git server
+2. Run tests that match the test pattern for this suite:  %s
+3. Notify you by email and/or campfire
+4. Optionally, Tddium CI will then push to a git server (push to URL).  For
+   example, enter the git URL to your Heroku staging app.
 
-1) Pull your integration branch from your git server (pull from URL)
-2) Run all the tests that match the test pattern for this suite:
-      %s
-3) Notify you by email and/or campfire
-4) If you want, when tests pass, Tddium CI will then push to a git
-   server (push to URL).  For example, enter the git URL to your
-   Heroku staging app.
-
-Enter a git URL to pull from to enable hosted CI.
+>>> Leave both the pull and push URL settings blank to disable hosted CI.
 
 When everything's been set up, you'll receive an SSH public key to authorize in
 git for pulls and pushes, and a Hook URL to configure in a post-commit hook.
 
-Leave both the pull and push URL settings blank to disable hosted CI.
+>>> To enable Hosted CI, enter a git URL to pull from.
+
 EOF
       SETUP_CAMPFIRE_FIRST_TIME =<<EOF;
 
