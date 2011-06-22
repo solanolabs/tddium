@@ -116,8 +116,9 @@ with Tddium.
       DEPENDENCY_VERSION = "Detected %s %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
-Tddium Hosted CI will wait for a POST from a git post-receive hook.
+Tddium includes a Hosted Continuous Integration service.
 
+Tddium Hosted CI will wait for a POST from a git post-receive hook.
 When the hook runs, Tddium will:
 
 1) Pull your integration branch from your git server (pull from URL)
