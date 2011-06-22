@@ -174,12 +174,22 @@ describe Tddium do
     tddium.stub(:say)
     stub_git_branch(tddium)
     stub_tddium_client
+    stub_git_status(tddium)
+    stub_git_config(tddium)
     create_file(File.join(".git", "something"), "something")
     create_file(Tddium::Git::GITIGNORE, "something")
   end
 
   def stub_git_branch(tddium, default_branch_name = SAMPLE_BRANCH_NAME)
     tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
+  end
+
+  def stub_git_status(tddium, result=true)
+    tddium.stub(:system).with(/git status/).and_return(result)
+  end
+
+  def stub_git_config(tddium)
+    tddium.stub(:`).with(/git config/).and_return(SAMPLE_GIT_REPO_URI)
   end
 
   def stub_git_push(tddium, success = true)
@@ -247,6 +257,7 @@ describe Tddium do
     context "git repo has not been initialized" do
       before do
         FileUtils.rm_rf(".git")
+        stub_git_status(tddium, false)
       end
 
       it "should return git is uninitialized" do
@@ -492,14 +503,14 @@ describe Tddium do
   shared_examples_for "prompt for ssh key" do
     context "--ssh-key-file is not supplied" do
       it "should prompt the user for their ssh key file" do
-        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
         run(tddium)
       end
     end
 
     context "--ssh-key-file is supplied" do
       it "should not prompt the user for their ssh key file" do
-        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE)
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
         run(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
       end
     end
@@ -1327,24 +1338,17 @@ describe Tddium do
     end
 
     shared_examples_for "prompting for suite configuration" do
-      context "enable ci and campfire" do
-        before do
-          tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CI).and_return(Tddium::Text::Prompt::Response::YES)
-          tddium.stub(:ask).with(Tddium::Text::Prompt::ENABLE_CAMPFIRE).and_return(Tddium::Text::Prompt::Response::YES)
-        end
+      it "should prompt for URLs" do
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current.fetch('ci_pull_url', SAMPLE_GIT_REPO_URI), anything)
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'], anything)
+        run_suite(tddium)
+      end
 
-        it "should prompt for URLs" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current['ci_pull_url'])
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'])
-          run_suite(tddium)
-        end
-
-        it "should prompt for campfire" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'])
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'])
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'])
-          run_suite(tddium)
-        end
+      it "should prompt for campfire" do
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything)
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'], anything)
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'], anything)
+        run_suite(tddium)
       end
     end
 
@@ -1381,10 +1385,10 @@ describe Tddium do
       end
 
       context "interactive mode" do
-        before { tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME).and_return("some_other_suite") }
+        before { tddium.stub(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME, anything).and_return("some_other_suite") }
 
         it "should ask for a suite name" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME)
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::SUITE_NAME % SAMPLE_APP_NAME, anything)
           run_suite(tddium)
         end
 
@@ -1404,7 +1408,7 @@ describe Tddium do
       context "but this user has already registered some suites" do
         before do
           stub_call_api_response(:get, Tddium::Api::Path::SUITES, SAMPLE_SUITES_RESPONSE, {"suites" => []})
-          tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return(Tddium::Text::Prompt::Response::YES)
+          tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME, anything).and_return(Tddium::Text::Prompt::Response::YES)
         end
 
         shared_examples_for "writing the suite to file" do
@@ -1431,7 +1435,7 @@ describe Tddium do
 
         context "passing no cli options" do
           it "should ask the user: '#{Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME}' " do
-            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("something")
+            tddium.should_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME, anything).and_return("something")
             run_suite(tddium)
           end
         end
@@ -1442,7 +1446,7 @@ describe Tddium do
           end
 
           it "should not ask the user if they want to use the existing suite" do
-            tddium_client.should_not_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % "my_suite")
+            tddium_client.should_not_receive(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % "my_suite", anything)
             run_suite(tddium, :name => "my_suite")
           end
 
@@ -1474,7 +1478,7 @@ describe Tddium do
         end
 
         context "the user does not want to use the existing suite" do
-          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("some_other_suite") }
+          before{ tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME, anything).and_return("some_other_suite") }
 
 
           it "should send a 'POST' request to '#{Tddium::Api::Path::SUITES}'" do
@@ -1508,8 +1512,8 @@ describe Tddium do
 
           context "interactive mode" do
             before do
-              tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME).and_return("foobar")
-              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::SUITE_TEST_PATTERN).and_return(SAMPLE_SUITE_PATTERN)
+              tddium.stub(:ask).with(Tddium::Text::Prompt::USE_EXISTING_SUITE % SAMPLE_BRANCH_NAME % SAMPLE_APP_NAME, anything).and_return("foobar")
+              tddium.stub(:ask).with(Tddium::Text::Prompt::TEST_PATTERN % Tddium::Default::SUITE_TEST_PATTERN, anything).and_return(SAMPLE_SUITE_PATTERN)
               stub_default_suite_name
             end
 
@@ -1569,13 +1573,13 @@ describe Tddium do
         end
 
         it "should check if the user wants to update the suite" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE)
+          tddium.should_receive(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything)
           run_suite(tddium)
         end
 
         context "user wants to update the suite" do
           before(:each) do
-            tddium.stub(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE).and_return(Tddium::Text::Prompt::Response::YES)
+            tddium.stub(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything).and_return(Tddium::Text::Prompt::Response::YES)
           end
           it_behaves_like "prompting for suite configuration" do
             let(:current) { SAMPLE_SUITE_RESPONSE }

@@ -13,7 +13,7 @@ require File.expand_path("../tddium/constant", __FILE__)
 require File.expand_path("../tddium/heroku", __FILE__)
 
 #      Usage:
-#
+
 #      tddium suite    # Register the suite for this rails app, or manage its settings
 #      tddium spec     # Run the test suite
 #      tddium status   # Display information about this suite, and any open dev sessions
@@ -22,7 +22,7 @@ require File.expand_path("../tddium/heroku", __FILE__)
 #      tddium logout   # Log out
 #
 #      tddium account  # View/Manage account information
-#      tddium account:password # Change password
+#      tddium password # Change password
 #
 #      tddium help     # Print this usage message
 
@@ -291,7 +291,7 @@ class Tddium < Thor
     end
   end
 
-  desc "suite", "Register the suite for this project, or manage its settings"
+  desc "suite", "Register the suite for this project, or edit its settings"
   method_option :name, :type => :string, :default => nil
   method_option :pull_url, :type => :string, :default => nil
   method_option :push_url, :type => :string, :default => nil
@@ -435,11 +435,20 @@ class Tddium < Thor
   end
 
   def git_repo?
-    unless File.exists?(".git")
+    unless system("git status --porcelain > /dev/null 2>&1")
       message = Text::Error::GIT_NOT_INITIALIZED
       say message
     end
     message.nil?
+  end
+
+  def git_origin_url
+    result = `git config --get remote.origin.url`
+    if $? == 0
+      result
+    else
+      nil
+    end
   end
 
   def handle_heroku_user(options, heroku_config)
@@ -481,7 +490,7 @@ class Tddium < Thor
   end
 
   def prompt(text, current_value, default_value)
-    value = current_value || ask(text % default_value)
+    value = current_value || ask(text % default_value, :bold)
     value.empty? ? default_value : value
   end
 
@@ -501,22 +510,26 @@ class Tddium < Thor
       params[key] = prompt(text, options[key], current.fetch(key.to_s, default))
     end
 
-    ask_subsection = lambda do |key, text|
-      current[key.to_s] ||
-      prompt(text, options[key] ? 'y' : nil, 'n') == Text::Prompt::Response::YES
-    end
-
     ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
 
-    if ask_subsection.call(:ci_pull_url, Text::Prompt::ENABLE_CI)
-      ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, nil)
-      ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
-      if ask_subsection.call(:campfire_subdomain, Text::Prompt::ENABLE_CAMPFIRE)
-        ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
-        ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
-        ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
-      end
+    if current.size > 0 && current['ci_pull_url']
+      say(Text::Process::SETUP_CI_EDIT)
+    else
+      say(Text::Process::SETUP_CI_FIRST_TIME % params[:test_pattern])
     end
+
+    ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, git_origin_url) 
+    ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
+
+    if current.size > 0 && current['campfire_room']
+      say(Text::Process::SETUP_CAMPFIRE_EDIT)
+    else
+      say(Text::Process::SETUP_CAMPFIRE_FIRST_TIME)
+    end
+
+    ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
+    ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
+    ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
   end
 
   def prompt_update_suite(suite, options)

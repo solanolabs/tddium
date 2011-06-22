@@ -46,6 +46,7 @@ module TddiumConstant
       module Response
         AGREE_TO_LICENSE = "I AGREE"
         YES = "y"
+        DISABLE = 'disable'
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
@@ -58,11 +59,9 @@ module TddiumConstant
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
-      ENABLE_CI = "Do you want to configure Hosted Continuous Integration?"
-      UPDATE_SUITE = "Do you want to edit settings for this suite?"
-      CI_PULL_URL = "Enter a git URL to pull from (default '%s'):"
-      CI_PUSH_URL = "Push to git URL on tests pass (unset=disable) (default '%s'):"
-      ENABLE_CAMPFIRE = "Setup Campfire CI notifications?"
+      UPDATE_SUITE = "Do you want to edit settings for this suite? (y/n)"
+      CI_PULL_URL = "Enter git URL to pull from (default '%s'):"
+      CI_PUSH_URL = "Enter git URL to push to (default '%s'):"
       CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s'):"
       CAMPFIRE_ROOM = "Enter the Campfire room name (default '%s'):"
       CAMPFIRE_TOKEN = "Enter your Campfire API Token (default '%s'):"
@@ -115,6 +114,54 @@ with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
       DEPENDENCY_VERSION = "Detected %s %s"
+      SETUP_CI_FIRST_TIME =<<EOF;
+
+Tddium Hosted CI will wait for a POST from a git post-receive hook.
+
+When the hook runs, Tddium will:
+
+1) Pull your integration branch from your git server (pull from URL)
+2) Run all the tests that match the test pattern for this suite:
+      %s
+3) Notify you by email and/or campfire
+4) If you want, when tests pass, Tddium CI will then push to a git
+   server (push to URL).  For example, enter the git URL to your
+   Heroku staging app.
+
+Enter a git URL to pull from to enable hosted CI.
+
+When everything's been set up, you'll receive an SSH public key to authorize in
+git for pulls and pushes, and a Hook URL to configure in a post-commit hook.
+
+Leave both the pull and push URL settings blank to disable hosted CI.
+EOF
+      SETUP_CAMPFIRE_FIRST_TIME =<<EOF;
+
+To enable Campfire notifications, enter your Campfire subdomain, API token, 
+and the room name to post for this suite's builds.
+
+Subdomain and API token are shared by all suites that belong to you (%s).
+
+Leave the Campfire room name blank to disable Campfire for this suite.
+
+EOF
+
+      SETUP_CI_EDIT =<<EOF;
+
+Tddium Hosted CI is enabled for this suite.
+
+Set the "git URL to pull from" to 'disable' to disable CI completely.
+Set the "git URL to push to" to 'disable' to disable CI completely.
+
+EOF
+      SETUP_CAMPFIRE_EDIT =<<EOF;
+
+Campfire notifications are enabled for this suite.
+Subdomain and API token are shared by all suites that belong to you (%s).
+
+Set the "Campfire room name" to 'disable' to disable Campfire notifications
+for this suite.
+EOF
     end
 
     module Status
@@ -174,6 +221,8 @@ Authorize the following SSH key to let Tddium's pulls and pushes through:
 To trigger CI builds, POST to the following URL from a post-commit hook:
 
 <%=suite["hook_uri"]%>
+
+See www.tddium.com/support for more information.
 <% end %>
 EOF
     end
