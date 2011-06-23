@@ -139,7 +139,7 @@ EOF
 To enable Campfire notifications, enter your Campfire subdomain, API token, 
 and the room name to post for this suite's builds.
 
-Subdomain and API token are shared by all suites that belong to you (%s).
+Subdomain and API token are shared by all suites that belong to you.
 
 Leave the Campfire room name blank to disable Campfire for this suite.
 
