@@ -49,7 +49,7 @@ module TddiumConstant
         DISABLE = 'disable'
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
-      SUITE_NAME = "Enter a suite name or press 'Return'. Using '%s' by default:"
+      SUITE_NAME = "Enter a repo name or press 'Return'. Using '%s' by default:"
       LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
       CURRENT_PASSWORD = "Enter your old password: "
@@ -114,6 +114,7 @@ with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
       DEPENDENCY_VERSION = "Detected %s %s"
+      DETECTED_BRANCH = "Detected branch %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
 Tddium includes a Hosted Continuous Integration service that will run a

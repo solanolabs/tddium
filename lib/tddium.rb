@@ -445,7 +445,7 @@ class Tddium < Thor
   def git_origin_url
     result = `git config --get remote.origin.url`
     if $? == 0
-      result
+      result.strip
     else
       nil
     end
@@ -502,6 +502,7 @@ class Tddium < Thor
   end
 
   def prompt_suite_params(options, params, current={})
+    say Text::Process::DETECTED_BRANCH % params[:branch] if params[:branch]
     params[:ruby_version] = dependency_version(:ruby)
     params[:bundler_version] = dependency_version(:bundle)
     params[:rubygems_version] = dependency_version(:gem)
