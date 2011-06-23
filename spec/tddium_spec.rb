@@ -83,7 +83,7 @@ describe Tddium do
     send("run_#{method}", tddium, options)
   end
 
-  [:suite, :spec, :status, :account, :login, :logout, :password, :heroku].each do |method|
+  [:suite, :spec, :status, :account, :login, :logout, :password, :heroku, :version].each do |method|
     def prep_params(method, params=nil)
       options = params.first || {}
       options[:environment] = "test" unless options.has_key?(:environment)
@@ -1595,6 +1595,13 @@ describe Tddium do
       end
 
       it_should_behave_like "an unsuccessful api call"
+    end
+  end
+
+  describe "#version" do
+    it "should print the version" do
+      tddium.should_receive(:say).with(TddiumVersion::VERSION)
+      run_version(tddium)
     end
   end
 end

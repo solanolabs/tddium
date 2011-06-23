@@ -10,6 +10,7 @@ require "tddium_client"
 require "base64"
 require 'erb'
 require File.expand_path("../tddium/constant", __FILE__)
+require File.expand_path("../tddium/version", __FILE__)
 require File.expand_path("../tddium/heroku", __FILE__)
 
 #      Usage:
@@ -338,6 +339,12 @@ class Tddium < Thor
     rescue TddiumClient::Error::Base
       exit_failure
     end
+  end
+
+  map "-v" => :version
+  desc "version", "Print the tddium gem version"
+  def version
+    say TddiumVersion::VERSION
   end
 
   private
