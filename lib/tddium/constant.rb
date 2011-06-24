@@ -126,22 +126,24 @@ CI build when it's triggered by a POST:
 4. Optionally, Tddium CI will then push to a git server (push to URL).  For
    example, enter the git URL to your Heroku staging app.
 
->>> Leave both the pull and push URL settings blank to disable hosted CI.
+>>> Set both pull and push URLs to 'disable' to disable hosted CI completely.
 
 When everything's been set up, you'll receive an SSH public key to authorize in
 git for pulls and pushes, and a Hook URL to configure in a post-commit hook.
 
->>> To enable Hosted CI, enter a git URL to pull from.
+Tddium CI will not start builds on its own.
+
+>>> To set up Hosted CI, enter a git URL to pull from.
 
 EOF
       SETUP_CAMPFIRE_FIRST_TIME =<<EOF;
 
-To enable Campfire notifications, enter your Campfire subdomain, API token, 
-and the room name to post for this suite's builds.
+>>> To enable Campfire notifications, enter your Campfire subdomain, API token, 
+    and the room name to post for this suite's builds.
 
 Subdomain and API token are shared by all suites that belong to you.
 
-Leave the Campfire room name blank to disable Campfire for this suite.
+>>> Leave the Campfire room name blank to disable Campfire for this suite.
 
 EOF
 
