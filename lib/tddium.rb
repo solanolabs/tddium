@@ -325,6 +325,10 @@ class Tddium < Thor
 
         prompt_suite_params(options, params)
 
+        params.each do |k,v|
+          params.delete(k) if v == 'disable'
+        end
+
         # Create new suite if it does not exist yet
         say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
@@ -451,7 +455,7 @@ class Tddium < Thor
 
   def git_origin_url
     result = `git config --get remote.origin.url`
-    if $? == 0
+    if $? == 0 && result =~ /@/
       result.strip
     else
       nil
