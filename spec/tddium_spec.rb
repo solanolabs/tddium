@@ -14,7 +14,7 @@ describe Tddium do
   SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   SAMPLE_APP_NAME = "tddelicious"
   SAMPLE_BRANCH_NAME = "test"
-  SAMPLE_BUNDLER_VERSION = "1.10.10"
+  SAMPLE_BUNDLER_VERSION = "Bundler version 1.10.10"
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
   SAMPLE_FILE_PATH = "./my_user_file.png"
@@ -27,7 +27,7 @@ describe Tddium do
   SAMPLE_NEW_PASSWORD = "foobar2"
   SAMPLE_REPORT_URL = "http://api.tddium.com/1/sessions/1/test_executions/report"
   SAMPLE_RUBYGEMS_VERSION = "1.3.7"
-  SAMPLE_RUBY_VERSION = "1.8.7"
+  SAMPLE_RUBY_VERSION = "ruby 1.8.7 (2010-08-16 patchlevel 302) [i686-darwin10.5.0]"
   SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
@@ -117,8 +117,8 @@ describe Tddium do
     end
   end
 
-  def stub_bundler_version(tddium, version = SAMPLE_BUNDLER_VERSION)
-    tddium.stub(:`).with("bundle -v").and_return("Bundler version #{version}")
+  def stub_bundler_version(tddium)
+    tddium.stub(:`).with("bundle -v").and_return(SAMPLE_BUNDLER_VERSION)
   end
 
   def stub_call_api_response(method, path, *response)
@@ -201,8 +201,8 @@ describe Tddium do
     tddium.stub(:`).with(/^git remote #{action}/).and_return(git_response)
   end
 
-  def stub_ruby_version(tddium, version = SAMPLE_RUBY_VERSION)
-    tddium.stub(:`).with("ruby -v").and_return("ruby #{version} (2010-08-16 patchlevel 302) [i686-darwin10.5.0]")
+  def stub_ruby_version(tddium)
+    tddium.stub(:`).with("ruby -v").and_return(SAMPLE_RUBY_VERSION)
   end
 
   def stub_rubygems_version(tddium, version = SAMPLE_RUBYGEMS_VERSION)

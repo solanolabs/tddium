@@ -383,7 +383,7 @@ class Tddium < Thor
   end
 
   def dependency_version(command)
-    result = `#{command} -v`.match(Dependency::VERSION_REGEXP)[1]
+    result = `#{command} -v`.strip
     say Text::Process::DEPENDENCY_VERSION % [command, result]
     result
   end
