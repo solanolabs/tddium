@@ -231,7 +231,21 @@ EOF
     module Error
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
-      GIT_NOT_INITIALIZED = "git repo must be initialized. Try 'git init'"
+      GIT_NOT_INITIALIZED =<<EOF;
+It doesn't look like you're in a git repo.  
+
+If you're not, use 'git init' to create one.
+If you are in a git repo and you're still seeing this message,
+you may be using an unsupported version of git.
+
+Please email us at info@tddium.com with the following trace information:
+
+>>>>>>>>>>>>> BEGIN GIT TRACE >>>>>>>>>>>>>>>>>>>>>>>>>
+git version: #{`git --version 2>&1`}
+git status:  #{`git status 2>&1`}
+git details: #{`git status --porcelain 2>&1`}
+>>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
+EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
       INVALID_INVITATION = "
 Your invitation token wasn't recognized. If you have a token, make sure you enter it correctly.
