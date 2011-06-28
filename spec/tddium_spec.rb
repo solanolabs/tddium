@@ -172,11 +172,12 @@ describe Tddium do
 
   def stub_defaults
     tddium.stub(:say)
+    tddium.stub(:`).and_raise("unstubbed command")
+    tddium.stub(:system).and_raise("unstubbed command")
     stub_git_branch(tddium)
     stub_tddium_client
     stub_git_status(tddium)
     stub_git_config(tddium)
-    stub_git_changes(tddium)
     create_file(File.join(".git", "something"), "something")
     create_file(Tddium::Git::GITIGNORE, "something")
   end
@@ -189,12 +190,8 @@ describe Tddium do
     tddium.stub(:system).with(/git status/).and_return(result)
   end
 
-  def stub_git_changes(tddium, result=false)
-    tddium.stub(:git_changes).and_return(result)
-  end
-
   def stub_git_config(tddium)
-    tddium.stub(:`).with(/git config/).and_return(SAMPLE_GIT_REPO_URI)
+    tddium.stub(:`).with("git config --get remote.origin.url").and_return(SAMPLE_GIT_REPO_URI)
   end
 
   def stub_git_push(tddium, success = true)
@@ -431,39 +428,6 @@ describe Tddium do
       HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
       highline.should_receive(:echo=).with("*")
       run(tddium)
-    end
-  end
-
-  describe "changes not in git" do
-    before(:each) do
-      @none = ''
-      @modified = " M lib/tddium.rb\n M spec/spec_helper.rb\n"
-      @unknown = " ?? spec/bogus_spec.rb\n"
-      @tddium = Tddium.new
-      stub_defaults
-      stub_config_file(:api_key => true, :branches => true)
-    end
-
-    it "should signal no changes if there are none" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@none, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should ignore unknown files if there are any" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@unknown, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should signal uncommitted changes" do
-      status = @unknown + @modified
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(status, true, block)
-      end
-      @tddium.send(:git_changes).should be_true
     end
   end
 

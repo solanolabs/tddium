@@ -8,14 +8,12 @@ require "highline/import"
 require "json"
 require "tddium_client"
 require "base64"
-require "open3"
 require 'erb'
 require File.expand_path("../tddium/constant", __FILE__)
 require File.expand_path("../tddium/version", __FILE__)
 require File.expand_path("../tddium/heroku", __FILE__)
 
 #      Usage:
-
 #      tddium suite    # Register the suite for this rails app, or manage its settings
 #      tddium spec     # Run the test suite
 #      tddium status   # Display information about this suite, and any open dev sessions
@@ -161,7 +159,6 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => nil
   def spec
     set_default_environment(options[:environment])
-    # warn Text::Warning::GIT_CHANGES_NOT_COMMITTED if git_changes
     exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
 
     test_execution_params = {}
@@ -457,25 +454,6 @@ class Tddium < Thor
     end
     message.nil?
   end
-
-#  def git_changes
-#    cmd = "git status --porcelain"
-#    rv = Open3.popen2e(cmd) do |stdin, output, wait|
-#      stdin.close
-#      changes = false
-#      while line = output.gets do
-#        line.sub!(/^\s+/, '')
-#        fields = line.split(/\s+/)
-#        status = fields[0]
-#        if status[0] != '?' && status[1] != '?' then
-#          changes = true
-#          break
-#        end
-#      end
-#      [wait.value, changes]
-#    end
-#    return rv[0] != 0 && rv[1]
-#  end
 
   def git_origin_url
     result = `git config --get remote.origin.url`
