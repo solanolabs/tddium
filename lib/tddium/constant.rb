@@ -67,6 +67,10 @@ module TddiumConstant
       CAMPFIRE_TOKEN = "Enter your Campfire API Token (default '%s'):"
     end
 
+    module Warning
+      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+    end
+
     module Process
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
