@@ -451,7 +451,7 @@ class Tddium < Thor
   end
 
   def git_repo?
-    unless system("git status --porcelain > /dev/null 2>&1")
+    unless system("git status > /dev/null 2>&1")
       message = Text::Error::GIT_NOT_INITIALIZED
       say message
     end
