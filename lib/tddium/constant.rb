@@ -265,7 +265,15 @@ http://blog.tddium.com/home/
       HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium: %s"
       module Heroku
         NOT_FOUND = "heroku command not found.  Make sure the latest heroku gem is installed.\nOutput of `gem list heroku`:\n%s"
-        NOT_ADDED = "It looks like you haven't enabled the tddium addon.  Add it using 'heroku addons:add tddium'"
+        NOT_ADDED =<<EOF;
+It looks like you haven't enabled the tddium add-on for the default app.
+Add it using 'heroku addons:add tddium'
+
+If you've already enabled the addon for a specific app, try running:
+
+   $ tddium heroku --app <your app name>'
+
+EOF
         INVALID_FORMAT = "The 'heroku -s' command output a format we didn't recognize.  Make sure you're running the latest version of the heroku gem"
         NOT_LOGGED_IN = "Log in to your heroku account first using 'heroku login'"
         APP_NOT_FOUND = "The app '%s' is not recognized by Heroku"
