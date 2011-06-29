@@ -178,6 +178,7 @@ describe Tddium do
     stub_tddium_client
     stub_git_status(tddium)
     stub_git_config(tddium)
+    stub_git_changes(tddium)
     create_file(File.join(".git", "something"), "something")
     create_file(Tddium::Git::GITIGNORE, "something")
   end
@@ -188,6 +189,10 @@ describe Tddium do
 
   def stub_git_status(tddium, result=true)
     tddium.stub(:system).with(/git status/).and_return(result)
+  end
+
+  def stub_git_changes(tddium, result=false)
+    tddium.stub(:git_changes).and_return(result)
   end
 
   def stub_git_config(tddium)
@@ -428,6 +433,39 @@ describe Tddium do
       HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
       highline.should_receive(:echo=).with("*")
       run(tddium)
+    end
+  end
+
+  describe "changes not in git" do
+    before(:each) do
+      @none = ''
+      @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
+      @unknown = " ? spec/bogus_spec.rb\n"
+      @tddium = Tddium.new
+      stub_defaults
+      stub_config_file(:api_key => true, :branches => true)
+    end
+
+    it "should signal no changes if there are none" do
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(@none, true, block)
+      end
+      @tddium.send(:git_changes).should be_false
+    end
+
+    it "should ignore unknown files if there are any" do
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(@unknown, true, block)
+      end
+      @tddium.send(:git_changes).should be_false
+    end
+
+    it "should signal uncommitted changes" do
+      status = @unknown + @modified
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(status, true, block)
+      end
+      @tddium.send(:git_changes).should be_true
     end
   end
 
