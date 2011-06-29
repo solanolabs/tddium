@@ -233,6 +233,7 @@ EOF
     end
 
     module Error
+      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_INITIALIZED =<<EOF;
