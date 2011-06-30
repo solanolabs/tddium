@@ -302,6 +302,7 @@ class Tddium < Thor
   end
 
   desc "suite", "Register the suite for this project, or edit its settings"
+  method_option :edit, :type => :boolean, :default => false
   method_option :name, :type => :string, :default => nil
   method_option :pull_url, :type => :string, :default => nil
   method_option :push_url, :type => :string, :default => nil
@@ -317,8 +318,11 @@ class Tddium < Thor
       if current_suite_id
         current_suite = call_api(:get, current_suite_path)["suite"]
 
-        say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
-        prompt_update_suite(current_suite, options)
+        if options[:edit]
+          update_suite(current_suite, options)
+        else
+          say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
+        end
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
@@ -397,7 +401,7 @@ class Tddium < Thor
     version = nil
     begin
       version_string = `git --version`
-      m =  version_string.match(/([\d\.]+)/)
+      m =  version_string.match(Dependency::VERSION_REGEXP)
       version = m[0] unless m.nil?
     rescue Errno
     rescue Exception
@@ -405,7 +409,9 @@ class Tddium < Thor
     if version.nil? || version.empty? then
       exit_failure(Text::Error::GIT_NOT_FOUND)
     end
-    if version !~ /^1[.]7[.]\d+$/ then
+    version_parts = version.split(".")
+    if version_parts[0].to_i < 1 ||
+       version_parts[1].to_i < 7 then
       warn(Text::Warning::GIT_VERSION % version)
     end
   end
@@ -593,13 +599,11 @@ class Tddium < Thor
     ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
   end
 
-  def prompt_update_suite(suite, options)
-    if prompt(Text::Prompt::UPDATE_SUITE, nil, 'n') == Text::Prompt::Response::YES
-      params = {}
-      prompt_suite_params(options, params, suite)
-      call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
-      say Text::Process::UPDATED_SUITE
-    end
+  def update_suite(suite, options)
+    params = {}
+    prompt_suite_params(options, params, suite)
+    call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
+    say Text::Process::UPDATED_SUITE
   end
 
   def resolve_suite_name(options, params, default_suite_name)

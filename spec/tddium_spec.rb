@@ -1406,18 +1406,18 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
     end
 
-    shared_examples_for "prompting for suite configuration" do
+    shared_examples_for "prompting for suite configuration" do |options={}|
       it "should prompt for URLs" do
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current.fetch('ci_pull_url', SAMPLE_GIT_REPO_URI), anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'], anything)
-        run_suite(tddium)
+        run_suite(tddium, options)
       end
 
       it "should prompt for campfire" do
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'], anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'], anything)
-        run_suite(tddium)
+        run_suite(tddium, options)
       end
     end
 
@@ -1647,21 +1647,13 @@ describe Tddium do
           run_suite(tddium)
         end
 
-        it "should check if the user wants to update the suite" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything)
-          run_suite(tddium)
-        end
-
         context "user wants to update the suite" do
-          before(:each) do
-            tddium.stub(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything).and_return(Tddium::Text::Prompt::Response::YES)
-          end
-          it_behaves_like "prompting for suite configuration" do
+          it_behaves_like "prompting for suite configuration", {:edit=>true} do
             let(:current) { SAMPLE_SUITE_RESPONSE }
           end
           it "should PUT to /suites/#{SAMPLE_SUITE_ID}" do
             call_api_should_receive(:method=>:put, :path=>"#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
-            run_suite(tddium)
+            run_suite(tddium, {:edit=>true})
           end
         end
 

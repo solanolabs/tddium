@@ -59,7 +59,6 @@ module TddiumConstant
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
-      UPDATE_SUITE = "Do you want to edit settings for this suite? (y/n)"
       CI_PULL_URL = "Enter git URL to pull from (default '%s'):"
       CI_PUSH_URL = "Enter git URL to push to (default '%s'):"
       CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s'):"
@@ -245,7 +244,6 @@ your post-commit hook. In Unix-based Git repositories, find the repository
 root and look for a shell script in `.git/hooks/post-commit`.
 To trigger CI builds, POST to the following URL from a post-commit hook:
 <% end %>
-<%=suite["hook_uri"]%>
 
 See http://www.tddium.com/support for more information on Tddium CI.
 <% end %>
@@ -256,6 +254,8 @@ tddium spec.
 If your tests do use a database, you'll now need to configure your 
 database setup. See http://www.tddium.com/support/reference#setup_hooks 
 to create a Rake task for Tddium to set up your database.
+
+Run `tddium suite --edit` to edit suite settings.
 EOF
     end
 
