@@ -222,13 +222,39 @@ Notifications:
 Authorize the following SSH key to let Tddium's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
+<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+Tddium will pull from your Github repository. Visit
+https://github.com/<%= $1 %>/admin/keys
+then click "Add another deploy key" and copy and paste the above key.
+<% end %>
+<% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
+Tddium will push to your Heroku application <%= $1 %>.
+To authorize the key, use the following command:
+heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
+<% end %>
 
+<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+Github can notify Tddium of your commits with a post-receive hook. Visit
+https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
+then add the following URL and click "Update Settings":
+<%=suite["hook_uri"]%>
+<% else %>
+It looks like you aren't using Github, so you'll need to manually configure
+your post-commit hook. In Unix-based Git repositories, find the repository
+root and look for a shell script in `.git/hooks/post-commit`.
 To trigger CI builds, POST to the following URL from a post-commit hook:
-
+<% end %>
 <%=suite["hook_uri"]%>
 
-See www.tddium.com/support for more information.
+See http://www.tddium.com/support for more information on Tddium CI.
 <% end %>
+
+If your tests don't require a database, you're all set and can now run
+tddium spec.
+
+If your tests do use a database, you'll now need to configure your 
+database setup. See http://www.tddium.com/support/reference#setup_hooks 
+to create a Rake task for Tddium to set up your database.
 EOF
     end
 
