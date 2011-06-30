@@ -9,6 +9,7 @@ require 'rspec'
 require "fakefs/spec_helpers"
 require "tddium_client/tddium_spec_helpers"
 
+require "stringio"
 require 'ostruct'
 
 class Open3SpecHelper

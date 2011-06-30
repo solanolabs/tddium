@@ -241,7 +241,7 @@ describe Tddium do
   let(:tddium) { Tddium.new }
   let(:tddium_client) { mock(TddiumClient).as_null_object }
 
-  describe "changes not in git" do
+  describe "problems running git" do
     before(:each) do
     end
 
@@ -270,31 +270,29 @@ describe Tddium do
       @none = ''
       @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
       @unknown = " ? spec/bogus_spec.rb\n"
-      @tddium = Tddium.new
-      stub_defaults
       stub_config_file(:api_key => true, :branches => true)
     end
 
+    it "should handle failure" do
+      ::IO.stub(:popen) { StringIO.new("GIT_FAILED") }
+      tddium.should_receive(:warn).with(Tddium::Text::Warning::GIT_UNABLE_TO_DETECT).and_return(nil)
+      tddium.send(:git_changes).should be_false
+    end
+
     it "should signal no changes if there are none" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@none, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
+      ::IO.stub(:popen) { StringIO.new(@none) }
+      tddium.send(:git_changes).should be_false
     end
 
     it "should ignore unknown files if there are any" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@unknown, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
+      ::IO.stub(:popen) { StringIO.new(@unknown) }
+      tddium.send(:git_changes).should be_false
     end
 
     it "should signal uncommitted changes" do
       status = @unknown + @modified
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(status, true, block)
-      end
-      @tddium.send(:git_changes).should be_true
+      ::IO.stub(:popen) { StringIO.new(status) }
+      tddium.send(:git_changes).should be_true
     end
   end
 
@@ -1406,7 +1404,7 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
     end
 
-    shared_examples_for "prompting for suite configuration" do |options={}|
+    shared_examples_for "prompting for suite configuration" do |options|
       it "should prompt for URLs" do
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current.fetch('ci_pull_url', SAMPLE_GIT_REPO_URI), anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'], anything)

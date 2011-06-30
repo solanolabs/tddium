@@ -8,7 +8,6 @@ require "highline/import"
 require "json"
 require "tddium_client"
 require "base64"
-require "open3"
 require "erb"
 require File.expand_path("../tddium/constant", __FILE__)
 require File.expand_path("../tddium/version", __FILE__)
@@ -379,22 +378,23 @@ class Tddium < Thor
   end
 
   def git_changes
-    cmd = "git ls-files --exclude-standard -d -m -t"
-    rv = Open3.popen2e(cmd) do |stdin, output, wait|
-      stdin.close
-      changes = false
-      while line = output.gets do
-        line.sub!(/^\s+/, '')
-        fields = line.split(/\s+/)
-        status = fields[0]
-        if status[0] != '?' then
-          changes = true
-          break
-        end
+    cmd = "(git ls-files --exclude-standard -d -m -o -t || echo GIT_FAILED) < /dev/null 2>&1"
+    p = IO.popen(cmd)
+    changes = false
+    while line = p.gets do
+      if line =~ /GIT_FAILED/
+        warn(Text::Warning::GIT_UNABLE_TO_DETECT)
+        return false
       end
-      [wait.value, changes]
+      line = line.strip
+      fields = line.split(/\s+/)
+      status = fields[0]
+      if status !~ /^\?/ then
+        changes = true
+        break
+      end
     end
-    return rv[0] != 0 && rv[1]
+    return changes
   end
 
   def git_version_ok

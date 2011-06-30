@@ -69,6 +69,7 @@ module TddiumConstant
     module Warning
       GIT_VERSION = "Unsupported git version: %s"
       GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+      GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
     end
 
     module Process
