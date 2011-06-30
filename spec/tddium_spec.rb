@@ -263,7 +263,7 @@ describe Tddium do
     end
   end
 
-  describe "changes not in git" do
+  describe "changes in git" do
     before(:each) do
       @none = ''
       @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
@@ -1173,7 +1173,7 @@ describe Tddium do
                 end
 
                 it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_RESPONSE, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
                   run_spec(tddium, {:max_parallelism => 3})
                 end
 
@@ -1234,7 +1234,7 @@ describe Tddium do
                 end
 
                 it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
+                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_RESPONSE, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
                   run_spec(tddium, {:max_parallelism => 3})
                 end
 
