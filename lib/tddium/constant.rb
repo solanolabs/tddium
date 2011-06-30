@@ -68,7 +68,7 @@ module TddiumConstant
 
     module Warning
       GIT_VERSION = "Unsupported git version: %s"
-      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+      GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
     end
 
@@ -256,12 +256,18 @@ If your tests do use a database, you'll now need to configure your
 database setup. See http://www.tddium.com/support/reference#setup_hooks 
 to create a Rake task for Tddium to set up your database.
 
-Run `tddium suite --edit` to edit suite settings.
+Run 'tddium suite --edit' to edit suite settings.
 EOF
     end
 
     module Error
-      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+      GIT_CHANGES_NOT_COMMITTED =<<EOF
+There are uncommitted changes in the local git repository.
+
+Commit changes before running 'tddium spec'.
+
+Use 'tddium spec --force' to test with only already-committed changes.
+EOF
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"

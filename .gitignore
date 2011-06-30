@@ -21,6 +21,8 @@ nbproject
 .rvmrc
 .tddium
 .tddium.development
+.tddium-deploy-key
+.tddium-deploy-key.*
 .DS_Store
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 

@@ -378,7 +378,7 @@ class Tddium < Thor
   end
 
   def git_changes
-    cmd = "(git ls-files --exclude-standard -d -m -o -t || echo GIT_FAILED) < /dev/null 2>&1"
+    cmd = "(git ls-files --exclude-standard -d -m -t || echo GIT_FAILED) < /dev/null 2>&1"
     p = IO.popen(cmd)
     changes = false
     while line = p.gets do
@@ -756,10 +756,11 @@ class Tddium < Thor
 
   def write_tddium_to_gitignore
     content = File.exists?(Git::GITIGNORE) ? File.read(Git::GITIGNORE) : ''
-    unless content.include?("#{tddium_file_name}\n")
-      File.open(Git::GITIGNORE, "a") do |file|
-        file.write("#{tddium_file_name}\n")
-        file.write("#{tddium_deploy_key_file_name}\n")
+    [tddium_file_name, tddium_deploy_key_file_name].each do |fn|
+      unless content.include?("#{fn}\n")
+        File.open(Git::GITIGNORE, "a") do |file|
+          file.write("#{fn}\n")
+        end
       end
     end
   end
