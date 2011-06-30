@@ -108,6 +108,7 @@ class Tddium < Thor
   end
 
   desc "password", "Change password"
+  map "passwd" => :password
   method_option :environment, :type => :string, :default => nil
   def password
     set_default_environment(options[:environment])
@@ -254,7 +255,8 @@ class Tddium < Thor
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
       # Save the spec options
-      write_suite(current_suite_id, {"user_data_file" => user_data_file_path,
+      write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
+                                    {"user_data_file" => user_data_file_path,
                                      "max_parallelism" => max_parallelism,
                                      "test_pattern" => test_pattern})
 
@@ -326,7 +328,7 @@ class Tddium < Thor
 
         if use_existing_suite
           # Write to file and exit when using the existing suite
-          write_suite(existing_suite["id"])
+          write_suite(existing_suite)
           say Text::Status::USING_SUITE % format_suite_details(existing_suite)
           return
         end
@@ -341,7 +343,7 @@ class Tddium < Thor
         say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
         # Save the created suite
-        write_suite(new_suite["suite"]["id"])
+        write_suite(new_suite["suite"])
 
         # Manage git
         exit_failure("Failed to push repo to Tddium!") unless update_git_remote_and_push(new_suite)
@@ -675,6 +677,11 @@ class Tddium < Thor
     details
   end
 
+  def tddium_deploy_key_file_name
+    extension = ".#{environment}" unless environment == :production
+    ".tddium-deploy-key#{extension}"
+  end
+
   def suite_for_current_branch?
     unless current_suite_id
       message = Text::Error::NO_SUITE_EXISTS % current_git_branch
@@ -730,11 +737,15 @@ class Tddium < Thor
     write_tddium_to_gitignore
   end
 
-  def write_suite(suite_id, options = {})
+  def write_suite(suite, options = {})
+    suite_id = suite["id"]
     branches = tddium_settings["branches"] || {}
     branches.merge!({current_git_branch => {"id" => suite_id, "options" => options}})
     File.open(tddium_file_name, "w") do |file|
       file.write(tddium_settings.merge({"branches" => branches}).to_json)
+    end
+    File.open(tddium_deploy_key_file_name, "w") do |file|
+      file.write(suite["ci_ssh_pubkey"])
     end
     write_tddium_to_gitignore
   end
@@ -744,6 +755,7 @@ class Tddium < Thor
     unless content.include?("#{tddium_file_name}\n")
       File.open(Git::GITIGNORE, "a") do |file|
         file.write("#{tddium_file_name}\n")
+        file.write("#{tddium_deploy_key_file_name}\n")
       end
     end
   end
