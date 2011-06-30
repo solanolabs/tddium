@@ -68,6 +68,7 @@ module TddiumConstant
     end
 
     module Warning
+      GIT_VERSION = "Unsupported git version: %s"
       GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
     end
 
@@ -236,6 +237,7 @@ EOF
       GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
+      GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;
 It doesn't look like you're in a git repo.  If you're not, use 'git init' to
 create one.

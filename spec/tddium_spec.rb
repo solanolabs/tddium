@@ -179,6 +179,7 @@ describe Tddium do
     stub_git_status(tddium)
     stub_git_config(tddium)
     stub_git_changes(tddium)
+    stub_git_version_ok(tddium)
     create_file(File.join(".git", "something"), "something")
     create_file(Tddium::Git::GITIGNORE, "something")
   end
@@ -193,6 +194,10 @@ describe Tddium do
 
   def stub_git_changes(tddium, result=false)
     tddium.stub(:git_changes).and_return(result)
+  end
+
+  def stub_git_version_ok(tddium, result=false)
+    tddium.stub(:git_version_ok).and_return(result)
   end
 
   def stub_git_config(tddium)
@@ -234,6 +239,63 @@ describe Tddium do
 
   let(:tddium) { Tddium.new }
   let(:tddium_client) { mock(TddiumClient).as_null_object }
+
+  describe "changes not in git" do
+    before(:each) do
+    end
+
+    it "should fail and exit if git is not found" do
+      tddium.stub(:`).with('git --version').and_raise(Errno::ENOENT)
+      tddium.should_receive(:exit_failure).with(Tddium::Text::Error::GIT_NOT_FOUND).and_raise("exit")
+      lambda { tddium.send(:git_version_ok) }.should raise_error("exit")
+    end
+
+    it "should warn if git version is unsupported" do
+      tddium.stub(:`).with('git --version').and_return("git version 1.6.2")
+      tddium.should_receive(:warn).with(Tddium::Text::Warning::GIT_VERSION % "1.6.2").and_return(nil)
+      tddium.send(:git_version_ok)
+    end
+
+    it "should warn if git version is unsupported" do
+      tddium.stub(:`).with('git --version').and_return("git version 1.7.5")
+      tddium.should_not_receive(:exit_failure)
+      tddium.should_not_receive(:warn)
+      tddium.send(:git_version_ok)
+    end
+  end
+
+  describe "changes not in git" do
+    before(:each) do
+      @none = ''
+      @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
+      @unknown = " ? spec/bogus_spec.rb\n"
+      @tddium = Tddium.new
+      stub_defaults
+      stub_config_file(:api_key => true, :branches => true)
+    end
+
+    it "should signal no changes if there are none" do
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(@none, true, block)
+      end
+      @tddium.send(:git_changes).should be_false
+    end
+
+    it "should ignore unknown files if there are any" do
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(@unknown, true, block)
+      end
+      @tddium.send(:git_changes).should be_false
+    end
+
+    it "should signal uncommitted changes" do
+      status = @unknown + @modified
+      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
+        Open3SpecHelper.stubOpen2e(status, true, block)
+      end
+      @tddium.send(:git_changes).should be_true
+    end
+  end
 
   shared_examples_for "a password prompt" do
     context "--password was not passed in" do
@@ -433,39 +495,6 @@ describe Tddium do
       HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
       highline.should_receive(:echo=).with("*")
       run(tddium)
-    end
-  end
-
-  describe "changes not in git" do
-    before(:each) do
-      @none = ''
-      @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
-      @unknown = " ? spec/bogus_spec.rb\n"
-      @tddium = Tddium.new
-      stub_defaults
-      stub_config_file(:api_key => true, :branches => true)
-    end
-
-    it "should signal no changes if there are none" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@none, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should ignore unknown files if there are any" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@unknown, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should signal uncommitted changes" do
-      status = @unknown + @modified
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(status, true, block)
-      end
-      @tddium.send(:git_changes).should be_true
     end
   end
 

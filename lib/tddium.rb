@@ -161,9 +161,10 @@ class Tddium < Thor
   method_option :force, :type => :boolean, :default => false
   def spec
     set_default_environment(options[:environment])
+    git_version_ok
     if git_changes then
       exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
-      warn(Text::Warn::GIT_CHANGES_NOT_COMMITTED)
+      warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
     end
     exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
 
@@ -269,6 +270,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   def status
     set_default_environment(options[:environment])
+    git_version_ok
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     begin
@@ -305,6 +307,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   def suite
     set_default_environment(options[:environment])
+    git_version_ok
     return unless git_repo? && tddium_settings
 
     params = {}
@@ -369,6 +372,42 @@ class Tddium < Thor
     result
   end
 
+  def git_changes
+    cmd = "git ls-files --exclude-standard -d -m -t"
+    rv = Open3.popen2e(cmd) do |stdin, output, wait|
+      stdin.close
+      changes = false
+      while line = output.gets do
+        line.sub!(/^\s+/, '')
+        fields = line.split(/\s+/)
+        status = fields[0]
+        if status[0] != '?' then
+          changes = true
+          break
+        end
+      end
+      [wait.value, changes]
+    end
+    return rv[0] != 0 && rv[1]
+  end
+
+  def git_version_ok
+    version = nil
+    begin
+      version_string = `git --version`
+      m =  version_string.match(/([\d\.]+)/)
+      version = m[0] unless m.nil?
+    rescue Errno
+    rescue Exception
+    end
+    if version.nil? || version.empty? then
+      exit_failure(Text::Error::GIT_NOT_FOUND)
+    end
+    if version !~ /^1[.]7[.]\d+$/ then
+      warn(Text::Warning::GIT_VERSION % version)
+    end
+  end
+
   def current_git_branch
     @current_git_branch ||= File.basename(`git symbolic-ref HEAD`.gsub("\n", ""))
   end
@@ -409,25 +448,6 @@ class Tddium < Thor
 
   def exit_failure(msg='')
     abort msg
-  end
-
-  def git_changes
-    cmd = "git ls-files --exclude-standard -d -m -t"
-    rv = Open3.popen2e(cmd) do |stdin, output, wait|
-      stdin.close
-      changes = false
-      while line = output.gets do
-        line.sub!(/^\s+/, '')
-        fields = line.split(/\s+/)
-        status = fields[0]
-        if status[0] != '?' then
-          changes = true
-          break
-        end
-      end
-      [wait.value, changes]
-    end
-    return rv[0] != 0 && rv[1]
   end
 
   def get_remembered_option(options, key, default, &block)
