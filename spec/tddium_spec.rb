@@ -44,7 +44,6 @@ describe Tddium do
                            "git_repo_uri" => SAMPLE_GIT_REPO_URI,
                            "test_pattern" => SAMPLE_SUITE_PATTERN}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
-  SAMPLE_SUITE_OUTPUT = "Repo: #{SAMPLE_APP_NAME}/#{SAMPLE_BRANCH_NAME}\nDefault Test Pattern: #{SAMPLE_SUITE_PATTERN}\nRuby Version: #{SAMPLE_RUBY_VERSION}\nRubygems Version: #{SAMPLE_RUBYGEMS_VERSION}\nBundler Version: #{SAMPLE_BUNDLER_VERSION}\n\n"
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
   SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
@@ -1540,8 +1539,8 @@ describe Tddium do
 
           it_should_behave_like "writing the suite to file"
 
-          it "should show the user: '#{Tddium::Text::Status::USING_SUITE % SAMPLE_SUITE_OUTPUT}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Status::USING_SUITE % SAMPLE_SUITE_OUTPUT)
+          it "should show the user: sample suite output" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::USING_SUITE % tddium.send(:format_suite_details, SAMPLE_SUITE_RESPONSE))
             run_suite(tddium)
           end
         end
@@ -1637,7 +1636,7 @@ describe Tddium do
         end
 
         it "should display '#{Tddium::Text::Process::EXISTING_SUITE}'" do
-          tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % SAMPLE_SUITE_OUTPUT)
+          tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % tddium.send(:format_suite_details, SAMPLE_SUITE_RESPONSE))
           run_suite(tddium)
         end
 
