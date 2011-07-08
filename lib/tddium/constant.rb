@@ -240,23 +240,30 @@ https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
 then add the following URL and click "Update Settings":
 <%=suite["hook_uri"]%>
 <% else %>
-It looks like you aren't using Github, so you'll need to manually configure
-your post-commit hook. In Unix-based Git repositories, find the repository
-root and look for a shell script in `.git/hooks/post-commit`.
+In order for Tddium to know that your repo has changed, you'll need to configure
+a post-commit hook in your Git server.
+
+In Unix-based Git repositories, find the repository root and look for a shell
+script in `.git/hooks/post-commit`.
+
 To trigger CI builds, POST to the following URL from a post-commit hook:
+<%=suite["hook_uri"]%>
 <% end %>
 
 See http://www.tddium.com/support for more information on Tddium CI.
 <% end %>
 
-If your tests don't require a database, you're all set and can now run
-tddium spec.
+If your tests don't require a database or use pure ActiveRecord you're all set
+and can now run tddium spec.
 
-If your tests do use a database, you'll now need to configure your 
-database setup. See http://www.tddium.com/support/reference#setup_hooks 
-to create a Rake task for Tddium to set up your database.
+If your tests have database-specific features (triggers, stored procedures),
+you'll need to configure a custom database setup hook.   See
+http://www.tddium.com/support/reference#setup_hooks to create a Rake task for
+Tddium to set up your database.
 
 Run 'tddium suite --edit' to edit suite settings.
+
+Run 'tddium spec' to run tests in this suite.
 EOF
     end
 

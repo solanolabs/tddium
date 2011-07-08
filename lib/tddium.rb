@@ -521,7 +521,7 @@ class Tddium < Thor
     api_key = heroku_config['TDDIUM_API_KEY']
     user = tddium_client.call_api(:get, Api::Path::USERS, {}, api_key) rescue nil
     exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
-    say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
+    say Text::Process::HEROKU_WELCOME % user["email"]
 
     if user["user"]["heroku_needs_activation"] == true
       say Text::Process::HEROKU_ACTIVATE
