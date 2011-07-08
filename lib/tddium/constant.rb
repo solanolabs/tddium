@@ -220,27 +220,33 @@ Push URL: <%=suite["ci_push_url"]%>
 Notifications:
 <%=suite["ci_notifications"]%>
 
-Authorize the following SSH key to let Tddium's pulls and pushes through:
+>>> Authorize the following SSH key to let Tddium's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
 <% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
 Tddium will pull from your Github repository. Visit
+
 https://github.com/<%= $1 %>/admin/keys
+
 then click "Add another deploy key" and copy and paste the above key.
 <% end %>
 <% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
 Tddium will push to your Heroku application <%= $1 %>.
 To authorize the key, use the following command:
+
 heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
 <% end %>
 
 <% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
-Github can notify Tddium of your commits with a post-receive hook. Visit
+>>> Github can notify Tddium of your commits with a post-receive hook. Visit
+
 https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
+
 then add the following URL and click "Update Settings":
+
 <%=suite["hook_uri"]%>
 <% else %>
-In order for Tddium to know that your repo has changed, you'll need to configure
+>>> In order for Tddium to know that your repo has changed, you'll need to configure
 a post-commit hook in your Git server.
 
 In Unix-based Git repositories, find the repository root and look for a shell
@@ -250,15 +256,15 @@ To trigger CI builds, POST to the following URL from a post-commit hook:
 <%=suite["hook_uri"]%>
 <% end %>
 
-See http://www.tddium.com/support for more information on Tddium CI.
+>>> See http://www.tddium.com/support for more information on Tddium CI.
 <% end %>
 
-If your tests don't require a database or use pure ActiveRecord you're all set
-and can now run tddium spec.
+If your tests don't require a database or your app uses pure ActiveRecord you're
+all set and can now run tddium spec.
 
-If your tests have database-specific features (triggers, stored procedures),
-you'll need to configure a custom database setup hook.   See
-http://www.tddium.com/support/reference#setup_hooks to create a Rake task for
+If your app needs database-specific features (triggers, stored procedures),
+you'll need to configure a custom database setup hook.
+See http://www.tddium.com/support/reference#setup_hooks to create a Rake task for
 Tddium to set up your database.
 
 Run 'tddium suite --edit' to edit suite settings.
