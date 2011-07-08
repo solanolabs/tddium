@@ -35,6 +35,7 @@ class Tddium < Thor
   method_option :password, :type => :string, :default => nil
   method_option :ssh_key_file, :type => :string, :default => nil
   def account
+    set_shell
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
@@ -80,6 +81,7 @@ class Tddium < Thor
   method_option :ssh_key_file, :type => :string, :default => nil
   method_option :app, :type => :string, :default => nil
   def heroku
+    set_shell
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
@@ -110,6 +112,7 @@ class Tddium < Thor
   map "passwd" => :password
   method_option :environment, :type => :string, :default => nil
   def password
+    set_shell
     set_default_environment(options[:environment])
     return unless tddium_settings
     user_details = user_logged_in?
@@ -137,6 +140,7 @@ class Tddium < Thor
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
   def login
+    set_shell
     set_default_environment(options[:environment])
     if user_logged_in?
       say Text::Process::ALREADY_LOGGED_IN
@@ -148,6 +152,7 @@ class Tddium < Thor
   desc "logout", "Log out of tddium"
   method_option :environment, :type => :string, :default => nil
   def logout
+    set_shell
     set_default_environment(options[:environment])
     FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
     say Text::Process::LOGGED_OUT_SUCCESSFULLY
@@ -160,6 +165,7 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => nil
   method_option :force, :type => :boolean, :default => false
   def spec
+    set_shell
     set_default_environment(options[:environment])
     git_version_ok
     if git_changes then
@@ -270,6 +276,7 @@ class Tddium < Thor
   desc "status", "Display information about this suite, and any open dev sessions"
   method_option :environment, :type => :string, :default => nil
   def status
+    set_shell
     set_default_environment(options[:environment])
     git_version_ok
     return unless git_repo? && tddium_settings && suite_for_current_branch?
@@ -637,6 +644,12 @@ class Tddium < Thor
       end
     end
     [use_existing_suite, existing_suite]
+  end
+
+  def set_shell
+    if !$stdout.tty? || !$stderr.tty? then
+      @shell = Thor::Shell::Basic.new
+    end
   end
 
   def set_default_environment(env)
