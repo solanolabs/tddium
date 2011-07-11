@@ -202,7 +202,7 @@ describe Tddium do
   end
 
   def stub_git_config(tddium)
-    tddium.stub(:`).with("git config --get remote.origin.url").and_return(SAMPLE_GIT_REPO_URI)
+    tddium.stub(:`).with(/^\(git config --get remote.origin.url/).and_return(SAMPLE_GIT_REPO_URI)
   end
 
   def stub_git_push(tddium, success = true)

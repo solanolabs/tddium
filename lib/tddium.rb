@@ -516,8 +516,9 @@ class Tddium < Thor
   end
 
   def git_origin_url
-    result = `git config --get remote.origin.url`
-    if $? == 0 && result =~ /@/
+    result = `(git config --get remote.origin.url || echo GIT_FAILED) 2>/dev/null`
+    return nil if result =~ /GIT_FAILED/
+    if result =~ /@/
       result.strip
     else
       nil
