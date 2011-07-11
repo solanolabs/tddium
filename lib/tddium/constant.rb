@@ -59,9 +59,9 @@ module TddiumConstant
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
-      CI_PULL_URL = "Enter git URL to pull from (default '%s'):"
-      CI_PUSH_URL = "Enter git URL to push to (default '%s'):"
-      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s'):"
+      CI_PULL_URL = "Enter git URL to pull from (default '%s') or enter 'disable':"
+      CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
+      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s') or enter 'disable':"
       CAMPFIRE_ROOM = "Enter the Campfire room name (default '%s'):"
       CAMPFIRE_TOKEN = "Enter your Campfire API Token (default '%s'):"
     end
@@ -131,14 +131,13 @@ CI build when it's triggered by a POST:
 4. Optionally, Tddium CI will then push to a git server (push to URL).  For
    example, enter the git URL to your Heroku staging app.
 
->>> Set both pull and push URLs to 'disable' to disable hosted CI completely.
-
 When everything's been set up, you'll receive an SSH public key to authorize in
 git for pulls and pushes, and a Hook URL to configure in a post-commit hook.
 
 Tddium CI will not start builds on its own.
 
 >>> To set up Hosted CI, enter a git URL to pull from.
+>>> Set both pull and push URLs to 'disable' to disable hosted CI completely.
 
 EOF
       SETUP_CAMPFIRE_FIRST_TIME =<<EOF;
