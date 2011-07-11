@@ -1,4 +1,5 @@
 # Copyright (c) 2011 Solano Labs All Rights Reserved
+#
 
 require 'bundler'
 Bundler::GemHelper.install_tasks
@@ -11,7 +12,7 @@ end
 task :default => :spec
 
 namespace :spec do
-  RUBY_VERSIONS = ["1.9.2-p180", "1.8.7-p302"]
+  RUBY_VERSIONS = ["1.9.2-p180", "1.8.7-p334"]
   GEMSET = "tddium"
   desc "Runs the specs across Ruby 1.8.7 and 1.9.2"
   task :xruby do

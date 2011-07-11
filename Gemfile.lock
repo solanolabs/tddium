@@ -1,11 +1,11 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.6.16)
+    tddium-preview (0.6.19)
       bundler
       highline
       json
-      tddium_client (>= 0.0.6)
+      tddium_client (>= 0.0.8)
       thor
 
 GEM

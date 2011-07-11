@@ -59,7 +59,6 @@ module TddiumConstant
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
       TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
-      UPDATE_SUITE = "Do you want to edit settings for this suite? (y/n)"
       CI_PULL_URL = "Enter git URL to pull from (default '%s'):"
       CI_PUSH_URL = "Enter git URL to push to (default '%s'):"
       CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s'):"
@@ -68,7 +67,9 @@ module TddiumConstant
     end
 
     module Warning
-      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+      GIT_VERSION = "Unsupported git version: %s"
+      GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
+      GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
     end
 
     module Process
@@ -219,23 +220,70 @@ Push URL: <%=suite["ci_push_url"]%>
 Notifications:
 <%=suite["ci_notifications"]%>
 
-Authorize the following SSH key to let Tddium's pulls and pushes through:
+>>> Authorize the following SSH key to let Tddium's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
+<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+Tddium will pull from your Github repository. Visit
 
-To trigger CI builds, POST to the following URL from a post-commit hook:
+https://github.com/<%= $1 %>/admin/keys
+
+then click "Add another deploy key" and copy and paste the above key.
+<% end %>
+<% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
+Tddium will push to your Heroku application <%= $1 %>.
+To authorize the key, use the following command:
+
+heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
+<% end %>
+
+<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+>>> Github can notify Tddium of your commits with a post-receive hook. Visit
+
+https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
+
+then add the following URL and click "Update Settings":
 
 <%=suite["hook_uri"]%>
+<% else %>
+>>> In order for Tddium to know that your repo has changed, you'll need to configure
+a post-commit hook in your Git server.
 
-See www.tddium.com/support for more information.
+In Unix-based Git repositories, find the repository root and look for a shell
+script in `.git/hooks/post-commit`.
+
+To trigger CI builds, POST to the following URL from a post-commit hook:
+<%=suite["hook_uri"]%>
 <% end %>
+
+>>> See http://www.tddium.com/support for more information on Tddium CI.
+<% end %>
+
+If your tests don't require a database or your app uses pure ActiveRecord you're
+all set and can now run tddium spec.
+
+If your app needs database-specific features (triggers, stored procedures),
+you'll need to configure a custom database setup hook.
+See http://www.tddium.com/support/reference#setup_hooks to create a Rake task for
+Tddium to set up your database.
+
+Run 'tddium suite --edit' to edit suite settings.
+
+Run 'tddium spec' to run tests in this suite.
 EOF
     end
 
     module Error
-      GIT_CHANGES_NOT_COMMITTED = "Uncommitted changes in local git repository"
+      GIT_CHANGES_NOT_COMMITTED =<<EOF
+There are uncommitted changes in the local git repository.
+
+Commit changes before running 'tddium spec'.
+
+Use 'tddium spec --force' to test with only already-committed changes.
+EOF
       NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
+      GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;
 It doesn't look like you're in a git repo.  If you're not, use 'git init' to
 create one.

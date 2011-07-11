@@ -8,7 +8,6 @@ require "highline/import"
 require "json"
 require "tddium_client"
 require "base64"
-require "open3"
 require "erb"
 require File.expand_path("../tddium/constant", __FILE__)
 require File.expand_path("../tddium/version", __FILE__)
@@ -36,6 +35,7 @@ class Tddium < Thor
   method_option :password, :type => :string, :default => nil
   method_option :ssh_key_file, :type => :string, :default => nil
   def account
+    set_shell
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
@@ -81,6 +81,7 @@ class Tddium < Thor
   method_option :ssh_key_file, :type => :string, :default => nil
   method_option :app, :type => :string, :default => nil
   def heroku
+    set_shell
     set_default_environment(options[:environment])
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
@@ -108,8 +109,10 @@ class Tddium < Thor
   end
 
   desc "password", "Change password"
+  map "passwd" => :password
   method_option :environment, :type => :string, :default => nil
   def password
+    set_shell
     set_default_environment(options[:environment])
     return unless tddium_settings
     user_details = user_logged_in?
@@ -137,6 +140,7 @@ class Tddium < Thor
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
   def login
+    set_shell
     set_default_environment(options[:environment])
     if user_logged_in?
       say Text::Process::ALREADY_LOGGED_IN
@@ -148,6 +152,7 @@ class Tddium < Thor
   desc "logout", "Log out of tddium"
   method_option :environment, :type => :string, :default => nil
   def logout
+    set_shell
     set_default_environment(options[:environment])
     FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
     say Text::Process::LOGGED_OUT_SUCCESSFULLY
@@ -160,10 +165,12 @@ class Tddium < Thor
   method_option :test_pattern, :type => :string, :default => nil
   method_option :force, :type => :boolean, :default => false
   def spec
+    set_shell
     set_default_environment(options[:environment])
+    git_version_ok
     if git_changes then
       exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
-      warn(Text::Warn::GIT_CHANGES_NOT_COMMITTED)
+      warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
     end
     exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
 
@@ -253,7 +260,8 @@ class Tddium < Thor
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
       # Save the spec options
-      write_suite(current_suite_id, {"user_data_file" => user_data_file_path,
+      write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
+                                    {"user_data_file" => user_data_file_path,
                                      "max_parallelism" => max_parallelism,
                                      "test_pattern" => test_pattern})
 
@@ -268,7 +276,9 @@ class Tddium < Thor
   desc "status", "Display information about this suite, and any open dev sessions"
   method_option :environment, :type => :string, :default => nil
   def status
+    set_shell
     set_default_environment(options[:environment])
+    git_version_ok
     return unless git_repo? && tddium_settings && suite_for_current_branch?
 
     begin
@@ -298,6 +308,7 @@ class Tddium < Thor
   end
 
   desc "suite", "Register the suite for this project, or edit its settings"
+  method_option :edit, :type => :boolean, :default => false
   method_option :name, :type => :string, :default => nil
   method_option :pull_url, :type => :string, :default => nil
   method_option :push_url, :type => :string, :default => nil
@@ -305,6 +316,7 @@ class Tddium < Thor
   method_option :environment, :type => :string, :default => nil
   def suite
     set_default_environment(options[:environment])
+    git_version_ok
     return unless git_repo? && tddium_settings
 
     params = {}
@@ -312,8 +324,11 @@ class Tddium < Thor
       if current_suite_id
         current_suite = call_api(:get, current_suite_path)["suite"]
 
-        say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
-        prompt_update_suite(current_suite, options)
+        if options[:edit]
+          update_suite(current_suite, options)
+        else
+          say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
+        end
       else
         params[:branch] = current_git_branch
         default_suite_name = File.basename(Dir.pwd)
@@ -323,7 +338,7 @@ class Tddium < Thor
 
         if use_existing_suite
           # Write to file and exit when using the existing suite
-          write_suite(existing_suite["id"])
+          write_suite(existing_suite)
           say Text::Status::USING_SUITE % format_suite_details(existing_suite)
           return
         end
@@ -338,7 +353,7 @@ class Tddium < Thor
         say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
         # Save the created suite
-        write_suite(new_suite["suite"]["id"])
+        write_suite(new_suite["suite"])
 
         # Manage git
         exit_failure("Failed to push repo to Tddium!") unless update_git_remote_and_push(new_suite)
@@ -367,6 +382,45 @@ class Tddium < Thor
       raise e
     end
     result
+  end
+
+  def git_changes
+    cmd = "(git ls-files --exclude-standard -d -m -t || echo GIT_FAILED) < /dev/null 2>&1"
+    p = IO.popen(cmd)
+    changes = false
+    while line = p.gets do
+      if line =~ /GIT_FAILED/
+        warn(Text::Warning::GIT_UNABLE_TO_DETECT)
+        return false
+      end
+      line = line.strip
+      fields = line.split(/\s+/)
+      status = fields[0]
+      if status !~ /^\?/ then
+        changes = true
+        break
+      end
+    end
+    return changes
+  end
+
+  def git_version_ok
+    version = nil
+    begin
+      version_string = `git --version`
+      m =  version_string.match(Dependency::VERSION_REGEXP)
+      version = m[0] unless m.nil?
+    rescue Errno
+    rescue Exception
+    end
+    if version.nil? || version.empty? then
+      exit_failure(Text::Error::GIT_NOT_FOUND)
+    end
+    version_parts = version.split(".")
+    if version_parts[0].to_i < 1 ||
+       version_parts[1].to_i < 7 then
+      warn(Text::Warning::GIT_VERSION % version)
+    end
   end
 
   def current_git_branch
@@ -409,25 +463,6 @@ class Tddium < Thor
 
   def exit_failure(msg='')
     abort msg
-  end
-
-  def git_changes
-    cmd = "git ls-files --exclude-standard -d -m -t"
-    rv = Open3.popen2e(cmd) do |stdin, output, wait|
-      stdin.close
-      changes = false
-      while line = output.gets do
-        line.sub!(/^\s+/, '')
-        fields = line.split(/\s+/)
-        status = fields[0]
-        if status[0] != '?' then
-          changes = true
-          break
-        end
-      end
-      [wait.value, changes]
-    end
-    return rv[0] != 0 && rv[1]
   end
 
   def get_remembered_option(options, key, default, &block)
@@ -493,7 +528,7 @@ class Tddium < Thor
     api_key = heroku_config['TDDIUM_API_KEY']
     user = tddium_client.call_api(:get, Api::Path::USERS, {}, api_key) rescue nil
     exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
-    say Text::Process::HEROKU_WELCOME % heroku_config['TDDIUM_USER_NAME']
+    say Text::Process::HEROKU_WELCOME % user["user"]["email"]
 
     if user["user"]["heroku_needs_activation"] == true
       say Text::Process::HEROKU_ACTIVATE
@@ -571,13 +606,11 @@ class Tddium < Thor
     ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
   end
 
-  def prompt_update_suite(suite, options)
-    if prompt(Text::Prompt::UPDATE_SUITE, nil, 'n') == Text::Prompt::Response::YES
-      params = {}
-      prompt_suite_params(options, params, suite)
-      call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
-      say Text::Process::UPDATED_SUITE
-    end
+  def update_suite(suite, options)
+    params = {}
+    prompt_suite_params(options, params, suite)
+    call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
+    say Text::Process::UPDATED_SUITE
   end
 
   def resolve_suite_name(options, params, default_suite_name)
@@ -611,6 +644,12 @@ class Tddium < Thor
       end
     end
     [use_existing_suite, existing_suite]
+  end
+
+  def set_shell
+    if !$stdout.tty? || !$stderr.tty? then
+      @shell = Thor::Shell::Basic.new
+    end
   end
 
   def set_default_environment(env)
@@ -653,6 +692,11 @@ class Tddium < Thor
     # important information about the suite
     details = ERB.new(Text::Status::SUITE_DETAILS).result(binding)
     details
+  end
+
+  def tddium_deploy_key_file_name
+    extension = ".#{environment}" unless environment == :production
+    ".tddium-deploy-key#{extension}"
   end
 
   def suite_for_current_branch?
@@ -710,20 +754,26 @@ class Tddium < Thor
     write_tddium_to_gitignore
   end
 
-  def write_suite(suite_id, options = {})
+  def write_suite(suite, options = {})
+    suite_id = suite["id"]
     branches = tddium_settings["branches"] || {}
     branches.merge!({current_git_branch => {"id" => suite_id, "options" => options}})
     File.open(tddium_file_name, "w") do |file|
       file.write(tddium_settings.merge({"branches" => branches}).to_json)
+    end
+    File.open(tddium_deploy_key_file_name, "w") do |file|
+      file.write(suite["ci_ssh_pubkey"])
     end
     write_tddium_to_gitignore
   end
 
   def write_tddium_to_gitignore
     content = File.exists?(Git::GITIGNORE) ? File.read(Git::GITIGNORE) : ''
-    unless content.include?("#{tddium_file_name}\n")
-      File.open(Git::GITIGNORE, "a") do |file|
-        file.write("#{tddium_file_name}\n")
+    [tddium_file_name, tddium_deploy_key_file_name].each do |fn|
+      unless content.include?("#{fn}\n")
+        File.open(Git::GITIGNORE, "a") do |file|
+          file.write("#{fn}\n")
+        end
       end
     end
   end

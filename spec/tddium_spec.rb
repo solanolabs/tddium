@@ -35,6 +35,7 @@ describe Tddium do
   DEFAULT_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_SUITE_PATTERN = "features/*.feature, spec/**/*_spec.rb"
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
+  SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
   SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME,
                            "branch" => SAMPLE_BRANCH_NAME, 
                            "id" => SAMPLE_SUITE_ID, 
@@ -42,10 +43,11 @@ describe Tddium do
                            "rubygems_version"=>SAMPLE_RUBYGEMS_VERSION,
                            "bundler_version"=>SAMPLE_BUNDLER_VERSION,
                            "git_repo_uri" => SAMPLE_GIT_REPO_URI,
+                           "ci_ssh_pubkey" => SAMPLE_SSH_PUBKEY,
                            "test_pattern" => SAMPLE_SUITE_PATTERN}
   SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
-  SAMPLE_SUITE_OUTPUT = "Repo: #{SAMPLE_APP_NAME}/#{SAMPLE_BRANCH_NAME}\nDefault Test Pattern: #{SAMPLE_SUITE_PATTERN}\nRuby Version: #{SAMPLE_RUBY_VERSION}\nRubygems Version: #{SAMPLE_RUBYGEMS_VERSION}\nBundler Version: #{SAMPLE_BUNDLER_VERSION}\n\n"
   SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
+  SAMPLE_TDDIUM_DEPLOY_KEY_FILE = ".tddium-deploy-key.test"
   SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
   SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
     { "id"=>SAMPLE_USER_ID, 
@@ -53,7 +55,6 @@ describe Tddium do
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
       "recurly_url" => SAMPLE_RECURLY_URL}}
-  SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
   SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
     { "id"=>SAMPLE_USER_ID, 
       "api_key" => SAMPLE_API_KEY, 
@@ -179,6 +180,7 @@ describe Tddium do
     stub_git_status(tddium)
     stub_git_config(tddium)
     stub_git_changes(tddium)
+    stub_git_version_ok(tddium)
     create_file(File.join(".git", "something"), "something")
     create_file(Tddium::Git::GITIGNORE, "something")
   end
@@ -193,6 +195,10 @@ describe Tddium do
 
   def stub_git_changes(tddium, result=false)
     tddium.stub(:git_changes).and_return(result)
+  end
+
+  def stub_git_version_ok(tddium, result=false)
+    tddium.stub(:git_version_ok).and_return(result)
   end
 
   def stub_git_config(tddium)
@@ -234,6 +240,61 @@ describe Tddium do
 
   let(:tddium) { Tddium.new }
   let(:tddium_client) { mock(TddiumClient).as_null_object }
+
+  describe "problems running git" do
+    before(:each) do
+    end
+
+    it "should fail and exit if git is not found" do
+      tddium.stub(:`).with('git --version').and_raise(Errno::ENOENT)
+      tddium.should_receive(:exit_failure).with(Tddium::Text::Error::GIT_NOT_FOUND).and_raise("exit")
+      lambda { tddium.send(:git_version_ok) }.should raise_error("exit")
+    end
+
+    it "should warn if git version is unsupported" do
+      tddium.stub(:`).with('git --version').and_return("git version 1.6.2")
+      tddium.should_receive(:warn).with(Tddium::Text::Warning::GIT_VERSION % "1.6.2").and_return(nil)
+      tddium.send(:git_version_ok)
+    end
+
+    it "should warn if git version is unsupported" do
+      tddium.stub(:`).with('git --version').and_return("git version 1.7.5")
+      tddium.should_not_receive(:exit_failure)
+      tddium.should_not_receive(:warn)
+      tddium.send(:git_version_ok)
+    end
+  end
+
+  describe "changes in git" do
+    before(:each) do
+      @none = ''
+      @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
+      @unknown = " ? spec/bogus_spec.rb\n"
+      stub_config_file(:api_key => true, :branches => true)
+    end
+
+    it "should handle failure" do
+      ::IO.stub(:popen) { StringIO.new("GIT_FAILED") }
+      tddium.should_receive(:warn).with(Tddium::Text::Warning::GIT_UNABLE_TO_DETECT).and_return(nil)
+      tddium.send(:git_changes).should be_false
+    end
+
+    it "should signal no changes if there are none" do
+      ::IO.stub(:popen) { StringIO.new(@none) }
+      tddium.send(:git_changes).should be_false
+    end
+
+    it "should ignore unknown files if there are any" do
+      ::IO.stub(:popen) { StringIO.new(@unknown) }
+      tddium.send(:git_changes).should be_false
+    end
+
+    it "should signal uncommitted changes" do
+      status = @unknown + @modified
+      ::IO.stub(:popen) { StringIO.new(status) }
+      tddium.send(:git_changes).should be_true
+    end
+  end
 
   shared_examples_for "a password prompt" do
     context "--password was not passed in" do
@@ -433,39 +494,6 @@ describe Tddium do
       HighLine.should_receive(:ask).with(password_prompt).and_yield(highline)
       highline.should_receive(:echo=).with("*")
       run(tddium)
-    end
-  end
-
-  describe "changes not in git" do
-    before(:each) do
-      @none = ''
-      @modified = "C lib/tddium.rb\n R spec/spec_helper.rb\n"
-      @unknown = " ? spec/bogus_spec.rb\n"
-      @tddium = Tddium.new
-      stub_defaults
-      stub_config_file(:api_key => true, :branches => true)
-    end
-
-    it "should signal no changes if there are none" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@none, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should ignore unknown files if there are any" do
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(@unknown, true, block)
-      end
-      @tddium.send(:git_changes).should be_false
-    end
-
-    it "should signal uncommitted changes" do
-      status = @unknown + @modified
-      Open3.should_receive(:popen2e).once.and_return do |cmd, block|
-        Open3SpecHelper.stubOpen2e(status, true, block)
-      end
-      @tddium.send(:git_changes).should be_true
     end
   end
 
@@ -1079,6 +1107,13 @@ describe Tddium do
               end
             end
 
+            shared_examples_for("saving spec options") do
+              it "should save the spec options" do
+                tddium.should_receive(:write_suite).with(SAMPLE_SUITE_RESPONSE, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
+                run_spec(tddium, {:max_parallelism => 3})
+              end
+            end
+
             context "user presses 'Ctrl-C' during the process" do
               before do
                 stub_call_api_response(:get, "#{Tddium::Api::Path::SESSIONS}/#{SAMPLE_SESSION_ID}/#{Tddium::Api::Path::TEST_EXECUTIONS}", get_test_executions_response)
@@ -1144,11 +1179,7 @@ describe Tddium do
                   end
                 end
 
-                it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
-                  run_spec(tddium, {:max_parallelism => 3})
-                end
-
+                it_behaves_like "saving spec options"
                 it_should_behave_like("test output summary")
               end
 
@@ -1205,11 +1236,7 @@ describe Tddium do
                   end
                 end
 
-                it "should save the spec options" do
-                  tddium.should_receive(:write_suite).with(SAMPLE_SUITE_ID, {"user_data_file" => nil, "max_parallelism" => 3, "test_pattern" => nil})
-                  run_spec(tddium, {:max_parallelism => 3})
-                end
-
+                it_should_behave_like "saving spec options"
                 it_should_behave_like("test output summary")
               end
             end
@@ -1377,18 +1404,18 @@ describe Tddium do
       tddium.stub(:ask).and_return("")
     end
 
-    shared_examples_for "prompting for suite configuration" do
+    shared_examples_for "prompting for suite configuration" do |options|
       it "should prompt for URLs" do
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PULL_URL % current.fetch('ci_pull_url', SAMPLE_GIT_REPO_URI), anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CI_PUSH_URL % current['ci_push_url'], anything)
-        run_suite(tddium)
+        run_suite(tddium, options)
       end
 
       it "should prompt for campfire" do
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'], anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'], anything)
-        run_suite(tddium)
+        run_suite(tddium, options)
       end
     end
 
@@ -1458,6 +1485,12 @@ describe Tddium do
             JSON.parse(tddium_file)["branches"][SAMPLE_BRANCH_NAME]["id"].should == SAMPLE_SUITE_ID
           end
 
+          it "should write the deploy key file" do
+            run_suite(tddium)
+            deploy_key_data = File.open(SAMPLE_TDDIUM_DEPLOY_KEY_FILE) { |file| file.read }
+            deploy_key_data.should == SAMPLE_SSH_PUBKEY
+          end
+
           it "should update the gitignore file with tddium" do
             run_suite(tddium)
             gitignore_file = File.open(Tddium::Git::GITIGNORE) { |file| file.read }
@@ -1511,8 +1544,8 @@ describe Tddium do
 
           it_should_behave_like "writing the suite to file"
 
-          it "should show the user: '#{Tddium::Text::Status::USING_SUITE % SAMPLE_SUITE_OUTPUT}'" do
-            tddium.should_receive(:say).with(Tddium::Text::Status::USING_SUITE % SAMPLE_SUITE_OUTPUT)
+          it "should show the user: sample suite output" do
+            tddium.should_receive(:say).with(Tddium::Text::Status::USING_SUITE % tddium.send(:format_suite_details, SAMPLE_SUITE_RESPONSE))
             run_suite(tddium)
           end
         end
@@ -1608,25 +1641,17 @@ describe Tddium do
         end
 
         it "should display '#{Tddium::Text::Process::EXISTING_SUITE}'" do
-          tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % SAMPLE_SUITE_OUTPUT)
-          run_suite(tddium)
-        end
-
-        it "should check if the user wants to update the suite" do
-          tddium.should_receive(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything)
+          tddium.should_receive(:say).with(Tddium::Text::Process::EXISTING_SUITE % tddium.send(:format_suite_details, SAMPLE_SUITE_RESPONSE))
           run_suite(tddium)
         end
 
         context "user wants to update the suite" do
-          before(:each) do
-            tddium.stub(:ask).with(Tddium::Text::Prompt::UPDATE_SUITE, anything).and_return(Tddium::Text::Prompt::Response::YES)
-          end
-          it_behaves_like "prompting for suite configuration" do
+          it_behaves_like "prompting for suite configuration", {:edit=>true} do
             let(:current) { SAMPLE_SUITE_RESPONSE }
           end
           it "should PUT to /suites/#{SAMPLE_SUITE_ID}" do
             call_api_should_receive(:method=>:put, :path=>"#{Tddium::Api::Path::SUITES}/#{SAMPLE_SUITE_ID}")
-            run_suite(tddium)
+            run_suite(tddium, {:edit=>true})
           end
         end
 
