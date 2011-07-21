@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.7.0)
+    tddium-preview (0.7.1)
       bundler
       highline
       json
@@ -12,12 +12,20 @@ GEM
   remote: http://rubygems.org/
   specs:
     crack (0.1.8)
+    daemons (1.1.4)
     diff-lcs (1.1.2)
     fakefs (0.3.1)
     highline (1.6.2)
-    httparty (0.7.7)
+    httparty (0.7.8)
       crack (= 0.1.8)
-    json (1.5.1)
+    json (1.5.3)
+    mimic (0.4.3)
+      json
+      plist
+      rack
+      sinatra
+    plist (3.1.0)
+    rack (1.3.0)
     rake (0.8.7)
     rspec (2.5.0)
       rspec-core (~> 2.5.0)
@@ -30,16 +38,22 @@ GEM
     simplecov (0.4.1)
       simplecov-html (~> 0.4.3)
     simplecov-html (0.4.3)
+    sinatra (1.2.6)
+      rack (~> 1.1)
+      tilt (< 2.0, >= 1.2.2)
     tddium_client (0.0.8)
       httparty
       json
     thor (0.14.6)
+    tilt (1.3.2)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  daemons
   fakefs
+  mimic
   rake
   rspec
   simplecov
