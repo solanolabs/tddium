@@ -286,23 +286,16 @@ class Tddium < Thor
       if current_suites["suites"].size == 0
         say Text::Status::NO_SUITE
       else
-        say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| suite["repo_name"]}.join(", ")
-
         if current_suite = current_suites["suites"].detect {|suite| suite["id"] == current_suite_id}
+          show_session_details({:active => false, :order => "date", :limit => 10}, Text::Status::NO_INACTIVE_SESSION, Text::Status::INACTIVE_SESSIONS)
+          show_session_details({:active => true}, Text::Status::NO_ACTIVE_SESSION, Text::Status::ACTIVE_SESSIONS)
           say Text::Status::SEPARATOR
           say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
-
           display_attributes(DisplayedAttributes::SUITE, current_suite)
-
-          show_session_details({:active => true}, Text::Status::NO_ACTIVE_SESSION, Text::Status::ACTIVE_SESSIONS)
-          show_session_details({:active => false, :order => "date", :limit => 10}, Text::Status::NO_INACTIVE_SESSION, Text::Status::INACTIVE_SESSIONS)
         else
           say Text::Status::CURRENT_SUITE_UNAVAILABLE
         end
       end
-
-      account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
-      say account_usage["usage"]
     rescue TddiumClient::Error::Base
     end
   end
@@ -670,7 +663,7 @@ class Tddium < Thor
         say no_session_prompt
       else
         say all_session_prompt
-        current_sessions["sessions"].each do |session|
+        current_sessions["sessions"].reverse_each do |session|
           session_id = session.delete("id")
           say Text::Status::SESSION_TITLE % session_id
           display_attributes(DisplayedAttributes::TEST_EXECUTION, session)
@@ -686,6 +679,20 @@ class Tddium < Thor
     # Account creation date
     user = api_response["user"]
     say ERB.new(Text::Status::USER_DETAILS).result(binding)
+
+    begin
+      current_suites = call_api(:get, Api::Path::SUITES)
+      if current_suites["suites"].size == 0 then
+        say Text::Status::NO_SUITE
+      else
+        say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| suite["repo_name"]}.join(", ")
+      end
+
+      account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
+      say account_usage["usage"]
+    rescue TddiumClient::Error::Base => e
+puts "EXN: #{e.inspect}"
+    end
   end
 
   def format_suite_details(suite)
