@@ -53,6 +53,7 @@ PLATFORMS
 DEPENDENCIES
   daemons
   fakefs
+  httparty
   mimic
   rake
   rspec

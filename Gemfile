@@ -6,4 +6,5 @@ gemspec
 group :test do
   gem 'mimic'
   gem 'daemons'
+  gem 'httparty'
 end
