@@ -45,7 +45,7 @@ class MimicServer
   def ping
     begin
       http = call_api(:get,  '/api/ping')
-    rescue Exception
+    rescue Exception, Timeout::Error
       return false
     end
     return http.code == 200
