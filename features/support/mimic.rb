@@ -93,3 +93,24 @@ end
 if __FILE__ == $0 then
   MimicServer.test
 end
+
+mimic_server = nil
+Before(@mimic) do
+  if mimic_server.nil? then
+    mimic_server = MimicServer.new
+    mimic_server.start
+  end
+end
+
+After(@mimic) do
+  if mimic_server then
+    mimic_server.clear
+  end
+end
+
+at_exit do
+  if mimic_server then
+    mimic_server.clear
+    mimic_server.stop
+  end
+end
