@@ -79,11 +79,17 @@ class MimicServer
     raise Timeout::Error if tries > retries && retries >= 0
     return http
   end
+
+  class << self
+    def test
+      mimic = MimicServer.new
+      mimic.start
+      mimic.clear
+      mimic.stop
+    end
+  end
 end
 
 if __FILE__ == $0 then
-  mimic = MimicServer.new
-  mimic.start
-  mimic.clear
-  mimic.stop
+  MimicServer.test
 end
