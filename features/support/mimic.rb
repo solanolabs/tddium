@@ -111,6 +111,7 @@ end
 
 Before('@mimic') do
   MimicServer.start
+#  @aruba_io_wait_seconds = 4
 end
 
 After('@mimic') do
