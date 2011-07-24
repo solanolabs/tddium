@@ -8,19 +8,19 @@ class MimicServer
 
   def initialize
     @port = 8080
-    @pid_dir = '/tmp/mimic'
-    FileUtils.mkdir_p('/tmp/mimic')
+    @pid_dir = File.join(Dir.tmpdir, 'mimic')
+    FileUtils.mkdir_p(@pid_dir)
   end
 
   def start
-    options = {:ARGV => ['start'], :dir_mode => :normal, :dir => @pid_dir}
+    options = {:ARGV => ['start'], :log_output => true, :dir_mode => :normal, :dir => @pid_dir}
     args = {:fork => false,
             :host => 'localhost',
             :port => @port,
             :remote_configuration_path => '/api'}
     @mimic_group = Daemons.run_proc("mimic", options) do
       Mimic.mimic(args) do
-        [:INT, :TERM].each { |sig| trap(sig) { Kernel.exit!(0) } }
+        [:INT, :TERM].each { |sig| trap(sig) { STDERR.puts "got sig!"; Kernel.exit!(0) } }
       end
     end
     @mimic_group.setup
@@ -28,6 +28,7 @@ class MimicServer
   end
 
   def stop
+    return nil unless @mimic_group
     @mimic_group.stop_all
     @mimic_group.find_applications(@pid_dir)
     @mimic_group.zap_all
@@ -57,7 +58,7 @@ class MimicServer
   end
 
   def install(verb, path, body, headers = {})
-    params = { 'path' => path, 'body' => body }
+    params = { 'path' => path, 'body' => body.to_json }.to_json
     http = call_api(:post,  "/api/#{verb}", params, headers)
     return http
   end
@@ -82,10 +83,24 @@ class MimicServer
 
   class << self
     def test
-      mimic = MimicServer.new
-      mimic.start
+      mimic = MimicServer.start
       mimic.clear
       mimic.stop
+    end
+
+    def start
+      return @server if @server
+      @server = MimicServer.new
+      @server.start
+      @server
+    end
+
+    def server
+      @server
+    end
+
+    def clear
+      @server.clear rescue nil
     end
   end
 end
@@ -94,23 +109,17 @@ if __FILE__ == $0 then
   MimicServer.test
 end
 
-mimic_server = nil
-Before(@mimic) do
-  if mimic_server.nil? then
-    mimic_server = MimicServer.new
-    mimic_server.start
-  end
+Before('@mimic') do
+  MimicServer.start
 end
 
-After(@mimic) do
-  if mimic_server then
-    mimic_server.clear
-  end
+After('@mimic') do
+  MimicServer.clear
 end
 
 at_exit do
-  if mimic_server then
-    mimic_server.clear
-    mimic_server.stop
-  end
+  server = MimicServer.server
+  server.stop if server
 end
+
+MimicServer.start
