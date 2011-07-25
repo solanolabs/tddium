@@ -53,3 +53,4 @@ nbproject
 *.swp
 *.swo
 .tddium.staging
+.tddium-deploy-key.staging
