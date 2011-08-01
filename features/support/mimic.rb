@@ -65,14 +65,17 @@ class MimicServer
 
   def call_api(method, path, params = {}, headers = {})
     tries = 0
-    retries = 5
+    retries = 7
     done = false
     while (tries <= retries) && !done
       begin
         http = HTTParty.send(method, "http://localhost:#{@port}#{path}",
                              :body => params, :headers => headers)
         done = true
+      rescue SystemCallError
+        Kernel.sleep(0.5)
       rescue Timeout::Error
+        Kernel.sleep(0.5)
       ensure
         tries += 1
       end
