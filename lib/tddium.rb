@@ -239,6 +239,8 @@ class Tddium < Thor
                         when "failed" then ["F", :red, false]
                         when "error" then ["E", nil, false]
                         when "pending" then ["*", :yellow, false]
+                        when "skipped" then [".", :yellow, false]
+                        else [".", nil, false]
                       end
             finished_tests[test_name] = test_status
             test_statuses[test_status] += 1
