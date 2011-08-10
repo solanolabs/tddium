@@ -764,8 +764,9 @@ describe Tddium do
       context "the user does not confirm their password correctly" do
         before {HighLine.stub(:ask).with(Tddium::Text::Prompt::PASSWORD_CONFIRMATION).and_return("wrong confirmation")}
         it "should tell the user '#{Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT}'" do
-          tddium.should_receive(:say).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
-          run_account(tddium)
+          account_should_fail(tddium) do
+            tddium.should_receive(:exit_failure).with(Tddium::Text::Process::PASSWORD_CONFIRMATION_INCORRECT)
+          end
         end
       end
 
