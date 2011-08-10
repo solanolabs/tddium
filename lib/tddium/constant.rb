@@ -289,6 +289,7 @@ EOF
     end
 
     module Error
+      INVALID_SSH_PUBLIC_KEY = '%s does not appear to be a valid SSH public key'
       GIT_CHANGES_NOT_COMMITTED =<<EOF
 There are uncommitted changes in the local git repository.
 

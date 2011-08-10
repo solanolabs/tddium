@@ -26,6 +26,14 @@ require File.expand_path("../tddium/heroku", __FILE__)
 #
 #      tddium help     # Print this usage message
 
+class TddiumError < Exception
+  attr_reader :message
+
+  def initialize(message)
+    @message = message
+  end
+end
+
 class Tddium < Thor
   include TddiumConstant
 
@@ -47,12 +55,15 @@ class Tddium < Thor
       unless options[:password]
         password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
         unless password_confirmation == params[:password]
-          say Text::Process::PASSWORD_CONFIRMATION_INCORRECT
-          return
+          exit_failure Text::Process::PASSWORD_CONFIRMATION_INCORRECT
         end
       end
 
-      params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key_file])
+      begin
+        params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key_file])
+      rescue TddiumError => e
+        exit_failure e.message
+      end
 
       # Prompt for accepting license
       content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
@@ -536,7 +547,11 @@ class Tddium < Thor
       params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
       params.delete(:email)
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-      params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key])
+      begin
+        params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key])
+      rescue TddiumError => e
+        exit_failure e.message
+      end
 
       begin
         user_id = user["user"]["id"]
@@ -572,6 +587,12 @@ class Tddium < Thor
     # Prompt for ssh-key file
     ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
     data = File.open(File.expand_path(ssh_file)) {|file| file.read}
+    if data =~ /^-+BEGIN [DR]SA PRIVATE KEY-+/ then
+      raise TddiumError.new(Text::Error::INVALID_SSH_PUBLIC_KEY % ssh_file)
+    end
+    if data !~ /^\s*ssh-(dss|rsa)/ then
+      raise TddiumError.new(Text::Error::INVALID_SSH_PUBLIC_KEY % ssh_file)
+    end
     data
   end
 
