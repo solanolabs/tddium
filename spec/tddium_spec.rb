@@ -614,6 +614,23 @@ describe Tddium do
         tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
         run(tddium, :ssh_key_file => Tddium::Default::SSH_FILE)
       end
+
+      it "should fail if key file doesn't contain an SSH key" do
+        create_file(Tddium::Default::SSH_FILE, 'blah blah blah')
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
+        account_should_fail(tddium, :ssh_key_file => Tddium::Default::SSH_FILE) do
+          tddium.should_receive(:exit_failure).with(Tddium::Text::Error::INVALID_SSH_PUBLIC_KEY % Tddium::Default::SSH_FILE)
+	end
+      end
+
+      it "should fail if key file is an SSH private key" do
+        create_file(Tddium::Default::SSH_FILE, "-----BEGIN RSA PRIVATE KEY-----\n")
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
+        account_should_fail(tddium, :ssh_key_file => Tddium::Default::SSH_FILE) do
+          tddium.should_receive(:exit_failure).with(Tddium::Text::Error::INVALID_SSH_PUBLIC_KEY % Tddium::Default::SSH_FILE)
+	end
+      end
+
     end
   end
 
