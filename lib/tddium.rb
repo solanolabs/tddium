@@ -77,7 +77,8 @@ class Tddium < Thor
         say Text::Process::STARTING_ACCOUNT_CREATION
         new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
         write_api_key(new_user["user"]["api_key"])
-        if new_user["user"]["account_role"] == "owner"
+        role = new_user["user"]["account_role"]
+        if role.nil? || role == "owner"
           say Text::Process::ACCOUNT_CREATED % [new_user["user"]["email"], new_user["user"]["recurly_url"]]
         else
           say Text::Process::ACCOUNT_ADDED % [new_user["user"]["email"], new_user["user"]["account_role"], new_user["user"]["account"]]
