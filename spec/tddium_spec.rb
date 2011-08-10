@@ -508,6 +508,23 @@ describe Tddium do
     end
   end
 
+
+  shared_examples_for "show account usage" do
+    it "should send a 'GET' request to '#{Tddium::Api::Path::ACCOUNT_USAGE}'" do
+      call_api_should_receive(:method => :get, :path => Tddium::Api::Path::ACCOUNT_USAGE)
+      run(tddium)
+    end
+
+    context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
+      before { stub_call_api_response(:get, Tddium::Api::Path::ACCOUNT_USAGE, {"usage" => "something"}) }
+
+      it "should display the account usage" do
+        tddium.should_receive(:say).with("something")
+        run(tddium)
+      end
+    end
+  end
+
   describe "#password" do
     before do
       stub_defaults
@@ -734,6 +751,7 @@ describe Tddium do
         run_account(tddium)
       end
 
+     # it_should_behave_like "show account usage"
     end
 
     context "the user is not already logged in" do
@@ -1397,19 +1415,6 @@ describe Tddium do
           end
         end
 
-        it "should send a 'GET' request to '#{Tddium::Api::Path::ACCOUNT_USAGE}'" do
-          call_api_should_receive(:method => :get, :path => Tddium::Api::Path::ACCOUNT_USAGE)
-          run_status(tddium)
-        end
-
-        context "'GET #{Tddium::Api::Path::SUITES}' is successful" do
-          before { stub_call_api_response(:get, Tddium::Api::Path::ACCOUNT_USAGE, {"usage" => "something"}) }
-
-          it "should display the account usage" do
-            tddium.should_receive(:say).with("something")
-            run_status(tddium)
-          end
-        end
       end
     end
 
