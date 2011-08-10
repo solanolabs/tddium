@@ -56,7 +56,7 @@ describe Tddium do
       "api_key" => SAMPLE_API_KEY, 
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
-      "role" => "owner",
+      "account_role" => "owner",
       "account" => SAMPLE_EMAIL,
       "recurly_url" => SAMPLE_RECURLY_URL}}
   SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
@@ -65,7 +65,7 @@ describe Tddium do
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
       "account" => SAMPLE_ACCOUNT_NAME,
-      "role" => SAMPLE_ROLE}}
+      "account_role" => SAMPLE_ROLE}}
   SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
     { "id"=>SAMPLE_USER_ID, 
       "api_key" => SAMPLE_API_KEY, 
