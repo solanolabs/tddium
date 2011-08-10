@@ -522,6 +522,11 @@ describe Tddium do
         tddium.should_receive(:say).with("something")
         run(tddium)
       end
+
+      it "should show all suites" do
+        tddium.should_receive(:say).with(Tddium::Text::Status::ALL_SUITES % SAMPLE_APP_NAME)
+        run(tddium)
+      end
     end
   end
 
@@ -1301,6 +1306,7 @@ describe Tddium do
     before do
       stub_defaults
       stub_config_file(:api_key => true, :branches => true)
+      stub_call_api_response(:get, Tddium::Api::Path::SESSIONS, {"sessions"=>[]})
     end
 
     it_should_behave_like "set the default environment"
@@ -1327,11 +1333,6 @@ describe Tddium do
         let(:suite_attributes) { {"id"=>SAMPLE_SUITE_ID, "repo_name"=>SAMPLE_APP_NAME, "ruby_version"=>SAMPLE_RUBY_VERSION, "branch" => SAMPLE_BRANCH_NAME, "bundler_version" => SAMPLE_BUNDLER_VERSION, "rubygems_version" => SAMPLE_RUBYGEMS_VERSION}}
         before do
           stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites"=>[suite_attributes]})
-        end
-
-        it "should show all suites" do
-          tddium.should_receive(:say).with(Tddium::Text::Status::ALL_SUITES % SAMPLE_APP_NAME)
-          run_status(tddium)
         end
 
         context "without current suite" do
