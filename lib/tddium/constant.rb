@@ -100,6 +100,20 @@ tddium suite
 tddium spec
 
 "
+      ACCOUNT_ADDED = "
+Congratulations %s, your tddium account has been activated.
+
+You are a %s of the account: %s
+
+Next, you should:
+
+1. Register your test suite by running:
+tddium suite
+
+2. Start tests by running:
+tddium spec
+"
+      STARTING_ACCOUNT_CREATION = "Creating account.  This may take a few seconds..."
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
@@ -185,7 +199,9 @@ EOF
       USER_DETAILS =<<EOF;
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
+<% if user["recurly_url"] %>
 Recurly Management URL: <%=user["recurly_url"]%>
+<% end %>
 <% if user["heroku"] %>
 Heroku Account Linked: <%=user["heroku_activation_done"]%>
 <% end %>
@@ -304,8 +320,8 @@ EOF
       INVALID_INVITATION = "
 Your invitation token wasn't recognized. If you have a token, make sure you enter it correctly.
 If you want an invite, visit this URL to sign up:
-http://blog.tddium.com/home/
 
+http://www.tddium.com/
 "
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"

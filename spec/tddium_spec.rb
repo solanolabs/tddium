@@ -32,6 +32,8 @@ describe Tddium do
   SAMPLE_SESSION_ID = 1
   SAMPLE_SUITE_ID = 1
   SAMPLE_USER_ID = 1
+  SAMPLE_ROLE = "member"
+  SAMPLE_ACCOUNT_NAME = "owner@example.com"
   DEFAULT_TEST_PATTERN = "**/*_spec.rb"
   SAMPLE_SUITE_PATTERN = "features/*.feature, spec/**/*_spec.rb"
   CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
@@ -54,7 +56,16 @@ describe Tddium do
       "api_key" => SAMPLE_API_KEY, 
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
+      "role" => "owner",
+      "account" => SAMPLE_EMAIL,
       "recurly_url" => SAMPLE_RECURLY_URL}}
+  SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
+    { "id"=>SAMPLE_USER_ID, 
+      "api_key" => SAMPLE_API_KEY, 
+      "email" => SAMPLE_EMAIL, 
+      "created_at" => SAMPLE_DATE_TIME, 
+      "account" => SAMPLE_ACCOUNT_NAME,
+      "role" => SAMPLE_ROLE}}
   SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
     { "id"=>SAMPLE_USER_ID, 
       "api_key" => SAMPLE_API_KEY, 
@@ -770,13 +781,24 @@ describe Tddium do
             run_account(tddium)
           end
 
-          context "'POST #{Tddium::Api::Path::USERS}' is successful" do
+          context "'POST #{Tddium::Api::Path::USERS}' succeeds in creating a new account" do
             before{stub_call_api_response(:post, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)}
 
             it_should_behave_like "writing the api key to the .tddium file"
 
             it "should show the user '#{Tddium::Text::Process::ACCOUNT_CREATED % [SAMPLE_EMAIL, SAMPLE_RECURLY_URL]}'" do
               tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_CREATED % [SAMPLE_EMAIL, SAMPLE_RECURLY_URL])
+              run_account(tddium)
+            end
+          end
+
+          context "'POST #{Tddium::Api::Path::USERS}' succeeds in adding a new account" do
+            before{stub_call_api_response(:post, Tddium::Api::Path::USERS, SAMPLE_ADDED_USER_RESPONSE)}
+
+            it_should_behave_like "writing the api key to the .tddium file"
+
+            it "should show the user '#{Tddium::Text::Process::ACCOUNT_ADDED % [SAMPLE_EMAIL, SAMPLE_ROLE, SAMPLE_ACCOUNT_NAME]}'" do
+              tddium.should_receive(:say).with(Tddium::Text::Process::ACCOUNT_ADDED % [SAMPLE_EMAIL, SAMPLE_ROLE, SAMPLE_ACCOUNT_NAME])
               run_account(tddium)
             end
           end
