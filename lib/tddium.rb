@@ -625,9 +625,11 @@ class Tddium < Thor
       say(Text::Process::SETUP_CAMPFIRE_FIRST_TIME)
     end
 
-    ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
-    ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
-    ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
+    subdomain = ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
+    if !subdomain.nil? && subdomain != 'disable' then
+      ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
+      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
+    end
   end
 
   def update_suite(suite, options)

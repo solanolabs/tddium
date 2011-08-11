@@ -1459,9 +1459,16 @@ describe Tddium do
       end
 
       it "should prompt for campfire" do
-        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything)
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything).and_return('tddium')
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'], anything)
         tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'], anything)
+        run_suite(tddium, options)
+      end
+
+      it "should not prompt for campfire token or room if no domain" do
+        tddium.should_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_SUBDOMAIN % current['campfire_subdomain'], anything).and_return('disable')
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_TOKEN % current['campfire_token'], anything)
+        tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::CAMPFIRE_ROOM % current['campfire_room'], anything)
         run_suite(tddium, options)
       end
     end
