@@ -505,7 +505,8 @@ class Tddium < Thor
     params = {}
     # prompt for email/invitation and password
     if options[:invited]
-      params[:invitation_token] = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
+      token = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
+      params[:invitation_token] = token.strip
     else
       params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
     end
