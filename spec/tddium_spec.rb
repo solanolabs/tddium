@@ -56,7 +56,6 @@ describe Tddium do
       "api_key" => SAMPLE_API_KEY, 
       "email" => SAMPLE_EMAIL, 
       "created_at" => SAMPLE_DATE_TIME, 
-      "account_role" => "owner",
       "account" => SAMPLE_EMAIL,
       "recurly_url" => SAMPLE_RECURLY_URL}}
   SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
