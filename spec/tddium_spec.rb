@@ -755,6 +755,8 @@ describe Tddium do
       before do
         stub_config_file(:api_key => SAMPLE_API_KEY)
         stub_call_api_response(:get, Tddium::Api::Path::USERS, SAMPLE_USER_RESPONSE)
+        stub_call_api_response(:get, Tddium::Api::Path::SUITES, {"suites" => []})
+        stub_call_api_response(:get, Tddium::Api::Path::ACCOUNT_USAGE, {"usage" => "something"})
       end
 
       it "should show the user's email address" do
