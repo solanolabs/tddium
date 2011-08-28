@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 require 'mimic'
 require 'timeout'
 require 'daemons'
@@ -6,32 +8,32 @@ require 'httparty'
 class MimicServer
   attr_reader :port
 
-  def initialize
-    @port = 8080
-    @pid_dir = File.join(Dir.tmpdir, 'mimic')
-    FileUtils.mkdir_p(@pid_dir)
+  def initialize(port)
+    @port = port || 8080
+    @pid_list = []
   end
 
   def start
-    options = {:ARGV => ['start'], :log_output => true, :dir_mode => :normal, :dir => @pid_dir}
-    args = {:fork => false,
-            :host => 'localhost',
-            :port => @port,
-            :remote_configuration_path => '/api'}
-    @mimic_group = Daemons.run_proc("mimic", options) do
+    pid = Kernel.fork
+    if pid.nil? then
+      args = {:fork => false,
+              :host => 'localhost',
+              :port => @port,
+              :remote_configuration_path => '/api'}
       Mimic.mimic(args) do
-        [:INT, :TERM].each { |sig| trap(sig) { STDERR.puts "got sig!"; Kernel.exit!(0) } }
+        [:INT, :TERM].each { |sig| trap(sig) { Kernel.exit!(0) } }
       end
+      Kernel.exit!(0)
     end
-    @mimic_group.setup
+    @pid_list.push(pid)
     wait
   end
 
   def stop
-    return nil unless @mimic_group
-    @mimic_group.stop_all
-    @mimic_group.find_applications(@pid_dir)
-    @mimic_group.zap_all
+    @pid_list.each do |pid|
+      Process.kill("TERM", pid)
+    end
+    @pid_list = []
   end
 
   def wait
@@ -91,9 +93,9 @@ class MimicServer
       mimic.stop
     end
 
-    def start
+    def start(port=nil)
       return @server if @server
-      @server = MimicServer.new
+      @server = MimicServer.new(port)
       @server.start
       @server
     end
@@ -108,13 +110,10 @@ class MimicServer
   end
 end
 
-if __FILE__ == $0 then
-  MimicServer.test
-end
-
 Before('@mimic') do
-  MimicServer.start
-#  @aruba_io_wait_seconds = 4
+  @aruba_timeout_seconds = 10
+  tid = ENV['TDDIUM_TID'] || 0
+  MimicServer.start(8500+tid.to_i)
 end
 
 After('@mimic') do
@@ -125,5 +124,3 @@ at_exit do
   server = MimicServer.server
   server.stop if server
 end
-
-MimicServer.start
