@@ -3,5 +3,5 @@ Given /^the user can log in and gets API key "([^"]*)"$/ do |apikey|
 end
 
 When /^the console session ends$/ do
-  @last_exit_status = @interactive.stop
+  @last_exit_status = @interactive.stop(true)
 end
