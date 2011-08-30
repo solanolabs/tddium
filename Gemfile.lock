@@ -5,7 +5,7 @@ PATH
       bundler
       highline
       json
-      tddium_client (>= 0.0.9)
+      tddium_client (>= 0.0.10)
       tddium_reporting (>= 0.0.3)
       thor
 
@@ -66,7 +66,7 @@ GEM
     sinatra (1.2.6)
       rack (~> 1.1)
       tilt (< 2.0, >= 1.2.2)
-    tddium_client (0.0.9)
+    tddium_client (0.0.10)
       httparty
       json
     tddium_reporting (0.0.3)

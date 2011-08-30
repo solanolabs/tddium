@@ -35,7 +35,7 @@ EOF
   s.add_runtime_dependency("thor")
   s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
-  s.add_runtime_dependency("tddium_client", ">=0.0.9")
+  s.add_runtime_dependency("tddium_client", ">=0.0.10")
   s.add_runtime_dependency("tddium_reporting", ">=0.0.3")
   s.add_runtime_dependency("bundler")
 

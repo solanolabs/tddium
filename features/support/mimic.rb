@@ -59,9 +59,10 @@ class MimicServer
     return http
   end
 
-  def install(verb, path, body, headers = {})
-    params = { 'path' => path, 'body' => body.to_json }.to_json
-    http = call_api(:post,  "/api/#{verb}", params, headers)
+  def install(verb, path, body, options={})
+    api_headers = options.delete(:api_headers)
+    params = { 'path' => path, 'body' => body.to_json }.merge(options)
+    http = call_api(:post,  "/api/#{verb}", params.to_json, api_headers)
     return http
   end
 
@@ -113,7 +114,9 @@ end
 Before('@mimic') do
   @aruba_timeout_seconds = 10
   tid = ENV['TDDIUM_TID'] || 0
-  MimicServer.start(8500+tid.to_i)
+  port = 8500 + tid.to_i
+  ENV['TDDIUM_CLIENT_PORT'] = port.to_s
+  MimicServer.start(port)
 end
 
 After('@mimic') do
