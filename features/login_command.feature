@@ -1,9 +1,8 @@
 @mimic
-Feature: Manage Login
+Feature: Login command
 
   Scenario: Interactively log in successfully
     Given the user can log in and gets API key "apikey"
-    #When I run `tddium login --environment=mimic --email=user@example.org --password=password`
     When I run `tddium login --environment=mimic` interactively
     And I type "foo@example.com"
     And I type "barbarbar"

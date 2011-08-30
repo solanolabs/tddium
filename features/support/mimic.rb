@@ -8,9 +8,10 @@ require 'httparty'
 class MimicServer
   attr_reader :port
 
-  def initialize(port)
+  def initialize(port, log=nil)
     @port = port || 8080
     @pid_list = []
+    @log = log
   end
 
   def start
@@ -20,6 +21,7 @@ class MimicServer
               :host => 'localhost',
               :port => @port,
               :remote_configuration_path => '/api'}
+      args[:log] = @log if @log
       Mimic.mimic(args) do
         [:INT, :TERM].each { |sig| trap(sig) { Kernel.exit!(0) } }
       end
@@ -94,9 +96,9 @@ class MimicServer
       mimic.stop
     end
 
-    def start(port=nil)
+    def start(port=nil, log=nil)
       return @server if @server
-      @server = MimicServer.new(port)
+      @server = MimicServer.new(port, log || @log)
       @server.start
       @server
     end
@@ -108,8 +110,14 @@ class MimicServer
     def clear
       @server.clear rescue nil
     end
+
+    def log=(log)
+      @log = log
+    end
   end
 end
+
+MimicServer.log = STDOUT
 
 Before('@mimic') do
   @aruba_timeout_seconds = 10
