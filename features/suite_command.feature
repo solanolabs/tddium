@@ -11,12 +11,13 @@ Feature: suite command
     And the user has no suites
     And the user can create a suite named "beta" on branch "test"
     When I run `tddium suite --environment=mimic` interactively
-    Then the output from "tddium suite --environment=mimic" should contain "repo name"
-    When I type "beta"
-    When I type ""
-    When I type "disable"
-    And I type "disable"
-    And I type "disable"
-    And the console session ends
+    And I respond to "repo name" with "beta"
+    And I respond to "test pattern" with ""
+    And I respond to "URL to pull from" with "disable"
+    And I respond to "URL to push to" with "disable"
+    And I respond to "Campfire subdomain" with "disable"
+    Then the output from "tddium suite --environment=mimic" should contain "Pushing changes to Tddium..."
+     And the output from "tddium suite --environment=mimic" should contain "Created suite..."
+    When the console session ends
     Then the exit status should be 0
 
