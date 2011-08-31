@@ -433,7 +433,7 @@ class Tddium < Thor
   end
 
   def current_git_branch
-    @current_git_branch ||= File.basename(`git symbolic-ref HEAD`.gsub("\n", ""))
+    @current_git_branch ||= `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
   end
 
   def current_suite_id

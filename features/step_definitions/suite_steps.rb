@@ -38,6 +38,6 @@ Given /^a git repo is initialized on branch "([^"]*)"$/ do |branch|
     """
     And I successfully run `git add .`
     And I successfully run `git commit -am 'testfile'`
-    And I successfully run `git checkout -b test`
+    And I successfully run `git checkout -b #{branch}`
   }
 end
