@@ -14,6 +14,7 @@ describe Tddium do
   SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
   SAMPLE_APP_NAME = "tddelicious"
   SAMPLE_BRANCH_NAME = "test"
+  SAMPLE_REF_NAME = "refs/heads/test"
   SAMPLE_BUNDLER_VERSION = "Bundler version 1.10.10"
   SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
   SAMPLE_EMAIL = "someone@example.com"
@@ -195,7 +196,7 @@ describe Tddium do
     create_file(Tddium::Git::GITIGNORE, "something")
   end
 
-  def stub_git_branch(tddium, default_branch_name = SAMPLE_BRANCH_NAME)
+  def stub_git_branch(tddium, default_branch_name = SAMPLE_REF_NAME)
     tddium.stub(:`).with("git symbolic-ref HEAD").and_return(default_branch_name)
   end
 
