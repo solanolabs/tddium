@@ -120,7 +120,6 @@ end
 MimicServer.log = STDOUT
 
 Before('@mimic') do
-  @aruba_timeout_seconds = 10
   tid = ENV['TDDIUM_TID'] || 0
   port = 8500 + tid.to_i
   ENV['TDDIUM_CLIENT_PORT'] = port.to_s

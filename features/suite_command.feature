@@ -4,16 +4,19 @@ Feature: suite command
   In order to interact with Tddium
   I want to configure a test suite
 
-  Background:
-    Given the user is logged in
-
   Scenario: Configure a new suite
+    Given the destination repo exists
+    And a git repo is initialized on branch "test"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test"
     When I run `tddium suite --environment=mimic` interactively
-    And I type "foo"
+    Then the output from "tddium suite --environment=mimic" should contain "repo name"
+    When I type "beta"
+    When I type ""
+    When I type "disable"
+    And I type "disable"
+    And I type "disable"
     And the console session ends
-    Then the output should contain:
-    """
-    ahashdasda
-    """
-    And the exit status should be 0
+    Then the exit status should be 0
 
