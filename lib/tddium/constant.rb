@@ -31,6 +31,7 @@ module TddiumConstant
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
       ACCOUNT_USAGE = "accounts/usage"
+      MEMBERSHIPS = "memberships"
     end
     module ErrorCode
       INVALID_INVITATION = 2
@@ -181,6 +182,8 @@ Subdomain and API token are shared by all suites that belong to you (%s).
 Set the "Campfire room name" to 'disable' to disable Campfire notifications
 for this suite.
 EOF
+      ADDED_MEMBER = "Added %s"
+      REMOVED_MEMBER = "Removed %s"
     end
 
     module Status
@@ -286,6 +289,7 @@ Run 'tddium suite --edit' to edit suite settings.
 
 Run 'tddium spec' to run tests in this suite.
 EOF
+      ACCOUNT_MEMBERS = "\nAuthorized users in this account:\n"
     end
 
     module Error
@@ -343,7 +347,8 @@ EOF
         NOT_LOGGED_IN = "Log in to your heroku account first using 'heroku login'"
         APP_NOT_FOUND = "The app '%s' is not recognized by Heroku"
       end
-      
+      ADD_MEMBER_ERROR = "Error adding %s: %s"
+      REMOVE_MEMBER_ERROR = "Error removing %s: %s"
     end
   end
 

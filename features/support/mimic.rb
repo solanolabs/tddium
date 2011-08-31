@@ -123,6 +123,7 @@ Before('@mimic') do
   tid = ENV['TDDIUM_TID'] || 0
   port = 8500 + tid.to_i
   ENV['TDDIUM_CLIENT_PORT'] = port.to_s
+  ENV['TDDIUM_CLIENT_ENVIRONMENT'] = 'mimic'
   MimicServer.start(port)
 end
 

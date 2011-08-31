@@ -93,6 +93,37 @@ class Tddium < Thor
     end
   end
 
+  desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your account"
+  define_method "account:add" do |role, email|
+    set_shell
+    set_default_environment
+    user_details = user_logged_in?(true, true)
+    exit_failure unless user_details
+
+    params = {:role=>role, :email=>email}
+    begin
+      result = call_api(:post, Api::Path::MEMBERSHIPS, params)
+      say Text::Process::ADDED_MEMBER % email
+    rescue TddiumClient::Error::API => e
+      exit_failure Text::Error::ADD_MEMBER_ERROR % [email, e.message]
+    end
+  end
+
+  desc "account:remove [EMAIL]", "Remove a user from your account"
+  define_method "account:remove" do |email|
+    set_shell
+    set_default_environment
+    user_details = user_logged_in?(true, true)
+    exit_failure unless user_details
+
+    begin
+      result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}")
+      say Text::Process::REMOVED_MEMBER % email
+    rescue TddiumClient::Error::API => e
+      exit_failure Text::Error::REMOVE_MEMBER_ERROR % [email, e.message]
+    end
+  end
+
   desc "heroku", "Connect Heroku account with Tddium"
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
@@ -676,7 +707,7 @@ class Tddium < Thor
   end
 
   def set_default_environment
-    env = options[:environment]
+    env = options[:environment] || ENV['TDDIUM_CLIENT_ENVIRONMENT']
     if env.nil?
       tddium_client.environment = :development
       tddium_client.environment = :production unless File.exists?(tddium_file_name)
@@ -721,6 +752,13 @@ class Tddium < Thor
         say Text::Status::NO_SUITE
       else
         say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| suite["repo_name"]}.join(", ")
+      end
+
+      memberships = call_api(:get, Api::Path::MEMBERSHIPS)
+      if memberships["memberships"].length > 1
+        say Text::Status::ACCOUNT_MEMBERS
+        say memberships["memberships"].collect{|x|x['display']}.join("\n")
+        say "\n"
       end
 
       account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)

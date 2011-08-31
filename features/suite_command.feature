@@ -10,15 +10,15 @@ Feature: suite command
     And the user is logged in
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
-    When I run `tddium suite --environment=mimic` interactively
+    When I run `tddium suite` interactively
     And I respond to "repo name" with "beta"
-    Then the output from "tddium suite --environment=mimic" should contain "Detected branch test/foobar"
+    Then the output from "tddium suite" should contain "Detected branch test/foobar"
     And I respond to "test pattern" with ""
     And I respond to "URL to pull from" with "disable"
     And I respond to "URL to push to" with "disable"
     And I respond to "Campfire subdomain" with "disable"
-    Then the output from "tddium suite --environment=mimic" should contain "Pushing changes to Tddium..."
-     And the output from "tddium suite --environment=mimic" should contain "Created suite..."
+    Then the output from "tddium suite" should contain "Pushing changes to Tddium..."
+     And the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
 

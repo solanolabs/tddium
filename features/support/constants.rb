@@ -61,3 +61,4 @@ require 'aruba/api'
       "recurly_url" => SAMPLE_RECURLY_URL}}
   PASSWORD_ERROR_EXPLANATION = "bad confirmation"
   PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
+  SAMPLE_ACCOUNT_USAGE = {"status"=>0, "usage"=>"Usage: something"}

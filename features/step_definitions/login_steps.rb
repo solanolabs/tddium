@@ -1,5 +1,7 @@
 Given /^the user is logged in$/ do
   @api_key = "abcdef"
+  MimicServer.server.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
+  MimicServer.server.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -16,3 +18,10 @@ Given /^the user cannot log in$/ do
   MimicServer.server.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
 end
 
+Then /^dotfiles should be updated$/ do
+  steps %Q{
+    And the file ".tddium.mimic" should contain "apikey"
+    And the file ".gitignore" should contain ".tddium.mimic"
+    And the file ".gitignore" should contain ".tddium-deploy-key.mimic"
+  }
+end
