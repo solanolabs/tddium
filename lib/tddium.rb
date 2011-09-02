@@ -102,6 +102,7 @@ class Tddium < Thor
 
     params = {:role=>role, :email=>email}
     begin
+      say Text::Process::ADDING_MEMBER % params
       result = call_api(:post, Api::Path::MEMBERSHIPS, params)
       say Text::Process::ADDED_MEMBER % email
     rescue TddiumClient::Error::API => e
@@ -117,6 +118,7 @@ class Tddium < Thor
     exit_failure unless user_details
 
     begin
+      say Text::Process::REMOVING_MEMBER % email
       result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}")
       say Text::Process::REMOVED_MEMBER % email
     rescue TddiumClient::Error::API => e
