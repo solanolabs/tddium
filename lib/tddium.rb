@@ -102,7 +102,7 @@ class Tddium < Thor
 
     params = {:role=>role, :email=>email}
     begin
-      say Text::Process::ADDING_MEMBER % params
+      say Text::Process::ADDING_MEMBER % [params[:email], params[:role]]
       result = call_api(:post, Api::Path::MEMBERSHIPS, params)
       say Text::Process::ADDED_MEMBER % email
     rescue TddiumClient::Error::API => e

@@ -27,6 +27,7 @@ Feature: Account command
     Given the user is logged in
     And adding a member to the account will succeed
     When I successfully run `tddium account:add member member2@example.com`
+    Then the output should contain "Adding member2@example.com as member..."
     Then the output should contain "Added member2@example.com"
 
   Scenario: Add member to account unsuccessfully

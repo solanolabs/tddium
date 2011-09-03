@@ -182,7 +182,7 @@ Subdomain and API token are shared by all suites that belong to you (%s).
 Set the "Campfire room name" to 'disable' to disable Campfire notifications
 for this suite.
 EOF
-      ADDING_MEMBER = "Adding %<email>s as %<role>s..."
+      ADDING_MEMBER = "Adding %s as %s..."
       ADDED_MEMBER = "Added %s"
       REMOVING_MEMBER = "Removing %s. This may take a few seconds..."
       REMOVED_MEMBER = "Removed %s"
