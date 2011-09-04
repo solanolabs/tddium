@@ -1,7 +1,7 @@
 Given /^the user is logged in$/ do
   @api_key = "abcdef"
-  MimicServer.server.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
-  MimicServer.server.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
+  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -11,11 +11,11 @@ Given /^the user is logged in$/ do
 end
 
 Given /^the user can log in and gets API key "([^"]*)"$/ do |apikey|
-  MimicServer.server.install(:post, "/1/users/sign_in", {:status=>0, :api_key=>apikey})
+  Antilles.install(:post, "/1/users/sign_in", {:status=>0, :api_key=>apikey})
 end
 
 Given /^the user cannot log in$/ do
-  MimicServer.server.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
+  Antilles.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
 end
 
 Then /^dotfiles should be updated$/ do

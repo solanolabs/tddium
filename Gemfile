@@ -9,4 +9,5 @@ group :development, :test do
   gem 'mimic'
   gem 'daemons'
   gem 'httparty'
+  gem 'antilles'
 end

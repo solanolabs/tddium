@@ -7,15 +7,15 @@ def make_suite_response(name, branch)
 end
 
 Given /^the user has a suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
-  MimicServer.server.install(:get, "/1/suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
+  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
 end
 
 Given /^the user has no suites/ do
-  MimicServer.server.install(:get, "/1/suites", {:status=>0, :suites=>[]})
+  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[]})
 end
 
 Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)"$/ do |name, branch|
-  MimicServer.server.install(:post, "/1/suites", {:status=>0, :suite=>make_suite_response(name, branch)}, :code=>201)
+  Antilles.install(:post, "/1/suites", {:status=>0, :suite=>make_suite_response(name, branch)}, :code=>201)
 end
 
 Given /^the destination repo exists$/ do

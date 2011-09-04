@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.8.0)
+    tddium-preview (0.8.1)
       bundler
       highline
       json
@@ -12,6 +12,12 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
+    antilles (0.1.3)
+      bundler
+      daemons
+      httparty
+      json
+      mimic
     aruba (0.4.6)
       bcat (>= 0.6.1)
       childprocess (>= 0.2.0)
@@ -39,7 +45,7 @@ GEM
     highline (1.6.2)
     httparty (0.7.8)
       crack (= 0.1.8)
-    json (1.5.3)
+    json (1.5.4)
     mimic (0.4.3)
       json
       plist
@@ -78,6 +84,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  antilles
   aruba
   daemons
   fakefs
