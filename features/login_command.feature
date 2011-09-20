@@ -14,6 +14,12 @@ Feature: Login command
     And the exit status should be 0
     And dotfiles should be updated
 
+  Scenario: Already logged in
+    Given the user is logged in
+    When I run `tddium login`
+    Then the output should contain "already"
+    And the exit status should be 0
+
   Scenario: Non-interactively log in successfully
     Given the user can log in and gets API key "apikey"
     When I run `tddium login --email=foo@example.com --password=barbarbar`

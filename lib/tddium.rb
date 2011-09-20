@@ -48,7 +48,7 @@ class Tddium < Thor
       # User is already logged in, so just display the info
       show_user_details(user_details)
     else
-      exit_failure
+      exit_failure Text::Error::USE_ACTIVATE
     end
   end
 
@@ -84,7 +84,7 @@ class Tddium < Thor
       end
       say content
       license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
-      return unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
+      exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
       begin
         say Text::Process::STARTING_ACCOUNT_CREATION
@@ -97,9 +97,9 @@ class Tddium < Thor
           say Text::Process::ACCOUNT_ADDED % [new_user["user"]["email"], new_user["user"]["account_role"], new_user["user"]["account"]]
         end
       rescue TddiumClient::Error::API => e
-        say((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
+        exit_failure ((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
       rescue TddiumClient::Error::Base => e
-        say e.message
+        exit_failure say e.message
       end
     end
   end
@@ -632,7 +632,13 @@ class Tddium < Thor
   def prompt_ssh_key(current)
     # Prompt for ssh-key file
     ssh_file = prompt(Text::Prompt::SSH_KEY, options[:ssh_key_file], Default::SSH_FILE)
-    data = File.open(File.expand_path(ssh_file)) {|file| file.read}
+
+    begin
+      data = File.open(File.expand_path(ssh_file)) {|file| file.read}
+    rescue Errno::ENOENT => e
+      raise TddiumError.new(Text::Error::INACCESSIBLE_SSH_PUBLIC_KEY % [ssh_file, e])
+    end
+
     if data =~ /^-+BEGIN [DR]SA PRIVATE KEY-+/ then
       raise TddiumError.new(Text::Error::INVALID_SSH_PUBLIC_KEY % ssh_file)
     end

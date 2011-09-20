@@ -296,6 +296,7 @@ EOF
 
     module Error
       INVALID_SSH_PUBLIC_KEY = '%s does not appear to be a valid SSH public key'
+      INACCESSIBLE_SSH_PUBLIC_KEY = '%s is not accessible: %s'
       GIT_CHANGES_NOT_COMMITTED =<<EOF
 There are uncommitted changes in the local git repository.
 
@@ -352,6 +353,7 @@ EOF
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
       ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
+      USE_ACTIVATE = "Use 'tddium activate' to accept an invitation token"
     end
   end
 
