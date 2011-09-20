@@ -4,6 +4,9 @@ Feature: suite command
   In order to interact with Tddium
   I want to configure a test suite
 
+  Background:
+    Given the command is "tddium suite"
+
   Scenario: Configure a new suite with a complex branch
     Given the destination repo exists
     And a git repo is initialized on branch "test/foobar"

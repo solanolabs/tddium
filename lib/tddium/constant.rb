@@ -351,6 +351,7 @@ EOF
       end
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
+      ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
     end
   end
 

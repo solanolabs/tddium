@@ -23,6 +23,11 @@ Feature: Account command
     [admin]  admin@example.com
     """
 
+  Scenario: Fail if user isn't logged in
+    When I run `tddium account`
+    Then the exit status should not be 0
+    And the output should contain "tddium login"
+
   Scenario: Add member to account successfully
     Given the user is logged in
     And adding a member to the account will succeed

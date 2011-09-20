@@ -40,16 +40,27 @@ class Tddium < Thor
   class_option :environment, :type => :string, :default => nil
   class_option :port, :type => :numeric, :default => nil
 
-  desc "account", "View/Manage account information"
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  method_option :ssh_key_file, :type => :string, :default => nil
+  desc "account", "View account information"
   def account
     set_shell
     set_default_environment
-    if user_details = user_logged_in?
+    if user_details = user_logged_in?(true, true)
       # User is already logged in, so just display the info
       show_user_details(user_details)
+    else
+      exit_failure
+    end
+  end
+
+  desc "activate", "Activate an account with an invitation token"
+  method_option :email, :type => :string, :default => nil
+  method_option :password, :type => :string, :default => nil
+  method_option :ssh_key_file, :type => :string, :default => nil
+  def activate
+    set_shell
+    set_default_environment
+    if user_details = user_logged_in?
+      exit_failure Text::Error::ACTIVATE_LOGGED_IN
     else
       params = get_user_credentials(options.merge(:invited => true))
 
@@ -208,6 +219,9 @@ class Tddium < Thor
     say Text::Process::LOGGED_OUT_SUCCESSFULLY
   end
 
+  map "cucumber" => :spec
+  map "test" => :spec
+  map "run" => :spec
   desc "spec", "Run the test suite"
   method_option :user_data_file, :type => :string, :default => nil
   method_option :max_parallelism, :type => :numeric, :default => nil

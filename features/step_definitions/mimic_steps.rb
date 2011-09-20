@@ -1,6 +1,11 @@
+Given /^the command is "([^"]*)"$/ do |command|
+  @command = command
+end
+
 When /^I respond to "([^"]*)" with "([^"]*)"$/ do |expect, response|
+  cmd = @command || "tddium suite"
   steps %Q{
-    Then the output from "tddium suite" should contain "#{expect}"
+    Then the output from "#{cmd}" should contain "#{expect}"
     When I type "#{response}"
   }
 end
