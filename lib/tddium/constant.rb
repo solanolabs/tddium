@@ -15,6 +15,10 @@ module TddiumConstant
     SUITE_TEST_PATTERN = "features/*.feature, spec/**/*_spec.rb, test/**/*_test.rb"
   end
 
+  module Config
+    CONFIG_PATH = "config/tddium.yml"
+  end
+
   module Git
     REMOTE_NAME = "tddium"
     GITIGNORE = ".gitignore"
@@ -74,6 +78,7 @@ module TddiumConstant
     end
 
     module Process
+      NO_CONFIGURED_SUITE = "Looks like you haven't set up a suite on this computer for %s/%s..."
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       GIT_PUSH = "Pushing changes to Tddium..."
@@ -134,6 +139,7 @@ with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
       DEPENDENCY_VERSION = "Detected %s %s"
+      CONFIGURED_VERSION = "Configured %s %s from tddium.yml"
       DETECTED_BRANCH = "Detected branch %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
@@ -295,6 +301,17 @@ EOF
     end
 
     module Error
+      GIT_PUSH_FAILED = <<EOF;
+
+The git push to Tddium failed.
+
+SSH may not be configured to authenticate with the keypair you provided when you set up your account.
+
+See this URL for SSH configuration instructions:
+
+https://www.tddium.com/support/faq#othersshkey
+
+EOF
       INVALID_SSH_PUBLIC_KEY = '%s does not appear to be a valid SSH public key'
       INACCESSIBLE_SSH_PUBLIC_KEY = '%s is not accessible: %s'
       GIT_CHANGES_NOT_COMMITTED =<<EOF

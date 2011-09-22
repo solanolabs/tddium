@@ -41,3 +41,12 @@ Given /^a git repo is initialized on branch "([^"]*)"$/ do |branch|
     And I successfully run `git checkout -b #{branch}`
   }
 end
+
+Given /^I choose defaults for test pattern, CI and campfire settings$/ do
+  steps %Q{
+    And I respond to "test pattern" with ""
+    And I respond to "URL to pull from" with "disable"
+    And I respond to "URL to push to" with "disable"
+    And I respond to "Campfire subdomain" with "disable"
+  }
+end

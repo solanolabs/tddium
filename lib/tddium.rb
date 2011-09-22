@@ -262,7 +262,7 @@ class Tddium < Thor
       suite_details = call_api(:get, current_suite_path)
 
       # Push the latest code to git
-      exit_failure unless update_git_remote_and_push(suite_details)
+      exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
 
       # Create a session
       new_session = call_api(:post, Api::Path::SESSIONS)
@@ -364,7 +364,7 @@ class Tddium < Thor
     end
   end
 
-  desc "suite", "Register the suite for this project, or edit its settings"
+  desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
   method_option :edit, :type => :boolean, :default => false
   method_option :name, :type => :string, :default => nil
   method_option :pull_url, :type => :string, :default => nil
@@ -390,6 +390,8 @@ class Tddium < Thor
         default_suite_name = File.basename(Dir.pwd)
         params[:repo_name] = options[:name] || default_suite_name
 
+        say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
+
         use_existing_suite, existing_suite = resolve_suite_name(options, params, default_suite_name)
 
         if use_existing_suite
@@ -410,9 +412,6 @@ class Tddium < Thor
         new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
         # Save the created suite
         write_suite(new_suite["suite"])
-
-        # Manage git
-        exit_failure("Failed to push repo to Tddium!") unless update_git_remote_and_push(new_suite)
 
         say Text::Process::CREATED_SUITE % format_suite_details(new_suite["suite"])
       end
@@ -479,6 +478,20 @@ class Tddium < Thor
     end
   end
 
+  def tool_version(tool)
+    key = "#{tool}_version".to_sym
+    result = tddium_config[key]
+
+    if result
+      say Text::Process::CONFIGURED_VERSION % [tool, result]
+      return result
+    end
+
+    result = `#{tool} -v`.strip
+    say Text::Process::DEPENDENCY_VERSION % [tool, result]
+    result
+  end
+
   def current_git_branch
     @current_git_branch ||= `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
   end
@@ -495,12 +508,6 @@ class Tddium < Thor
 
   def current_suite_path
     "#{Api::Path::SUITES}/#{current_suite_id}"
-  end
-
-  def dependency_version(command)
-    result = `#{command} -v`.strip
-    say Text::Process::DEPENDENCY_VERSION % [command, result]
-    result
   end
 
   def display_attributes(names_to_display, attributes)
@@ -650,9 +657,9 @@ class Tddium < Thor
 
   def prompt_suite_params(options, params, current={})
     say Text::Process::DETECTED_BRANCH % params[:branch] if params[:branch]
-    params[:ruby_version] = dependency_version(:ruby)
-    params[:bundler_version] = dependency_version(:bundle)
-    params[:rubygems_version] = dependency_version(:gem)
+    params[:ruby_version] = tool_version(:ruby)
+    params[:bundler_version] = tool_version(:bundle)
+    params[:rubygems_version] = tool_version(:gem)
 
     ask_or_update = lambda do |key, text, default|
       params[key] = prompt(text, options[key], current.fetch(key.to_s, default))
@@ -814,6 +821,10 @@ puts "EXN: #{e.inspect}"
     @tddium_client ||= TddiumClient::Client.new
   end
 
+  def tddium_config
+    YAML.load(File.read(Config::CONFIG_PATH))[:tddium] rescue {}
+  end
+
   def tddium_file_name
     extension = ".#{environment}" unless environment == :production
     ".tddium#{extension}"
@@ -823,10 +834,10 @@ puts "EXN: #{e.inspect}"
     options[:fail_with_message] = true unless options[:fail_with_message] == false
     if @tddium_settings.nil? || options[:force_reload]
       if File.exists?(tddium_file_name)
-        tddium_config = File.open(tddium_file_name) do |file|
+        settings_file = File.open(tddium_file_name) do |file|
           file.read
         end
-        @tddium_settings = JSON.parse(tddium_config) rescue nil
+        @tddium_settings = JSON.parse(settings_file) rescue nil
         say (Text::Error::INVALID_TDDIUM_FILE % environment) if @tddium_settings.nil? && options[:fail_with_message]
       else
         say Text::Error::NOT_INITIALIZED if options[:fail_with_message]

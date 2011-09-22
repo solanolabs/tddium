@@ -14,14 +14,35 @@ Feature: suite command
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
     When I run `tddium suite` interactively
+    Then the output from "tddium suite" should contain "Looks like"
     And I respond to "repo name" with "beta"
     Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    And I respond to "test pattern" with ""
-    And I respond to "URL to pull from" with "disable"
-    And I respond to "URL to push to" with "disable"
-    And I respond to "Campfire subdomain" with "disable"
-    Then the output from "tddium suite" should contain "Pushing changes to Tddium..."
-     And the output from "tddium suite" should contain "Created suite..."
+    When I choose defaults for test pattern, CI and campfire settings
+    Then the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
+
+  Scenario: Configure new suite with ruby from tddium.yml
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar"
+    And a file named "config/tddium.yml" with:
+    """
+    ---
+    :tddium:
+       :ruby_version:  ruby-1.9.2-p290-psych
+    """
+    When I run `tddium suite` interactively
+    Then the output from "tddium suite" should contain "Looks like"
+    And I respond to "repo name" with "beta"
+    Then the output from "tddium suite" should contain "Detected branch test/foobar"
+    Then the output from "tddium suite" should contain "Configured ruby ruby-1.9.2-p290-psych from tddium.yml"
+    When I choose defaults for test pattern, CI and campfire settings
+    Then the output from "tddium suite" should contain "Created suite..."
+    When the console session ends
+    Then the exit status should be 0
+
+
 

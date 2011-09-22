@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 # 
 # Copyright (c) 2011 Solano Labs All Rights Reserved
+#
+
+require 'yaml'
+YAML::ENGINE.yamler = 'syck'
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require "tddium"
