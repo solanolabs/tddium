@@ -36,6 +36,8 @@ Given /^a git repo is initialized on branch "([^"]*)"$/ do |branch|
     """
     some data
     """
+    And I successfully run `git config user.email "a@b.com"`
+    And I successfully run `git config user.name "A User"`
     And I successfully run `git add .`
     And I successfully run `git commit -am 'testfile'`
     And I successfully run `git checkout -b #{branch}`
