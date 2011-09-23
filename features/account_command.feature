@@ -27,6 +27,7 @@ Feature: Account command
     When I run `tddium account`
     Then the exit status should not be 0
     And the output should contain "tddium login"
+    And the output should contain "tddium heroku"
 
   Scenario: Add member to account successfully
     Given the user is logged in

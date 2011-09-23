@@ -321,7 +321,7 @@ Commit changes before running 'tddium spec'.
 
 Use 'tddium spec --force' to test with only already-committed changes.
 EOF
-      NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login'"
+      NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login' or 'tddium heroku'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;
