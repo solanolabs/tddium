@@ -261,6 +261,8 @@ class Tddium < Thor
     begin
       suite_details = call_api(:get, current_suite_path)
 
+      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
+
       # Push the latest code to git
       exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
 

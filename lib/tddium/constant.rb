@@ -301,6 +301,7 @@ EOF
     end
 
     module Error
+      GIT_REPO_NOT_READY = "Your git repository is being prepped.  Try again in a minute."
       GIT_PUSH_FAILED = <<EOF;
 
 The git push to Tddium failed.
