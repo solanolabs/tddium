@@ -92,7 +92,8 @@ class Tddium < Thor
         write_api_key(new_user["user"]["api_key"])
         role = new_user["user"]["account_role"]
         if role.nil? || role == "owner"
-          say Text::Process::ACCOUNT_CREATED % [new_user["user"]["email"], new_user["user"]["recurly_url"]]
+          u = new_user["user"]
+          say Text::Process::ACCOUNT_CREATED % [u["email"], u["trial_remaining"], u["recurly_url"]]
         else
           say Text::Process::ACCOUNT_ADDED % [new_user["user"]["email"], new_user["user"]["account_role"], new_user["user"]["account"]]
         end
@@ -432,9 +433,13 @@ class Tddium < Thor
 
   def call_api(method, api_path, params = {}, api_key = nil, show_error = true)
     api_key =  tddium_settings(:fail_with_message => false)["api_key"] if tddium_settings(:fail_with_message => false) && api_key != false
+    params[:tddium_gem_version] = TddiumVersion::VERSION
     begin
       result = tddium_client.call_api(method, api_path, params, api_key)
     rescue TddiumClient::Error::Base => e
+
+      exit_failure e.message if e.status == Api::ErrorCode::GEM_OUT_OF_DATE
+
       say e.message if show_error
       raise e
     end
@@ -593,7 +598,7 @@ class Tddium < Thor
 
   def handle_heroku_user(options, heroku_config)
     api_key = heroku_config['TDDIUM_API_KEY']
-    user = tddium_client.call_api(:get, Api::Path::USERS, {}, api_key) rescue nil
+    user = call_api(:get, Api::Path::USERS, {}, api_key, false) rescue nil
     exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
     say Text::Process::HEROKU_WELCOME % user["user"]["email"]
 
@@ -610,7 +615,7 @@ class Tddium < Thor
 
       begin
         user_id = user["user"]["id"]
-        result = tddium_client.call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
+        result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::HEROKU_MISCONFIGURED % e
       rescue TddiumClient::Error::Base => e

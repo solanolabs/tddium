@@ -22,6 +22,7 @@ module TddiumConstant
   module Git
     REMOTE_NAME = "tddium"
     GITIGNORE = ".gitignore"
+    READY_TRIES = 3
   end
 
   module Api
@@ -39,6 +40,7 @@ module TddiumConstant
     end
     module ErrorCode
       INVALID_INVITATION = 2
+      GEM_OUT_OF_DATE = 10000
     end
   end
 
@@ -99,11 +101,14 @@ Next, you should:
 1. Register your test suite by running:
 tddium suite
 
-2. Sign up for a billing plan by opening this URL in your browser:
-%s
-
-3. Start tests by running:
+2. Start tests by running:
 tddium spec
+
+You have %s days left in your free trial.
+
+To sign up a for a billing plan, open this URL in your browser:
+
+%s
 
 "
       ACCOUNT_ADDED = "
@@ -210,8 +215,10 @@ EOF
       USER_DETAILS =<<EOF;
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
+<% if user["trial_remaining"] > 0 %>
+Trial Period Remaining: <%=user["trial_remaining"%> days
 <% if user["recurly_url"] %>
-Recurly Management URL: <%=user["recurly_url"]%>
+Account Management URL: <%=user["recurly_url"]%>
 <% end %>
 <% if user["heroku"] %>
 Heroku Account Linked: <%=user["heroku_activation_done"]%>
