@@ -7,7 +7,7 @@ end
 When /^I respond to "([^"]*)" with "([^"]*)"$/ do |expect, response|
   cmd = @command || "tddium suite"
   steps %Q{
-Then the output from "#{cmd}" should contain "#{expect}"
-When I type "#{response}"
+    Then the output from "#{cmd}" should contain "#{expect}"
+    When I type "#{response}"
   }
 end
