@@ -582,7 +582,11 @@ class Tddium < Thor
   end
 
   def git_root
-    root = `git rev-parse --show-toplevel`
+    root = `git rev-parse --show-toplevel 2>&1`
+    if $?.exitstatus != 0 then
+      message = Text::Error::GIT_NOT_INITIALIZED
+      say message
+    end
     root.chomp! if root
     return root || Dir.pwd
   end
