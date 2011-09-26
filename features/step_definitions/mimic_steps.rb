@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 Given /^the command is "([^"]*)"$/ do |command|
   @command = command
 end

@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 @mimic
 Feature: Activate command
   As a Tddium user
