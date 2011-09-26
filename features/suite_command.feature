@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 @mimic
 Feature: suite command
   As a user
@@ -43,6 +45,3 @@ Feature: suite command
     Then the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
-
-
-

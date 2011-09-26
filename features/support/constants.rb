@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 require 'aruba/api'
 
   SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"

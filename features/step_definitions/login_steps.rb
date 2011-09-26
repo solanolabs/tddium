@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 Given /^the user is logged in$/ do
   @api_key = "abcdef"
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)

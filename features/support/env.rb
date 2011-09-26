@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 require 'rubygems'
 require 'aruba/cucumber'
 require 'pickle/parser'

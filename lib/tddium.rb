@@ -586,6 +586,16 @@ class Tddium < Thor
     message.nil?
   end
 
+  def git_root
+    root = `git rev-parse --show-toplevel 2>&1`
+    if $?.exitstatus != 0 then
+      message = Text::Error::GIT_NOT_INITIALIZED
+      say message
+    end
+    root.chomp! if root
+    return root || Dir.pwd
+  end
+
   def git_origin_url
     result = `(git config --get remote.origin.url || echo GIT_FAILED) 2>/dev/null`
     return nil if result =~ /GIT_FAILED/
@@ -813,7 +823,7 @@ puts "EXN: #{e.inspect}"
 
   def tddium_deploy_key_file_name
     extension = ".#{environment}" unless environment == :production
-    ".tddium-deploy-key#{extension}"
+    return File.join(git_root, ".tddium-deploy-key#{extension}")
   end
 
   def suite_for_current_branch?
@@ -834,7 +844,7 @@ puts "EXN: #{e.inspect}"
 
   def tddium_file_name
     extension = ".#{environment}" unless environment == :production
-    ".tddium#{extension}"
+    return File.join(git_root, ".tddium#{extension}")
   end
 
   def tddium_settings(options = {})

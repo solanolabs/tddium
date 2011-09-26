@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 Given /^the user has the following memberships in his account:$/ do |table|
   Antilles.install(:get, "/1/memberships", {:status=>0, :memberships=>table.hashes})
   @memberships = {}

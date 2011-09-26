@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 @mimic
 Feature: Account command
   As a Tddium user
@@ -71,4 +73,3 @@ Feature: Account command
     """
     tddium must be initialized. Try 'tddium login'
     """
-

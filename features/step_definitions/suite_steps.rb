@@ -1,3 +1,5 @@
+# Copyright (c) 2011 Solano Labs All Rights Reserved
+
 def make_suite_response(name, branch)
   suite = SAMPLE_SUITE_RESPONSE
   suite["repo_name"] = name
