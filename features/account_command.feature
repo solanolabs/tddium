@@ -71,4 +71,3 @@ Feature: Account command
     """
     tddium must be initialized. Try 'tddium login'
     """
-

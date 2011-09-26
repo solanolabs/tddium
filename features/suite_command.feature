@@ -43,6 +43,3 @@ Feature: suite command
     Then the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
-
-
-
