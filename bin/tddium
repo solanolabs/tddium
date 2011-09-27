@@ -4,7 +4,7 @@
 #
 
 require 'yaml'
-YAML::ENGINE.yamler = 'syck'
+YAML::ENGINE.yamler = 'syck' if defined?(YAML::ENGINE)
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require "tddium"
