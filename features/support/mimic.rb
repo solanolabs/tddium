@@ -2,8 +2,7 @@
 
 require 'antilles/cucumber'
 
-tid = ENV['TDDIUM_TID'] || 0
-port = 8500 + tid.to_i
+port = Antilles.find_available_port
 ENV['TDDIUM_CLIENT_PORT'] = port.to_s
 ENV['TDDIUM_CLIENT_ENVIRONMENT'] = 'mimic'
 
