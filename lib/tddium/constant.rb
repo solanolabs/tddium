@@ -213,17 +213,12 @@ EOF
       SEPARATOR = "====="
       USING_SUITE = "Using suite...\n\n%s"
       USER_DETAILS =<<EOF;
+
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
-<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>
-Trial Period Remaining: <%=user["trial_remaining"]%> days
-<% end %>
-<% if user["recurly_url"] %>
-Account Management URL: <%=user["recurly_url"]%>
-<% end %>
-<% if user["heroku"] %>
-Heroku Account Linked: <%=user["heroku_activation_done"]%>
-<% end %>
+<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
+<% if user["recurly_url"] %>Account Management URL: <%=user["recurly_url"]%><% end %>
+<% if user["heroku"] %>Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
 EOF
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
