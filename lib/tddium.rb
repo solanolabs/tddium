@@ -40,388 +40,15 @@ class Tddium < Thor
   class_option :environment, :type => :string, :default => nil
   class_option :port, :type => :numeric, :default => nil
 
-  desc "account", "View account information"
-  def account
-    set_shell
-    set_default_environment
-    if user_details = user_logged_in?(true, true)
-      # User is already logged in, so just display the info
-      show_user_details(user_details)
-    else
-      exit_failure Text::Error::USE_ACTIVATE
-    end
-  end
-
-  desc "activate", "Activate an account with an invitation token"
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  method_option :ssh_key_file, :type => :string, :default => nil
-  def activate
-    set_shell
-    set_default_environment
-    if user_details = user_logged_in?
-      exit_failure Text::Error::ACTIVATE_LOGGED_IN
-    else
-      params = get_user_credentials(options.merge(:invited => true))
-
-      # Prompt for the password confirmation if password is not from command line
-      unless options[:password]
-        password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-        unless password_confirmation == params[:password]
-          exit_failure Text::Process::PASSWORD_CONFIRMATION_INCORRECT
-        end
-      end
-
-      begin
-        params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key_file])
-      rescue TddiumError => e
-        exit_failure e.message
-      end
-
-      # Prompt for accepting license
-      content =  File.open(File.join(File.dirname(__FILE__), "..", License::FILE_NAME)) do |file|
-        file.read
-      end
-      say content
-      license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
-      exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-
-      begin
-        say Text::Process::STARTING_ACCOUNT_CREATION
-        new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-        write_api_key(new_user["user"]["api_key"])
-        role = new_user["user"]["account_role"]
-        if role.nil? || role == "owner"
-          u = new_user["user"]
-          say Text::Process::ACCOUNT_CREATED % [u["email"], u["trial_remaining"], u["recurly_url"]]
-        else
-          say Text::Process::ACCOUNT_ADDED % [new_user["user"]["email"], new_user["user"]["account_role"], new_user["user"]["account"]]
-        end
-      rescue TddiumClient::Error::API => e
-        exit_failure ((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
-      rescue TddiumClient::Error::Base => e
-        exit_failure say e.message
-      end
-    end
-  end
-
-  desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your account"
-  define_method "account:add" do |role, email|
-    set_shell
-    set_default_environment
-    user_details = user_logged_in?(true, true)
-    exit_failure unless user_details
-
-    params = {:role=>role, :email=>email}
-    begin
-      say Text::Process::ADDING_MEMBER % [params[:email], params[:role]]
-      result = call_api(:post, Api::Path::MEMBERSHIPS, params)
-      say Text::Process::ADDED_MEMBER % email
-    rescue TddiumClient::Error::API => e
-      exit_failure Text::Error::ADD_MEMBER_ERROR % [email, e.message]
-    end
-  end
-
-  desc "account:remove [EMAIL]", "Remove a user from your account"
-  define_method "account:remove" do |email|
-    set_shell
-    set_default_environment
-    user_details = user_logged_in?(true, true)
-    exit_failure unless user_details
-
-    begin
-      say Text::Process::REMOVING_MEMBER % email
-      result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}")
-      say Text::Process::REMOVED_MEMBER % email
-    rescue TddiumClient::Error::API => e
-      exit_failure Text::Error::REMOVE_MEMBER_ERROR % [email, e.message]
-    end
-  end
-
-  desc "heroku", "Connect Heroku account with Tddium"
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  method_option :ssh_key_file, :type => :string, :default => nil
-  method_option :app, :type => :string, :default => nil
-  def heroku
-    set_shell
-    set_default_environment
-    if user_details = user_logged_in?
-      # User is already logged in, so just display the info
-      show_user_details(user_details)
-    else
-      begin
-        heroku_config = HerokuConfig.read_config(options[:app])
-        # User has logged in to heroku, and TDDIUM environment variables are
-        # present
-        handle_heroku_user(options, heroku_config)
-      rescue HerokuConfig::HerokuNotFound
-        gemlist = `gem list heroku`
-        msg = Text::Error::Heroku::NOT_FOUND % gemlist
-        exit_failure msg
-      rescue HerokuConfig::TddiumNotAdded
-        exit_failure Text::Error::Heroku::NOT_ADDED
-      rescue HerokuConfig::InvalidFormat
-        exit_failure Text::Error::Heroku::INVALID_FORMAT
-      rescue HerokuConfig::NotLoggedIn
-        exit_failure Text::Error::Heroku::NOT_LOGGED_IN
-      rescue HerokuConfig::AppNotFound
-        exit_failure Text::Error::Heroku::APP_NOT_FOUND % options[:app]
-      end
-    end
-  end
-
-  desc "password", "Change password"
-  map "passwd" => :password
-  def password
-    set_shell
-    set_default_environment
-    return unless tddium_settings
-    user_details = user_logged_in?
-    return unless user_details
-    
-    params = {}
-    params[:current_password] = HighLine.ask(Text::Prompt::CURRENT_PASSWORD) { |q| q.echo = "*" }
-    params[:password] = HighLine.ask(Text::Prompt::NEW_PASSWORD) { |q| q.echo = "*" }
-    params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-
-    begin
-      user_id = user_details["user"]["id"]
-      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params},
-                        tddium_settings["api_key"], false)
-      say Text::Process::PASSWORD_CHANGED
-    rescue TddiumClient::Error::API => e
-      say Text::Error::PASSWORD_ERROR % e.explanation
-    rescue TddiumClient::Error::Base => e
-      say e.message
-    end
-  end
-
-  desc "login", "Log in to tddium using your email address and password"
-  method_option :email, :type => :string, :default => nil
-  method_option :password, :type => :string, :default => nil
-  def login
-    set_shell
-    set_default_environment
-    if user_logged_in?
-      say Text::Process::ALREADY_LOGGED_IN
-    elsif login_user(:params => get_user_credentials(options), :show_error => true)
-      say Text::Process::LOGGED_IN_SUCCESSFULLY 
-    else
-      exit_failure
-    end
-  end
-
-  desc "logout", "Log out of tddium"
-  def logout
-    set_shell
-    set_default_environment
-    FileUtils.rm(tddium_file_name) if File.exists?(tddium_file_name)
-    say Text::Process::LOGGED_OUT_SUCCESSFULLY
-  end
-
-  map "cucumber" => :spec
-  map "test" => :spec
-  map "run" => :spec
-  desc "spec", "Run the test suite"
-  method_option :user_data_file, :type => :string, :default => nil
-  method_option :max_parallelism, :type => :numeric, :default => nil
-  method_option :test_pattern, :type => :string, :default => nil
-  method_option :force, :type => :boolean, :default => false
-  def spec
-    set_shell
-    set_default_environment
-    git_version_ok
-    if git_changes then
-      exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
-      warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
-    end
-    exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
-
-    test_execution_params = {}
-
-    user_data_file_path = get_remembered_option(options, :user_data_file, nil) do |user_data_file_path|
-      if File.exists?(user_data_file_path)
-        user_data = File.open(user_data_file_path) { |file| file.read }
-        test_execution_params[:user_data_text] = Base64.encode64(user_data)
-        test_execution_params[:user_data_filename] = File.basename(user_data_file_path)
-      else
-        exit_failure Text::Error::NO_USER_DATA_FILE % user_data_file_path
-      end
-    end
-
-    max_parallelism = get_remembered_option(options, :max_parallelism, nil) do |max_parallelism|
-      test_execution_params[:max_parallelism] = max_parallelism
-    end
-    
-    test_pattern = get_remembered_option(options, :test_pattern, nil)
-
-    start_time = Time.now
-
-    # Call the API to get the suite and its tests
-    begin
-      suite_details = call_api(:get, current_suite_path)
-
-      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
-
-      # Push the latest code to git
-      exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
-
-      # Create a session
-      new_session = call_api(:post, Api::Path::SESSIONS)
-      session_id = new_session["session"]["id"]
-
-      # Register the tests
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :test_pattern => test_pattern})
-
-      # Start the tests
-      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
-      
-      say Text::Process::STARTING_TEST % start_test_executions["started"]
-
-      tests_not_finished_yet = true
-      finished_tests = {}
-      test_statuses = Hash.new(0)
-
-      say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"]
-      say Text::Process::TERMINATE_INSTRUCTION
-      while tests_not_finished_yet do
-        # Poll the API to check the status
-        current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
-
-        # Catch Ctrl-C to interrupt the test
-        Signal.trap(:INT) do
-          say Text::Process::INTERRUPT
-          say Text::Process::CHECK_TEST_STATUS
-          tests_not_finished_yet = false
-        end
-
-        # Print out the progress of running tests
-        current_test_executions["tests"].each do |test_name, result_params|
-          test_status = result_params["status"]
-          if result_params["finished"] && !finished_tests[test_name]
-            message = case test_status
-                        when "passed" then [".", :green, false]
-                        when "failed" then ["F", :red, false]
-                        when "error" then ["E", nil, false]
-                        when "pending" then ["*", :yellow, false]
-                        when "skipped" then [".", :yellow, false]
-                        else [".", nil, false]
-                      end
-            finished_tests[test_name] = test_status
-            test_statuses[test_status] += 1
-            say *message
-          end
-        end
-
-        # If all tests finished, exit the loop else sleep
-        if finished_tests.size == current_test_executions["tests"].size
-          tests_not_finished_yet = false
-        else
-          sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
-        end
-      end
-
-      # Print out the result
-      say ""
-      say Text::Process::FINISHED_TEST % (Time.now - start_time)
-      say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
-
-      # Save the spec options
-      write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
-                                    {"user_data_file" => user_data_file_path,
-                                     "max_parallelism" => max_parallelism,
-                                     "test_pattern" => test_pattern})
-
-      exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
-    rescue TddiumClient::Error::Base
-      exit_failure "Failed due to error communicating with Tddium"
-    rescue RuntimeError => e
-      exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
-    end
-  end
-
-  desc "status", "Display information about this suite, and any open dev sessions"
-  def status
-    set_shell
-    set_default_environment
-    git_version_ok
-    return unless git_repo? && tddium_settings && suite_for_current_branch?
-
-    begin
-      current_suites = call_api(:get, Api::Path::SUITES)
-      if current_suites["suites"].size == 0
-        say Text::Status::NO_SUITE
-      else
-        if current_suite = current_suites["suites"].detect {|suite| suite["id"] == current_suite_id}
-          show_session_details({:active => false, :order => "date", :limit => 10}, Text::Status::NO_INACTIVE_SESSION, Text::Status::INACTIVE_SESSIONS)
-          show_session_details({:active => true}, Text::Status::NO_ACTIVE_SESSION, Text::Status::ACTIVE_SESSIONS)
-          say Text::Status::SEPARATOR
-          say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
-          display_attributes(DisplayedAttributes::SUITE, current_suite)
-        else
-          say Text::Status::CURRENT_SUITE_UNAVAILABLE
-        end
-      end
-    rescue TddiumClient::Error::Base
-    end
-  end
-
-  desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
-  method_option :edit, :type => :boolean, :default => false
-  method_option :name, :type => :string, :default => nil
-  method_option :pull_url, :type => :string, :default => nil
-  method_option :push_url, :type => :string, :default => nil
-  method_option :test_pattern, :type => :string, :default => nil
-  def suite
-    set_default_environment
-    git_version_ok
-    return unless git_repo? && tddium_settings
-
-    params = {}
-    begin
-      if current_suite_id
-        current_suite = call_api(:get, current_suite_path)["suite"]
-
-        if options[:edit]
-          update_suite(current_suite, options)
-        else
-          say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
-        end
-      else
-        params[:branch] = current_git_branch
-        default_suite_name = File.basename(Dir.pwd)
-        params[:repo_name] = options[:name] || default_suite_name
-
-        say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
-
-        use_existing_suite, existing_suite = resolve_suite_name(options, params, default_suite_name)
-
-        if use_existing_suite
-          # Write to file and exit when using the existing suite
-          write_suite(existing_suite)
-          say Text::Status::USING_SUITE % format_suite_details(existing_suite)
-          return
-        end
-
-        prompt_suite_params(options, params)
-
-        params.each do |k,v|
-          params.delete(k) if v == 'disable'
-        end
-
-        # Create new suite if it does not exist yet
-        say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
-        new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
-        # Save the created suite
-        write_suite(new_suite["suite"])
-
-        say Text::Process::CREATED_SUITE % format_suite_details(new_suite["suite"])
-      end
-    rescue TddiumClient::Error::Base
-      exit_failure
-    end
-  end
+  require "tddium/commands/account"
+  require "tddium/commands/activate"
+  require "tddium/commands/heroku"
+  require "tddium/commands/login"
+  require "tddium/commands/logout"
+  require "tddium/commands/password"
+  require "tddium/commands/spec"
+  require "tddium/commands/suite"
+  require "tddium/commands/status"
 
   map "-v" => :version
   desc "version", "Print the tddium gem version"
@@ -433,13 +60,12 @@ class Tddium < Thor
 
   def call_api(method, api_path, params = {}, api_key = nil, show_error = true)
     api_key =  tddium_settings(:fail_with_message => false)["api_key"] if tddium_settings(:fail_with_message => false) && api_key != false
-    params[:tddium_gem_version] = TddiumVersion::VERSION
     begin
       result = tddium_client.call_api(method, api_path, params, api_key)
+    rescue TddiumClient::Error::UpgradeRequired => e
+      puts "GAHHAH"
+      exit_failure e.message
     rescue TddiumClient::Error::Base => e
-
-      exit_failure e.message if e.status == Api::ErrorCode::GEM_OUT_OF_DATE
-
       say e.message if show_error
       raise e
     end
@@ -766,24 +392,6 @@ class Tddium < Thor
     end
   end
 
-  def show_session_details(params, no_session_prompt, all_session_prompt)
-    begin
-      current_sessions = call_api(:get, Api::Path::SESSIONS, params)
-      say Text::Status::SEPARATOR
-      if current_sessions["sessions"].size == 0
-        say no_session_prompt
-      else
-        say all_session_prompt
-        current_sessions["sessions"].reverse_each do |session|
-          session_id = session.delete("id")
-          say Text::Status::SESSION_TITLE % session_id
-          display_attributes(DisplayedAttributes::TEST_EXECUTION, session)
-        end
-      end
-    rescue TddiumClient::Error::Base
-    end
-  end
-
   def show_user_details(api_response)
     # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
     # Email address
@@ -791,26 +399,24 @@ class Tddium < Thor
     user = api_response["user"]
     say ERB.new(Text::Status::USER_DETAILS).result(binding)
 
-    begin
-      current_suites = call_api(:get, Api::Path::SUITES)
-      if current_suites["suites"].size == 0 then
-        say Text::Status::NO_SUITE
-      else
-        say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| suite["repo_name"]}.join(", ")
-      end
-
-      memberships = call_api(:get, Api::Path::MEMBERSHIPS)
-      if memberships["memberships"].length > 1
-        say Text::Status::ACCOUNT_MEMBERS
-        say memberships["memberships"].collect{|x|x['display']}.join("\n")
-        say "\n"
-      end
-
-      account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
-      say account_usage["usage"]
-    rescue TddiumClient::Error::Base => e
-puts "EXN: #{e.inspect}"
+    current_suites = call_api(:get, Api::Path::SUITES)
+    if current_suites["suites"].size == 0 then
+      say Text::Status::NO_SUITE
+    else
+      say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| "#{suite["repo_name"]}/#{suite["branch"]}"}.join(", ")
     end
+
+    memberships = call_api(:get, Api::Path::MEMBERSHIPS)
+    if memberships["memberships"].length > 1
+      say Text::Status::ACCOUNT_MEMBERS
+      say memberships["memberships"].collect{|x|x['display']}.join("\n")
+      say "\n"
+    end
+
+    account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
+    say account_usage["usage"]
+  rescue TddiumClient::Error::Base => e
+    exit_failure e.message
   end
 
   def format_suite_details(suite)
@@ -834,7 +440,11 @@ puts "EXN: #{e.inspect}"
   end
 
   def tddium_client
-    @tddium_client ||= TddiumClient::Client.new
+    @tddium_client ||= begin
+                         c = TddiumClient::Client.new
+                         c.caller_version = TddiumVersion::VERSION
+                         c
+                       end
   end
 
   def tddium_config
@@ -899,11 +509,9 @@ puts "EXN: #{e.inspect}"
 
   def write_tddium_to_gitignore
     content = File.exists?(Git::GITIGNORE) ? File.read(Git::GITIGNORE) : ''
-    [tddium_file_name, tddium_deploy_key_file_name].each do |fn|
-      unless content.include?("#{fn}\n")
-        File.open(Git::GITIGNORE, "a") do |file|
-          file.write("#{fn}\n")
-        end
+    unless content.include?(".tddium*\n")
+      File.open(Git::GITIGNORE, "a") do |file|
+        file.write(".tddium*\n")
       end
     end
   end

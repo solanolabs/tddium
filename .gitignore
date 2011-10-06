@@ -52,5 +52,4 @@ nbproject
 # For vim:
 *.swp
 *.swo
-.tddium.staging
-.tddium-deploy-key.staging
+.tddium*

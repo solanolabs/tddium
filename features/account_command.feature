@@ -24,6 +24,17 @@ Feature: Account command
     [member] member@example.com
     [admin]  admin@example.com
     """
+    And the output should contain "alpha/master"
+
+  Scenario: Handle API failure
+    Given the user is logged in
+    And there is a problem retrieving suite information
+    When I run `tddium account`
+    Then the output should contain "someone@example.com"
+    And the output should contain:
+    """
+    API Error
+    """
 
   Scenario: Fail if user isn't logged in
     When I run `tddium account`

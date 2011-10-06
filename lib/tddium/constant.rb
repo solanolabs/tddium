@@ -40,12 +40,11 @@ module TddiumConstant
     end
     module ErrorCode
       INVALID_INVITATION = 2
-      GEM_OUT_OF_DATE = 10000
     end
   end
 
   module License
-    FILE_NAME = "LICENSE.txt"
+    FILE_NAME = File.expand_path(File.join("..", "..", "..", "LICENSE.txt"), __FILE__)
   end
 
   module Text
@@ -208,7 +207,7 @@ EOF
       ACTIVE_SESSIONS = "Your active sessions:"
       NO_INACTIVE_SESSION = "There are no previous sessions"
       INACTIVE_SESSIONS = "Your latest sessions:"
-      SESSION_TITLE = "  Session %s:"
+      SESSION_DETAIL = " open %s # %8.8s Started: %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "Using suite...\n\n%s"
@@ -217,7 +216,7 @@ EOF
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
 <% if user["trial_remaining"] && user["trial_remaining"] > 0 %>Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
-<% if user["recurly_url"] %>Account Management URL: <%=user["recurly_url"]%><% end %>
+<% if user["account_url"] %>Account Management URL: <%=user["account_url"]%><% end %>
 <% if user["heroku"] %>Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
 EOF
       HEROKU_CONFIG = "
