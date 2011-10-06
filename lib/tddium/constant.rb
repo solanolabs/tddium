@@ -147,7 +147,7 @@ with Tddium.
       DETECTED_BRANCH = "Detected branch %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
-Tddium includes a Hosted Continuous Integration service that will run a
+Tddium includes a Hosted Continuous Integration srvice that will run a
 CI build when it's triggered by a POST:
 
 1. Pull from your git server
@@ -274,8 +274,8 @@ then add the following URL and click "Update Settings":
 
 <%=suite["hook_uri"]%>
 <% else %>
->>> In order for Tddium to know that your repo has changed, you'll need to configure
-a post-commit hook in your Git server.
+>>> In order for Tddium to know that your repo has changed, you'll need to
+    configure a post-commit hook in your Git server.
 
 In Unix-based Git repositories, find the repository root and look for a shell
 script in `.git/hooks/post-commit`.
@@ -287,13 +287,14 @@ To trigger CI builds, POST to the following URL from a post-commit hook:
 >>> See http://www.tddium.com/support for more information on Tddium CI.
 <% end %>
 
-If your tests don't require a database or your app uses pure ActiveRecord you're
-all set and can now run tddium spec.
+If your tests don't require a database or your app uses pure ActiveRecord
+you're all set and can now run tddium spec.
 
-If your app needs database-specific features (triggers, stored procedures),
-you'll need to configure a custom database setup hook.
-See http://www.tddium.com/support/reference#setup_hooks to create a Rake task for
-Tddium to set up your database.
+>>> If your app needs database-specific features (triggers, stored procedures),
+    you'll need to configure a custom database setup hook.
+
+    See http://www.tddium.com/support/reference#setup_hooks to create a Rake
+    task for Tddium to set up your database.
 
 Run 'tddium suite --edit' to edit suite settings.
 
@@ -308,7 +309,8 @@ EOF
 
 The git push to Tddium failed.
 
-SSH may not be configured to authenticate with the keypair you provided when you set up your account.
+SSH may not be configured to authenticate with the keypair you
+provided when you set up your account.
 
 See this URL for SSH configuration instructions:
 
@@ -346,7 +348,9 @@ git details result: #{ $? }
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
       INVALID_INVITATION = "
-Your invitation token wasn't recognized. If you have a token, make sure you enter it correctly.
+Your invitation token wasn't recognized. If you have a token,
+make sure you enter it correctly.
+
 If you want an invite, visit this URL to sign up:
 
 http://www.tddium.com/
