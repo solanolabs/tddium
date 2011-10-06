@@ -63,7 +63,6 @@ class Tddium < Thor
     begin
       result = tddium_client.call_api(method, api_path, params, api_key)
     rescue TddiumClient::Error::UpgradeRequired => e
-      puts "GAHHAH"
       exit_failure e.message
     rescue TddiumClient::Error::Base => e
       say e.message if show_error
@@ -442,7 +441,7 @@ class Tddium < Thor
   def tddium_client
     @tddium_client ||= begin
                          c = TddiumClient::Client.new
-                         c.caller_version = TddiumVersion::VERSION
+                         c.caller_version = "tddium-preview-#{TddiumVersion::VERSION}"
                          c
                        end
   end
