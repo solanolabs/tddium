@@ -42,7 +42,7 @@ GEM
     gherkin (2.4.21)
       json (>= 1.4.6)
     highline (1.6.2)
-    httparty (0.8.0)
+    httparty (0.8.1)
       multi_json
       multi_xml
     json (1.6.1)
@@ -68,13 +68,14 @@ GEM
     rspec-expectations (2.6.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.6.0)
-    simplecov (0.4.2)
-      simplecov-html (~> 0.4.4)
-    simplecov-html (0.4.5)
+    simplecov (0.5.3)
+      multi_json (~> 1.0.3)
+      simplecov-html (~> 0.5.3)
+    simplecov-html (0.5.3)
     sinatra (1.2.6)
       rack (~> 1.1)
       tilt (< 2.0, >= 1.2.2)
-    tddium_client (0.1.0)
+    tddium_client (0.1.1)
       httparty
       json
     tddium_reporting (0.0.6)

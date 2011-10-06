@@ -13,3 +13,21 @@ Feature: spec command
     Then the exit status should not be 0
     And the output should contain "tddium login"
     And the output should contain "tddium heroku"
+
+  Scenario: Output machine readable data
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And the user can create a session
+    And the user successfully registers tests for the suite
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec --machine`
+    Then the exit status should be 0
+    And the output should not contain "Ctrl-C"
+    And the output should contain:
+      """
+      %%%% TDDIUM CI DATA %%%%
+      --- 
+      :session_id: 1
+      """

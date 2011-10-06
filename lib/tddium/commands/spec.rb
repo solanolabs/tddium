@@ -11,7 +11,10 @@ class Tddium
   method_option :max_parallelism, :type => :numeric, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :force, :type => :boolean, :default => false
+  method_option :machine, :type => :boolean, :default => false
   def spec
+    machine_data = {}
+
     set_shell
     set_default_environment
     git_version_ok
@@ -43,85 +46,88 @@ class Tddium
     start_time = Time.now
 
     # Call the API to get the suite and its tests
-    begin
-      suite_details = call_api(:get, current_suite_path)
+    suite_details = call_api(:get, current_suite_path)
 
-      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
+    exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
 
-      # Push the latest code to git
-      exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
+    # Push the latest code to git
+    exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
 
-      # Create a session
-      new_session = call_api(:post, Api::Path::SESSIONS)
-      session_id = new_session["session"]["id"]
+    # Create a session
+    new_session = call_api(:post, Api::Path::SESSIONS)
+    machine_data[:session_id] = session_id = new_session["session"]["id"]
 
-      # Register the tests
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :test_pattern => test_pattern})
+    # Register the tests
+    call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :test_pattern => test_pattern})
 
-      # Start the tests
-      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
-      
-      say Text::Process::STARTING_TEST % start_test_executions["started"]
+    # Start the tests
+    start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
+    
+    say Text::Process::STARTING_TEST % start_test_executions["started"]
 
-      tests_not_finished_yet = true
-      finished_tests = {}
-      test_statuses = Hash.new(0)
+    tests_not_finished_yet = true
+    finished_tests = {}
+    test_statuses = Hash.new(0)
 
-      say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"]
-      say Text::Process::TERMINATE_INSTRUCTION
-      while tests_not_finished_yet do
-        # Poll the API to check the status
-        current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
+    say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"] unless options[:machine]
+    say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+    while tests_not_finished_yet do
+      # Poll the API to check the status
+      current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
-        # Catch Ctrl-C to interrupt the test
-        Signal.trap(:INT) do
-          say Text::Process::INTERRUPT
-          say Text::Process::CHECK_TEST_STATUS
-          tests_not_finished_yet = false
-        end
+      # Catch Ctrl-C to interrupt the test
+      Signal.trap(:INT) do
+        say Text::Process::INTERRUPT
+        say Text::Process::CHECK_TEST_STATUS
+        tests_not_finished_yet = false
+      end
 
-        # Print out the progress of running tests
-        current_test_executions["tests"].each do |test_name, result_params|
-          test_status = result_params["status"]
-          if result_params["finished"] && !finished_tests[test_name]
-            message = case test_status
-                        when "passed" then [".", :green, false]
-                        when "failed" then ["F", :red, false]
-                        when "error" then ["E", nil, false]
-                        when "pending" then ["*", :yellow, false]
-                        when "skipped" then [".", :yellow, false]
-                        else [".", nil, false]
-                      end
-            finished_tests[test_name] = test_status
-            test_statuses[test_status] += 1
-            say *message
-          end
-        end
-
-        # If all tests finished, exit the loop else sleep
-        if finished_tests.size == current_test_executions["tests"].size
-          tests_not_finished_yet = false
-        else
-          sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+      # Print out the progress of running tests
+      current_test_executions["tests"].each do |test_name, result_params|
+        test_status = result_params["status"]
+        if result_params["finished"] && !finished_tests[test_name]
+          message = case test_status
+                      when "passed" then [".", :green, false]
+                      when "failed" then ["F", :red, false]
+                      when "error" then ["E", nil, false]
+                      when "pending" then ["*", :yellow, false]
+                      when "skipped" then [".", :yellow, false]
+                      else [".", nil, false]
+                    end
+          finished_tests[test_name] = test_status
+          test_statuses[test_status] += 1
+          say *message
         end
       end
 
-      # Print out the result
-      say ""
-      say Text::Process::FINISHED_TEST % (Time.now - start_time)
-      say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+      # If all tests finished, exit the loop else sleep
+      if finished_tests.size == current_test_executions["tests"].size
+        tests_not_finished_yet = false
+      else
+        sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
+      end
+    end
 
-      # Save the spec options
-      write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
-                                    {"user_data_file" => user_data_file_path,
-                                     "max_parallelism" => max_parallelism,
-                                     "test_pattern" => test_pattern})
+    # Print out the result
+    say ""
+    say Text::Process::FINISHED_TEST % (Time.now - start_time)
+    say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
-      exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
-    rescue TddiumClient::Error::Base
-      exit_failure "Failed due to error communicating with Tddium"
-    rescue RuntimeError => e
-      exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
+    # Save the spec options
+    write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
+                                  {"user_data_file" => user_data_file_path,
+                                   "max_parallelism" => max_parallelism,
+                                   "test_pattern" => test_pattern})
+
+    exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
+  rescue TddiumClient::Error::Base
+    exit_failure "Failed due to error communicating with Tddium"
+  rescue RuntimeError => e
+    exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
+  ensure
+    if options[:machine] && machine_data.size > 0
+      say "%%%% TDDIUM CI DATA %%%%"
+      say YAML.dump(machine_data)
     end
   end
 end

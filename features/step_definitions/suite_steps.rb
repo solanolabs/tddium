@@ -4,12 +4,14 @@ def make_suite_response(name, branch)
   suite = SAMPLE_SUITE_RESPONSE
   suite["repo_name"] = name
   suite["branch"] = branch
-  suite["git_repo_uri"] = "file:///#{Dir.tmpdir}/aruba/repo"
+  suite["git_repo_uri"] = "file:///#{Dir.tmpdir}/tddium-aruba/repo"
+  suite["repoman_current"] = true
   suite
 end
 
 Given /^the user has a suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
   Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
+  Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>make_suite_response(name, branch)})
 end
 
 Given /^the user has no suites/ do
@@ -32,3 +34,5 @@ Given /^I choose defaults for test pattern, CI and campfire settings$/ do
     And I respond to "Campfire subdomain" with "disable"
   }
 end
+
+

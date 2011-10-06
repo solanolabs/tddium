@@ -7,5 +7,19 @@ require 'yaml'
 YAML::ENGINE.yamler = 'syck' if defined?(YAML::ENGINE)
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+
+if ENV['COVERAGE']
+  begin
+    require 'rubygems'
+    require 'simplecov'
+    SimpleCov.root(ENV['COVERAGE_ROOT'])
+    SimpleCov.start do
+      add_group "Commands", "lib/tddium/commands"
+    end
+  rescue => e
+    STDERR.puts "Can't load simplecov: #{e.inspect} #{e.backtrace}"
+  end
+end
+
 require "tddium"
 Tddium.start
