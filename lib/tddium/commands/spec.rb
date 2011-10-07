@@ -126,8 +126,9 @@ class Tddium
     exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
   ensure
     if options[:machine] && machine_data.size > 0
-      say "%%%% TDDIUM CI DATA %%%%"
+      say "%%%% TDDIUM CI DATA BEGIN %%%%"
       say YAML.dump(machine_data)
+      say "%%%% TDDIUM CI DATA END %%%%"
     end
   end
 end

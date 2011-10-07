@@ -27,7 +27,8 @@ Feature: spec command
     And the output should not contain "Ctrl-C"
     And the output should contain:
       """
-      %%%% TDDIUM CI DATA %%%%
+      %%%% TDDIUM CI DATA BEGIN %%%%
       --- 
       :session_id: 1
+      %%%% TDDIUM CI DATA END %%%%
       """
