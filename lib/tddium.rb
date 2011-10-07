@@ -513,5 +513,10 @@ class Tddium < Thor
         file.write(".tddium*\n")
       end
     end
+    unless content.include?(".tddium\n")
+      File.open(Git::GITIGNORE, "a") do |file|
+        file.write(".tddium\n")
+      end
+    end
   end
 end

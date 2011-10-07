@@ -37,6 +37,7 @@ end
 Then /^dotfiles should be updated$/ do
   steps %Q{
     And the file ".tddium.mimic" should contain "apikey"
+    And the file ".gitignore" should contain ".tddium"
     And the file ".gitignore" should contain ".tddium*"
   }
 end
