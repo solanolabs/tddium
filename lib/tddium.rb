@@ -447,7 +447,12 @@ class Tddium < Thor
   end
 
   def tddium_config
-    YAML.load(File.read(Config::CONFIG_PATH))[:tddium] rescue {}
+    config = YAML.load(File.read(Config::CONFIG_PATH)) rescue {}
+    return {} unless config.is_a?(Hash)
+
+    config = config[:tddium] || config['tddium']
+    config ||= {}
+    config
   end
 
   def tddium_file_name
