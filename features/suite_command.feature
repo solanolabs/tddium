@@ -9,6 +9,16 @@ Feature: suite command
   Background:
     Given the command is "tddium suite"
 
+  Scenario: Fail if the user is not logged in
+    When I run `tddium suite`
+    Then it should fail with a login hint
+
+  Scenario: Fail if CWD isn't in a git repo
+    Given the user is logged in
+    When I run `tddium suite`
+    Then the output should contain "git repo"
+    And the exit status should not be 0
+
   Scenario: Configure a new suite with a complex branch
     Given the destination repo exists
     And a git repo is initialized on branch "test/foobar"
@@ -24,67 +34,3 @@ Feature: suite command
     When the console session ends
     Then the exit status should be 0
 
-  Scenario: Configure new suite with ruby from tddium.yml
-    Given the destination repo exists
-    And a git repo is initialized on branch "test/foobar"
-    And the user is logged in
-    And the user has no suites
-    And the user can create a suite named "beta" on branch "test/foobar"
-    And a file named "config/tddium.yml" with:
-    """
-    ---
-    :tddium:
-       :ruby_version:  ruby-1.9.2-p290-psych
-    """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should contain "Configured ruby ruby-1.9.2-p290-psych from tddium.yml"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
-    Then the exit status should be 0
-
-  Scenario: Configure new suite with tddium.yml without matching key
-    Given the destination repo exists
-    And a git repo is initialized on branch "test/foobar"
-    And the user is logged in
-    And the user has no suites
-    And the user can create a suite named "beta" on branch "test/foobar"
-    And a file named "config/tddium.yml" with:
-    """
-    ---
-    :foo:
-       :ruby_version:  ruby-1.9.2-p290-psych
-    """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from tddium.yml"
-    Then the output from "tddium suite" should contain "Detected ruby"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
-    Then the exit status should be 0
-
-  Scenario: Configure new suite with empty tddium.yml
-    Given the destination repo exists
-    And a git repo is initialized on branch "test/foobar"
-    And the user is logged in
-    And the user has no suites
-    And the user can create a suite named "beta" on branch "test/foobar"
-    And a file named "config/tddium.yml" with:
-    """
-    """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from tddium.yml"
-    Then the output from "tddium suite" should contain "Detected ruby"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
-    Then the exit status should be 0

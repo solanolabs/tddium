@@ -29,6 +29,12 @@ end
 Given /^I choose defaults for test pattern, CI and campfire settings$/ do
   steps %Q{
     And I respond to "test pattern" with ""
+    And I choose defaults for CI and campfire settings
+  }
+end
+
+Given /^I choose defaults for CI and campfire settings$/ do
+  steps %Q{
     And I respond to "URL to pull from" with "disable"
     And I respond to "URL to push to" with "disable"
     And I respond to "Campfire subdomain" with "disable"
@@ -36,3 +42,12 @@ Given /^I choose defaults for test pattern, CI and campfire settings$/ do
 end
 
 
+Given /^the user is logged in, and can successfully create a new suite in a git repo$/ do
+  steps %Q{
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar"
+  }
+end

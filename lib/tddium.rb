@@ -110,20 +110,6 @@ class Tddium < Thor
     end
   end
 
-  def tool_version(tool)
-    key = "#{tool}_version".to_sym
-    result = tddium_config[key]
-
-    if result
-      say Text::Process::CONFIGURED_VERSION % [tool, result]
-      return result
-    end
-
-    result = `#{tool} -v`.strip
-    say Text::Process::DEPENDENCY_VERSION % [tool, result]
-    result
-  end
-
   def current_git_branch
     @current_git_branch ||= `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
   end
@@ -296,80 +282,6 @@ class Tddium < Thor
     data
   end
 
-  def prompt_suite_params(options, params, current={})
-    say Text::Process::DETECTED_BRANCH % params[:branch] if params[:branch]
-    params[:ruby_version] = tool_version(:ruby)
-    params[:bundler_version] = tool_version(:bundle)
-    params[:rubygems_version] = tool_version(:gem)
-
-    ask_or_update = lambda do |key, text, default|
-      params[key] = prompt(text, options[key], current.fetch(key.to_s, default))
-    end
-
-    ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
-
-    if current.size > 0 && current['ci_pull_url']
-      say(Text::Process::SETUP_CI_EDIT)
-    else
-      say(Text::Process::SETUP_CI_FIRST_TIME % params[:test_pattern])
-    end
-
-    ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, git_origin_url) 
-    ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
-
-    if current.size > 0 && current['campfire_room']
-      say(Text::Process::SETUP_CAMPFIRE_EDIT)
-    else
-      say(Text::Process::SETUP_CAMPFIRE_FIRST_TIME)
-    end
-
-    subdomain = ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
-    if !subdomain.nil? && subdomain != 'disable' then
-      ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
-      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
-    end
-  end
-
-  def update_suite(suite, options)
-    params = {}
-    prompt_suite_params(options, params, suite)
-    call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
-    say Text::Process::UPDATED_SUITE
-  end
-
-  def resolve_suite_name(options, params, default_suite_name)
-    # XXX updates params
-    existing_suite = nil
-    use_existing_suite = false
-    suite_name_resolved = false
-    while !suite_name_resolved
-      # Check to see if there is an existing suite
-      current_suites = call_api(:get, Api::Path::SUITES, params)
-      existing_suite = current_suites["suites"].first
-
-      # Get the suite name
-      current_suite_name = params[:repo_name]
-      if existing_suite
-        # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
-        params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE % params[:branch], options[:name], current_suite_name)
-        if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
-          # Use the existing suite, so assign the value back and exit the loop
-          params[:repo_name] = current_suite_name
-          use_existing_suite = true
-          suite_name_resolved = true
-        end
-      elsif current_suite_name == default_suite_name
-        # Prompt for using default suite name or entering new one
-        params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], current_suite_name)
-        suite_name_resolved = true if params[:repo_name] == default_suite_name
-      else
-        # Suite name does not exist yet and already prompted
-        suite_name_resolved = true
-      end
-    end
-    [use_existing_suite, existing_suite]
-  end
-
   def set_shell
     if !$stdout.tty? || !$stderr.tty? then
       @shell = Thor::Shell::Basic.new
@@ -447,12 +359,20 @@ class Tddium < Thor
   end
 
   def tddium_config
-    config = YAML.load(File.read(Config::CONFIG_PATH)) rescue {}
+    return @tddium_yml if @tddium_yml
+
+    config = begin
+               YAML.load(File.read(Config::CONFIG_PATH))
+             rescue
+               warn(Text::Warning::YAML_PARSE_FAILED % Config::CONFIG_PATH)
+               {}
+             end
     return {} unless config.is_a?(Hash)
 
     config = config[:tddium] || config['tddium']
     config ||= {}
-    config
+    @tddium_yml = config
+    @tddium_yml
   end
 
   def tddium_file_name

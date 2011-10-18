@@ -1,0 +1,4 @@
+:tddium:
+  :test_pattern:
+    - features/*.feature
+    +

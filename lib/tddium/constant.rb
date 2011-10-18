@@ -64,7 +64,7 @@ module TddiumConstant
       PASSWORD_CONFIRMATION = "Confirm your password: "
       INVITATION_TOKEN = "Enter your invitation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
-      TEST_PATTERN = "Enter a test pattern or press 'Return'. Using '%s' by default:"
+      TEST_PATTERN = "Enter a pattern or press 'Return'. Using '%s' by default:"
       CI_PULL_URL = "Enter git URL to pull from (default '%s') or enter 'disable':"
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
       CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s') or enter 'disable':"
@@ -76,9 +76,20 @@ module TddiumConstant
       GIT_VERSION = "Unsupported git version: %s"
       GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
+      YAML_PARSE_FAILED = "Unable to parse %s as YAML"
     end
 
     module Process
+      TEST_PATTERN_INSTRUCTIONS =<<EOF
+
+>>> Tddium selects tests to run by default (e.g., in CI) by matching against a
+    list of Ruby glob patterns.  Use "," to join multiple globs.
+
+    You can instead specify a test pattern Array in config/tddium.yml.
+
+    Read more here: https://www.tddium.com/support/reference#customization
+
+EOF
       NO_CONFIGURED_SUITE = "Looks like you haven't set up a suite on this computer for %s/%s..."
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
@@ -143,7 +154,17 @@ with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
       DEPENDENCY_VERSION = "Detected %s %s"
-      CONFIGURED_VERSION = "Configured %s %s from tddium.yml"
+      CONFIGURED_VERSION = "Configured %s %s from config/tddium.yml"
+      CONFIGURED_PATTERN =<<EOF;
+Configured test pattern from config/tddium.yml:
+
+%s
+
+>>> To change the pattern:
+    1. Edit config/tddium.yml
+    2. Run `tddium suite --edit` again.
+
+EOF
       DETECTED_BRANCH = "Detected branch %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
@@ -151,7 +172,7 @@ Tddium includes a Hosted Continuous Integration srvice that will run a
 CI build when it's triggered by a POST:
 
 1. Pull from your git server
-2. Run tests that match the test pattern for this suite:  %s
+2. Run tests that match the test pattern you saved for this suite
 3. Notify you by email and/or campfire
 4. Optionally, Tddium CI will then push to a git server (push to URL).  For
    example, enter the git URL to your Heroku staging app.
@@ -304,6 +325,18 @@ EOF
     end
 
     module Error
+      INVALID_CONFIGURED_PATTERN =<<EOF;
+Configuring test pattern from config/tddium.yml...
+
+>>> The test_pattern in config/tddium.yml is not properly formatted.  It must be a YAML list.
+
+You entered:
+
+%s
+
+>>> Edit config/tddium.yml and rerun `tddium suite --edit`
+
+EOF
       GIT_REPO_NOT_READY = "Your git repository is being prepped.  Try again in a minute."
       GIT_PUSH_FAILED = <<EOF;
 
