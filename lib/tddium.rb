@@ -418,10 +418,10 @@ class Tddium < Thor
     write_tddium_to_gitignore
   end
 
-  def write_suite(suite, options = {})
+  def write_suite(suite)
     suite_id = suite["id"]
     branches = tddium_settings["branches"] || {}
-    branches.merge!({current_git_branch => {"id" => suite_id, "options" => options}})
+    branches.merge!({current_git_branch => {"id" => suite_id}})
     File.open(tddium_file_name, "w") do |file|
       file.write(tddium_settings.merge({"branches" => branches}).to_json)
     end

@@ -6,13 +6,13 @@ class Tddium
   map "cucumber" => :spec
   map "test" => :spec
   map "run" => :spec
-  desc "spec", "Run the test suite"
+  desc "spec [PATTERN]", "Run the test suite, or tests that match PATTERN"
   method_option :user_data_file, :type => :string, :default => nil
   method_option :max_parallelism, :type => :numeric, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   method_option :force, :type => :boolean, :default => false
   method_option :machine, :type => :boolean, :default => false
-  def spec
+  def spec(test_pattern=nil)
     machine_data = {}
 
     set_shell
@@ -27,21 +27,26 @@ class Tddium
 
     test_execution_params = {}
 
-    user_data_file_path = get_remembered_option(options, :user_data_file, nil) do |user_data_file_path|
+    if user_data_file_path = options[:user_data_file]
       if File.exists?(user_data_file_path)
         user_data = File.open(user_data_file_path) { |file| file.read }
         test_execution_params[:user_data_text] = Base64.encode64(user_data)
         test_execution_params[:user_data_filename] = File.basename(user_data_file_path)
+        say Text::Process::USING_SPEC_OPTION[:user_data_file] % user_data_file_path
       else
         exit_failure Text::Error::NO_USER_DATA_FILE % user_data_file_path
       end
     end
 
-    max_parallelism = get_remembered_option(options, :max_parallelism, nil) do |max_parallelism|
+    if max_parallelism = options[:max_parallelism]
       test_execution_params[:max_parallelism] = max_parallelism
+      say Text::Process::USING_SPEC_OPTION[:max_parallelism] % max_parallelism
     end
-    
-    test_pattern = get_remembered_option(options, :test_pattern, nil)
+
+    test_pattern ||= options[:test_pattern]
+    if test_pattern
+      say Text::Process::USING_SPEC_OPTION[:test_pattern] % test_pattern
+    end
 
     start_time = Time.now
 
@@ -62,8 +67,10 @@ class Tddium
 
     # Start the tests
     start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
+
+    num_tests_started = start_test_executions["started"].to_i
     
-    say Text::Process::STARTING_TEST % start_test_executions["started"]
+    say Text::Process::STARTING_TEST % num_tests_started.to_s
 
     tests_not_finished_yet = true
     finished_tests = {}
@@ -101,7 +108,7 @@ class Tddium
       end
 
       # If all tests finished, exit the loop else sleep
-      if finished_tests.size == current_test_executions["tests"].size
+      if finished_tests.size >= num_tests_started
         tests_not_finished_yet = false
       else
         sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
@@ -113,11 +120,7 @@ class Tddium
     say Text::Process::FINISHED_TEST % (Time.now - start_time)
     say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
 
-    # Save the spec options
-    write_suite(suite_details["suite"].merge({"id" => current_suite_id}),
-                                  {"user_data_file" => user_data_file_path,
-                                   "max_parallelism" => max_parallelism,
-                                   "test_pattern" => test_pattern})
+    write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
 
     exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
   rescue TddiumClient::Error::Base

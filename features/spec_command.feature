@@ -14,7 +14,34 @@ Feature: spec command
     And the output should contain "tddium login"
     And the output should contain "tddium heroku"
 
-  Scenario: Output machine readable data
+  Scenario: Don't remember test pattern or max-parallelism
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And the user can create a session
+    And the user successfully registers tests for the suite with test_pattern: "spec/foo"
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec --max-parallelism=1 --test-pattern=spec/foo`
+    Then the exit status should be 0
+    And the output should contain "Test report"
+    And options should not be saved
+
+  Scenario: Ignore remembered test pattern and max-parallelism
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite and remembered options
+    And the user can create a session
+    And the user successfully registers tests for the suite with test_pattern: default
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Test report"
+    And the output should not contain "emembered"
+    And options should not be saved
+
+  Scenario: Output machine readable data with --machine
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
@@ -33,7 +60,7 @@ Feature: spec command
       %%%% TDDIUM CI DATA END %%%%
       """
 
-  Scenario: Don't output machine readable data
+  Scenario: Don't output machine readable data in normal mode
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite

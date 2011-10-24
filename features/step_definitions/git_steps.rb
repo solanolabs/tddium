@@ -8,6 +8,10 @@ Given /^the destination repo exists$/ do
   }
 end
 
+Given /^an old version of git is installed$/ do
+  pending
+end
+
 Given /^a git repo is initialized(?: on branch "([^"]*)")?$/ do |branch|
   steps %Q{
     Given a directory named "work"

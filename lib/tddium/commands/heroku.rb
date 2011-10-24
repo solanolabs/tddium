@@ -11,6 +11,7 @@ class Tddium
   def heroku
     set_shell
     set_default_environment
+    git_version_ok
     if user_details = user_logged_in?
       # User is already logged in, so just display the info
       show_user_details(user_details)

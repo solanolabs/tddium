@@ -17,14 +17,11 @@ Feature: suite command
     :tddium:
        :ruby_version:  ruby-1.9.2-p290-psych
     """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    Then the output should contain "Looks like"
+    Then the output should contain "Detected branch test/foobar"
+    Then the output should contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
+    Then the output should contain "Created suite..."
     Then the exit status should be 0
 
   Scenario: Configure new suite with tddium.yml without matching key
@@ -35,15 +32,10 @@ Feature: suite command
     :foo:
        :ruby_version:  ruby-1.9.2-p290-psych
     """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
-    Then the output from "tddium suite" should contain "Detected ruby"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
+    Then the output should contain "Detected ruby"
+    Then the output should contain "Created suite..."
     Then the exit status should be 0
 
   Scenario: Configure new suite with empty tddium.yml
@@ -51,15 +43,12 @@ Feature: suite command
     And a file named "config/tddium.yml" with:
     """
     """
-    When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
-    And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
-    Then the output from "tddium suite" should contain "Detected ruby"
-    When I choose defaults for test pattern, CI and campfire settings
-    Then the output from "tddium suite" should contain "Created suite..."
-    When the console session ends
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    Then the output should contain "Looks like"
+    Then the output should contain "Detected branch test/foobar"
+    Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
+    Then the output should contain "Detected ruby"
+    Then the output should contain "Created suite..."
     Then the exit status should be 0
 
   Scenario: Non-YAML tddium.yml should generate a warning and then prompt

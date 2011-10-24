@@ -7,8 +7,11 @@ class Tddium
   desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
   method_option :edit, :type => :boolean, :default => false
   method_option :name, :type => :string, :default => nil
-  method_option :pull_url, :type => :string, :default => nil
-  method_option :push_url, :type => :string, :default => nil
+  method_option :ci_pull_url, :type => :string, :default => nil
+  method_option :ci_push_url, :type => :string, :default => nil
+  method_option :campfire_subdomain, :type=> :string, :default => nil
+  method_option :campfire_room, :type=> :string, :default => nil
+  method_option :campfire_token, :type=> :string, :default => nil
   method_option :test_pattern, :type => :string, :default => nil
   def suite
     set_default_environment

@@ -10,6 +10,7 @@ class Tddium
   def activate
     set_shell
     set_default_environment
+    git_version_ok
     if user_details = user_logged_in?
       exit_failure Text::Error::ACTIVATE_LOGGED_IN
     else
