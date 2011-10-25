@@ -12,7 +12,7 @@ class Tddium
   method_option :test_pattern, :type => :string, :default => nil
   method_option :force, :type => :boolean, :default => false
   method_option :machine, :type => :boolean, :default => false
-  def spec(test_pattern=nil)
+  def spec(*pattern)
     machine_data = {}
 
     set_shell
@@ -41,6 +41,12 @@ class Tddium
     if max_parallelism = options[:max_parallelism]
       test_execution_params[:max_parallelism] = max_parallelism
       say Text::Process::USING_SPEC_OPTION[:max_parallelism] % max_parallelism
+    end
+    
+    test_pattern = nil
+
+    if pattern.is_a?(Array) && pattern.size > 0
+      test_pattern = pattern.join(",")
     end
 
     test_pattern ||= options[:test_pattern]
