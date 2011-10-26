@@ -7,7 +7,7 @@ $:.push File.expand_path("../lib", __FILE__)
 require "tddium/version"
 
 Gem::Specification.new do |s|
-  s.name        = "tddium-preview"
+  s.name        = "tddium"
   s.version     = TddiumVersion::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Solano Labs"]
@@ -19,10 +19,11 @@ tddium runs your rspec, cucumber, and test::unit tests in our managed
 cloud environment.  You can run tests by hand, or enable our hosted CI to watch
 your git repos automatically.
 
-Tests run in parallel to save you time, and, if you use Rails, tddium takes care
-of setting up fresh isolated DB instances for each test instance.
+Tddium parallelizes your tests to save you time, and takes care of setting up
+fresh isolated DB instances for each test thread.
 
-Tests can access a limited set of private Selenium RC servers.
+Tests have access to a wide variety of databases (postgres, mongo, redis,
+mysql), solr, sphinx, selenium/webdriver browsers, webkit,
 EOF
 
   s.rubyforge_project = "tddium"

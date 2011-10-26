@@ -1,5 +1,7 @@
 Given /^the user can create a session$/ do
-  Antilles.install(:post, "/1/sessions", {:status=>0, :session=>{"id"=>SAMPLE_SESSION_ID}}, :code=>201)
+  Antilles.install(:post, "/1/sessions",
+                   {:status=>0, :session=>{"id"=>SAMPLE_SESSION_ID}},
+                   :code=>201)
 end
 
 Given /^the user successfully registers tests for the suite(?: with test_pattern: (.*))?$/ do |pattern|
