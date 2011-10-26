@@ -351,10 +351,8 @@ class Tddium < Thor
   end
 
   def tddium_client
-    @tddium_client ||= begin
-                         c = TddiumClient::Client.new
-                         c.caller_version = "tddium-preview-#{TddiumVersion::VERSION}"
-                         c
+    @tddium_client ||= TddiumClient::Client.new.tap do |c|
+                         c.caller_version = "tddium-#{TddiumVersion::VERSION}"
                        end
   end
 
