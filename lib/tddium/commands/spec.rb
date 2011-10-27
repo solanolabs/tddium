@@ -98,7 +98,7 @@ class Tddium
       current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
       messages = current_test_executions["messages"]
-      if messages && finished_tests.size > 0
+      if !options[:machine] && finished_tests.size == 0 && messages 
         messages.each do |m|
           if m["seqno"] > latest_message
             color = case m["level"]
@@ -106,6 +106,7 @@ class Tddium
                       when "warn" then :yellow
                       else nil
                     end
+            print " ---> "
             say m["text"], color
           end
           latest_message = m["seqno"] if m["seqno"] > latest_message

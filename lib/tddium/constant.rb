@@ -94,7 +94,7 @@ EOF
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       GIT_PUSH = "Pushing changes to Tddium..."
-      STARTING_TEST = "Starting %s tests..."
+      STARTING_TEST = "Starting Session with %s tests..."
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
