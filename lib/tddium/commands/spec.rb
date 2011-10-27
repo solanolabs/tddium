@@ -94,7 +94,7 @@ class Tddium
       tests_not_finished_yet = false
     end
 
-    say ""
+    say "" if display_messages?
 
     while tests_not_finished_yet do
       # Poll the API to check the status
