@@ -82,6 +82,7 @@ class Tddium
     finished_tests = {}
     latest_message = -1
     test_statuses = Hash.new(0)
+    messages = nil
 
     say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"] unless options[:machine]
     say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
@@ -93,21 +94,17 @@ class Tddium
       tests_not_finished_yet = false
     end
 
+    say ""
+
     while tests_not_finished_yet do
       # Poll the API to check the status
       current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
       messages = current_test_executions["messages"]
-      if !options[:machine] && finished_tests.size == 0 && messages 
+      if display_messages? && !options[:machine] && finished_tests.size == 0 && messages 
         messages.each do |m|
           if m["seqno"] > latest_message
-            color = case m["level"]
-                      when "error" then :red
-                      when "warn" then :yellow
-                      else nil
-                    end
-            print " ---> "
-            say m["text"], color
+            display_message(m)
           end
           latest_message = m["seqno"] if m["seqno"] > latest_message
         end
@@ -139,6 +136,11 @@ class Tddium
       end
     end
 
+    if display_messages?
+      display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)
+      display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
+    end
+
     # Print out the result
     say ""
     say Text::Process::FINISHED_TEST % (Time.now - start_time)
@@ -158,4 +160,31 @@ class Tddium
       say "%%%% TDDIUM CI DATA END %%%%"
     end
   end
+
+  private
+
+    def display_messages?
+      environment == :staging || environment == :mimic
+    end
+
+    def display_message(message, prefix=' ---> ')
+      color = case message["level"]
+                when "error" then :red
+                when "warn" then :yellow
+                else nil
+              end
+      print prefix
+      say message["text"], color
+    end
+
+    def display_alerts(messages, level, heading)
+      return unless messages
+      interest = messages.select{|m| [level].include?(m['level'])}
+      if interest.size > 0
+        say heading
+        interest.each do |m|
+          display_message(m, '')
+        end
+      end
+    end
 end

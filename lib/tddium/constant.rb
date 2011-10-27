@@ -220,6 +220,8 @@ EOF
     end
 
     module Status
+      SPEC_WARNINGS = "\n\nWarnings:\n\n"
+      SPEC_ERRORS = "\n\nErrors:\n"
       NO_SUITE = "You currently do not have any suites"
       ALL_SUITES = "Your suites: %s"
       CURRENT_SUITE = "Your current suite: %s"

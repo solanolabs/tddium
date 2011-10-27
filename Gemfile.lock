@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium-preview (0.11.1)
+    tddium (0.13.0)
       bundler
       highline
       json
@@ -97,4 +97,4 @@ DEPENDENCIES
   rake
   rspec
   simplecov
-  tddium-preview!
+  tddium!
