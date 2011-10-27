@@ -80,19 +80,36 @@ class Tddium
 
     tests_not_finished_yet = true
     finished_tests = {}
+    latest_message = -1
     test_statuses = Hash.new(0)
 
     say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"] unless options[:machine]
     say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+    
+    # Catch Ctrl-C to interrupt the test
+    Signal.trap(:INT) do
+      say Text::Process::INTERRUPT
+      say Text::Process::CHECK_TEST_STATUS
+      tests_not_finished_yet = false
+    end
+
     while tests_not_finished_yet do
       # Poll the API to check the status
       current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
-      # Catch Ctrl-C to interrupt the test
-      Signal.trap(:INT) do
-        say Text::Process::INTERRUPT
-        say Text::Process::CHECK_TEST_STATUS
-        tests_not_finished_yet = false
+      messages = current_test_executions["messages"]
+      if messages && finished_tests.size > 0
+        messages.each do |m|
+          if m["seqno"] > latest_message
+            color = case m["level"]
+                      when "error" then :red
+                      when "warn" then :yellow
+                      else nil
+                    end
+            say m["text"], color
+          end
+          latest_message = m["seqno"] if m["seqno"] > latest_message
+        end
       end
 
       # Print out the progress of running tests
