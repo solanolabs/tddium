@@ -101,10 +101,11 @@ class Tddium
       messages = current_test_executions["messages"]
       if !options[:machine] && finished_tests.size == 0 && messages 
         messages.each do |m|
-          if m["seqno"] > latest_message
+          seqno = m["seqno"].to_i
+          if seqno > latest_message
             display_message(m)
           end
-          latest_message = m["seqno"] if m["seqno"] > latest_message
+          latest_message = seqno if seqno > latest_message
         end
       end
 
