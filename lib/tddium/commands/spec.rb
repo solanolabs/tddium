@@ -94,14 +94,12 @@ class Tddium
       tests_not_finished_yet = false
     end
 
-    say "" if display_messages?
-
     while tests_not_finished_yet do
       # Poll the API to check the status
       current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
 
       messages = current_test_executions["messages"]
-      if display_messages? && !options[:machine] && finished_tests.size == 0 && messages 
+      if !options[:machine] && finished_tests.size == 0 && messages 
         messages.each do |m|
           if m["seqno"] > latest_message
             display_message(m)
@@ -136,10 +134,8 @@ class Tddium
       end
     end
 
-    if display_messages?
-      display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)
-      display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
-    end
+    display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)
+    display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
     # Print out the result
     say ""
@@ -162,10 +158,6 @@ class Tddium
   end
 
   private
-
-    def display_messages?
-      environment == :staging || environment == :mimic
-    end
 
     def display_message(message, prefix=' ---> ')
       color = case message["level"]
