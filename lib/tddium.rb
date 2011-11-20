@@ -256,8 +256,8 @@ class Tddium < Thor
      :fingerprint=>`ssh-keygen -lf #{ssh_file}`}
   end
 
-  def generate_keypair(name)
-    filename = File.expand_path("~/.ssh/identity.tddium.#{name}")
+  def generate_keypair(name, output_dir)
+    filename = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
     pub_filename = filename + ".pub"
     exit_failure Text::Error::KEY_ALREADY_EXISTS % filename if File.exists?(filename)
     cmd = "ssh-keygen -q -t rsa -P '' -C 'tddium.#{name}' -f #{filename}"

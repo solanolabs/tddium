@@ -19,11 +19,14 @@ class Tddium
   end
 
   desc "keys:add [NAME]", "Generate an SSH keypair and authorize it with Tddium"
+  method_option :dir, :type=>:string, :default=>nil
   define_method "keys:add" do |name|
     set_shell
     set_default_environment
     user_details = user_logged_in?(true, true)
     exit_failure unless user_details
+
+    output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR'] || Default::SSH_OUTPUT_DIR
 
     begin
       keys_details = call_api(:get, Api::Path::KEYS)
@@ -31,7 +34,7 @@ class Tddium
         exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
       end
       say Text::Process::ADD_KEYS % name
-      keydata = generate_keypair(name)
+      keydata = generate_keypair(name, output_dir)
       result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
       say Text::Process::ADD_KEYS_DONE % [name, name]
     rescue TddiumClient::Error::API => e
