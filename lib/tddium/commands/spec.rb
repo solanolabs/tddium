@@ -84,7 +84,8 @@ class Tddium
     test_statuses = Hash.new(0)
     messages = nil
 
-    say Text::Process::CHECK_TEST_REPORT % start_test_executions["report"] unless options[:machine]
+    report = start_test_execution["report"]
+    say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
     say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
     
     # Catch Ctrl-C to interrupt the test
@@ -104,15 +105,18 @@ class Tddium
           seqno = m["seqno"].to_i
           if seqno > latest_message
             display_message(m)
+            latest_message = seqno
           end
-          latest_message = seqno if seqno > latest_message
         end
       end
 
       # Print out the progress of running tests
       current_test_executions["tests"].each do |test_name, result_params|
-        test_status = result_params["status"]
+        if finished_tests.size == 0 && result_params["finished"] then
+          say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
+        end
         if result_params["finished"] && !finished_tests[test_name]
+          test_status = result_params["status"]
           message = case test_status
                       when "passed" then [".", :green, false]
                       when "failed" then ["F", :red, false]
