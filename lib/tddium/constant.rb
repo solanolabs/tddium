@@ -37,6 +37,7 @@ module TddiumConstant
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
       ACCOUNT_USAGE = "accounts/usage"
       MEMBERSHIPS = "memberships"
+      KEYS = "keys"
     end
     module ErrorCode
       INVALID_INVITATION = 2
@@ -80,6 +81,26 @@ module TddiumConstant
     end
 
     module Process
+      ADD_KEYS = "Generating key '%s'"
+      ADD_KEYS_DONE =<<EOF
+Generated and authorized key '%s'.
+
+Add the following to ~/.ssh/config to use this new key with Tddium:
+
+Hostname git.tddium.com
+  IdentityFile /home/user/.ssh/identity.tddium.%s
+  IdentitiesOnly yes
+EOF
+      REMOVE_KEYS = "Removing key '%s'"
+      REMOVE_KEYS_DONE = "Removed key '%s'"
+      KEYS_EDIT_COMMANDS =<<EOF
+
+Use `tddium keys:add` to generate and authorize a new SSH keypair.
+Use `tddium keys:remove` to remove an authorized key from Tddium.
+
+Use `ssh-keygen -lf <filename>` to get the fingerprint of an existing public key.
+
+EOF
       TEST_PATTERN_INSTRUCTIONS =<<EOF
 
 >>> Tddium selects tests to run by default (e.g., in CI) by matching against a
@@ -241,6 +262,14 @@ Account Created: <%=user["created_at"]%>
 <% if user["trial_remaining"] && user["trial_remaining"] > 0 %>Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
 <% if user["account_url"] %>Account Management URL: <%=user["account_url"]%><% end %>
 <% if user["heroku"] %>Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
+
+Test Worker SSH Identity:
+
+<%= user["third_party_pubkey"] %>
+
+>>> Authorize this SSH public key to allow Tddium's test workers to install gems
+    from private git repos or communicate via SSH to your servers.
+
 EOF
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
@@ -324,9 +353,22 @@ Run 'tddium suite --edit' to edit suite settings.
 Run 'tddium spec' to run tests in this suite.
 EOF
       ACCOUNT_MEMBERS = "\nAuthorized users in this account:\n"
+      KEYS_DETAILS =<<EOF
+
+You have authorized the following SSH public keys to communicate with Tddium:
+
+ Name               Fingerprint
+ ------------------ -------------------------------------------------------------
+EOF
     end
 
     module Error
+      KEY_ALREADY_EXISTS = "Aborting.  SSH key already exists: %s"
+      KEYGEN_FAILED = "Failed to generate new SSH key for '%s'"
+      LIST_KEYS_ERROR = "Error listing SSH keys"
+      REMOVE_KEYS_ERROR = "Failed to remove key '%s'"
+      ADD_KEYS_DUPLICATE = "You already have a key named '%s'"
+      ADD_KEYS_ERROR = "Failed to add key '%s'"
       INVALID_CONFIGURED_PATTERN =<<EOF;
 Configuring test pattern from config/tddium.yml...
 

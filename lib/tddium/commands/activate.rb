@@ -25,7 +25,7 @@ class Tddium
       end
 
       begin
-        params[:user_git_pubkey] = prompt_ssh_key(options[:ssh_key_file])
+        params[:user_ssh_key] = prompt_ssh_key(options[:ssh_key_file])
       rescue TddiumError => e
         exit_failure e.message
       end

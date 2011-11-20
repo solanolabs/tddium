@@ -36,4 +36,37 @@ class Tddium
       end
     end
   end
+
+  private
+  
+    def handle_heroku_user(options, heroku_config)
+      api_key = heroku_config['TDDIUM_API_KEY']
+      user = call_api(:get, Api::Path::USERS, {}, api_key, false) rescue nil
+      exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
+      say Text::Process::HEROKU_WELCOME % user["user"]["email"]
+
+      if user["user"]["heroku_needs_activation"] == true
+        say Text::Process::HEROKU_ACTIVATE
+        params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
+        params.delete(:email)
+        params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
+        begin
+          params[:user_ssh_key] = prompt_ssh_key(options[:ssh_key])
+        rescue TddiumError => e
+          exit_failure e.message
+        end
+
+        begin
+          user_id = user["user"]["id"]
+          result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
+        rescue TddiumClient::Error::API => e
+          exit_failure Text::Error::HEROKU_MISCONFIGURED % e
+        rescue TddiumClient::Error::Base => e
+          exit_failure Text::Error::HEROKU_MISCONFIGURED % e
+        end
+      end
+      
+      write_api_key(user["user"]["api_key"])
+      say Text::Status::HEROKU_CONFIG 
+    end
 end
