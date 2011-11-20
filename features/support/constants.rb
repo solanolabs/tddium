@@ -47,6 +47,15 @@ SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
     "created_at" => SAMPLE_DATE_TIME, 
     "account" => SAMPLE_EMAIL,
     "recurly_url" => SAMPLE_RECURLY_URL}}
+SAMPLE_THIRD_PARTY_PUBKEY = "ABCDEF"
+SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE = {"status"=>0, "user"=>
+  { "id"=>SAMPLE_USER_ID, 
+    "api_key" => SAMPLE_API_KEY, 
+    "email" => SAMPLE_EMAIL, 
+    "created_at" => SAMPLE_DATE_TIME, 
+    "account" => SAMPLE_EMAIL,
+    "recurly_url" => SAMPLE_RECURLY_URL,
+    "third_party_pubkey" => SAMPLE_THIRD_PARTY_PUBKEY}}
 SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
   { "id"=>SAMPLE_USER_ID, 
     "api_key" => SAMPLE_API_KEY, 

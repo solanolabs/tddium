@@ -25,6 +25,22 @@ Feature: Account command
     [admin]  admin@example.com
     """
     And the output should contain "alpha/master"
+    And the output should not contain "Test Worker SSH"
+
+  Scenario: Display account information with third-party key
+    Given the user is logged in with a third-party key
+    And the user has a suite for "alpha" on "master"
+    When I run `tddium account`
+    Then the output should contain "someone@example.com"
+    And the output should contain:
+    """
+    [member] member@example.com
+    [admin]  admin@example.com
+    """
+    And the output should contain "alpha/master"
+    And the output should contain "Test Worker SSH"
+    And the ouptut should contain the third party key
+
 
   Scenario: Handle API failure
     Given the user is logged in

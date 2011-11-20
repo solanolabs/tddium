@@ -12,6 +12,18 @@ Given /^the user is logged in$/ do
   }
 end
 
+Given /^the user is logged in with a third-party key$/ do
+  @api_key = "abcdef"
+  Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
+  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  steps %Q{
+    Given a file named ".tddium.mimic" with:
+    """
+    {"api_key":"#{@api_key}"}
+    """
+  }
+end
+
 Given /^the user is logged in with a configured suite(?: on branch "(.*)")?$/ do |branch|
   @api_key = "abcdef"
   branch ||= "master"

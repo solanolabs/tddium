@@ -24,3 +24,10 @@ Given /^removing "([^"]*)" from the account will fail with error "([^"]*)"$/ do 
   Antilles.install(:delete, "/1/memberships/#{member}", {:status=>1, :explanation=>error}, :code=>409)
 end
 
+Then /^the ouptut should contain the third party key$/ do
+  steps %Q{
+    Then the output should contain "#{SAMPLE_THIRD_PARTY_PUBKEY}"
+  }
+end
+
+
