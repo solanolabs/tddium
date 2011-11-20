@@ -84,7 +84,7 @@ class Tddium
     test_statuses = Hash.new(0)
     messages = nil
 
-    report = start_test_execution["report"]
+    report = start_test_executions["report"]
     say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
     say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
     
