@@ -26,7 +26,7 @@ Feature: Activate command
     And I respond to "Enter password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
-    And I respond to "accept the license" with "I AGREE"
+    And I respond to "accept the Terms" with "I AGREE"
     Then the output from "tddium activate" should contain "Creating account"
     When the console session ends
     Then the exit status should be 0
@@ -39,7 +39,7 @@ Feature: Activate command
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     Then the output from "tddium activate" should contain "not accessible"
-     And the output from "tddium activate" should not contain "accept the license"
+     And the output from "tddium activate" should not contain "accept the Terms"
      And the output from "tddium activate" should not contain "Creating account"
     When the console session ends
     Then the exit status should not be 0
@@ -55,7 +55,7 @@ Feature: Activate command
     And I respond to "Enter password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
-    And I respond to "accept the license" with "I AGREE"
+    And I respond to "accept the Terms" with "I AGREE"
     Then the output from "tddium activate" should contain "Creating account"
      And the output from "tddium activate" should contain "409"
     When the console session ends
@@ -72,7 +72,7 @@ Feature: Activate command
     And I respond to "Enter password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
-    And I respond to "accept the license" with "NO WAY"
+    And I respond to "accept the Terms" with "NO WAY"
     Then the output from "tddium activate" should not contain "Creating account"
     When the console session ends
     Then the exit status should not be 0

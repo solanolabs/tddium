@@ -58,7 +58,7 @@ module TddiumConstant
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a repo name or press 'Return'. Using '%s' by default:"
-      LICENSE_AGREEMENT = "Type '%s' to accept the license and continue:" % Response::AGREE_TO_LICENSE
+      LICENSE_AGREEMENT = "Type '%s' to accept the Terms of Service and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address:"
       CURRENT_PASSWORD = "Enter your old password: "
       PASSWORD = "Enter password: "
@@ -82,6 +82,15 @@ module TddiumConstant
     end
 
     module Process
+      TERMS_OF_SERVICE =<<EOF
+
+Before you can use Tddium, you must agree to our Terms of Service.
+
+Read them at this URL:
+
+ https://www.tddium.com/terms.html 
+
+EOF
       ADD_KEYS = "Generating key '%s'"
       ADD_KEYS_DONE =<<EOF
 Generated and authorized key '%s'.
@@ -173,6 +182,7 @@ Your tddium username is: %s
       HEROKU_ACTIVATE = "
 Next, set a password and provide an SSH key to authenticate your communication
 with Tddium.
+
 "
       UPDATED_SUITE = "Updated suite successfully."
       DEPENDENCY_VERSION = "Detected %s %s"
@@ -426,7 +436,7 @@ EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
       INVALID_INVITATION = "
 Your invitation token wasn't recognized. If you have a token,
-make sure you enter it correctly.
+make sure you have entered it correctly.
 
 If you want an invite, visit this URL to sign up:
 

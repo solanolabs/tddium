@@ -30,11 +30,8 @@ class Tddium
         exit_failure e.message
       end
 
-      # Prompt for accepting license
-      content =  File.open(License::FILE_NAME) do |file|
-        file.read
-      end
-      say content
+      # Prompt for accepting terms
+      say Text::Process::TERMS_OF_SERVICE
       license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
       exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 

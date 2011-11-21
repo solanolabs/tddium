@@ -56,6 +56,11 @@ class Tddium
           exit_failure e.message
         end
 
+        # Prompt for accepting terms
+        say Text::Process::TERMS_OF_SERVICE
+        license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
+        exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
+
         begin
           user_id = user["user"]["id"]
           result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
