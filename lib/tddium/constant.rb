@@ -97,7 +97,7 @@ Generated and authorized key '%s'.
 
 Add the following to ~/.ssh/config to use this new key with Tddium:
 
-Hostname git.tddium.com
+Hostname api.tddium.com
   IdentityFile /home/user/.ssh/identity.tddium.%s
   IdentitiesOnly yes
 EOF
