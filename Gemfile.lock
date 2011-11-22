@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (0.14.0)
+    tddium (1.0.0)
       bundler
       highline
       json
@@ -40,7 +40,7 @@ GEM
     ffi (1.0.9)
     gherkin (2.4.21)
       json (>= 1.4.6)
-    highline (1.6.8)
+    highline (1.6.2)
     httparty (0.8.1)
       multi_json
       multi_xml
@@ -74,7 +74,7 @@ GEM
     sinatra (1.2.6)
       rack (~> 1.1)
       tilt (>= 1.2.2, < 2.0)
-    tddium_client (0.1.2)
+    tddium_client (0.1.1)
       httparty
       json
     term-ansicolor (1.0.6)
