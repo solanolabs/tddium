@@ -63,7 +63,11 @@ class Tddium
       keys = keys["keys"]
       say Text::Status::KEYS_DETAILS
       keys.each do |k| 
-       say " %18.18s %s" % [k["name"], k["fingerprint"]]
+        if k["fingerprint"]
+          say (" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip
+        else
+          say (" %-18.18s" % k["name"]).rstrip
+        end
       end
       say Text::Process::KEYS_EDIT_COMMANDS
     end
