@@ -64,7 +64,7 @@ module TddiumConstant
       PASSWORD = "Enter password: "
       NEW_PASSWORD = "Enter a new password: "
       PASSWORD_CONFIRMATION = "Confirm your password: "
-      INVITATION_TOKEN = "Enter your invitation token:"
+      INVITATION_TOKEN = "Enter your activation token:"
       USE_EXISTING_SUITE = "A suite exists '%%s' (branch %s). Enter '#{Response::YES}' to use it, or enter a new repo name:"
       TEST_PATTERN = "Enter a pattern or press 'Return'. Using '%s' by default:"
       CI_PULL_URL = "Enter git URL to pull from (default '%s') or enter 'disable':"
@@ -270,6 +270,7 @@ EOF
 
 Username: <%=user["email"]%>
 Account Created: <%=user["created_at"]%>
+Plan: <%=user["plan"]%>
 <% if user["trial_remaining"] && user["trial_remaining"] > 0 %>Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
 <% if user["account_url"] %>Account Management URL: <%=user["account_url"]%><% end %>
 <% if user["heroku"] %>Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
@@ -279,7 +280,9 @@ Test Worker SSH Identity:
 <%= user["third_party_pubkey"] %>
 
 >>> Authorize this SSH public key to allow Tddium's test workers to install gems
-    from private git repos or communicate via SSH to your servers.<%end%>
+    from private git repos or communicate via SSH to your servers.
+
+<%end%>
 EOF
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
@@ -435,10 +438,10 @@ git details result: #{ $? }
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
       INVALID_INVITATION = "
-Your invitation token wasn't recognized. If you have a token,
+Your activation token wasn't recognized. If you have a token,
 make sure you have entered it correctly.
 
-If you want an invite, visit this URL to sign up:
+To register, visit:
 
 http://www.tddium.com/
 "
@@ -464,7 +467,7 @@ EOF
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
       ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
-      USE_ACTIVATE = "Use 'tddium activate' to accept an invitation token"
+      USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
     end
   end
 
