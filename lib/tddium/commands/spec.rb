@@ -18,7 +18,8 @@ class Tddium
     set_shell
     set_default_environment
     git_version_ok
-    exit_failure unless git_repo? && tddium_settings && suite_for_current_branch?
+    user_details = user_logged_in?(true, true)
+    exit_failure unless git_repo? && user_details && suite_for_current_branch?
 
     if git_changes then
       exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
