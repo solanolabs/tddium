@@ -14,6 +14,7 @@ module TddiumConstant
     SSH_FILE = "~/.ssh/id_rsa.pub"
     SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, test/**_test.rb"
     SSH_OUTPUT_DIR = "~/.ssh/"
+    GIT_SERVER = "git.tddium.com"
   end
 
   module Config
@@ -97,7 +98,7 @@ Generated and authorized key '%s'.
 
 Add the following to ~/.ssh/config to use this new key with Tddium:
 
-Hostname api.tddium.com
+Hostname %s
   IdentityFile /home/user/.ssh/identity.tddium.%s
   IdentitiesOnly yes
 EOF

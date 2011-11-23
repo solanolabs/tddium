@@ -36,7 +36,7 @@ class Tddium
       say Text::Process::ADD_KEYS % name
       keydata = generate_keypair(name, output_dir)
       result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
-      say Text::Process::ADD_KEYS_DONE % [name, name]
+      say Text::Process::ADD_KEYS_DONE % [name, result["git_server"] || Default::GIT_SERVER, name]
     rescue TddiumClient::Error::API => e
       exit_failure Text::Error::ADD_KEYS_ERROR % name
     end
