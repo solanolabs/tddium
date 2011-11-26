@@ -372,7 +372,7 @@ EOF
 You have authorized the following SSH public keys to communicate with Tddium:
 
  Name               Fingerprint
- ------------------ -------------------------------------------------------------
+ ------------------ ------------------------------------------------------------
 EOF
     end
 
