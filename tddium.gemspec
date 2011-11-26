@@ -23,7 +23,7 @@ Tddium parallelizes your tests to save you time, and takes care of setting up
 fresh isolated DB instances for each test thread.
 
 Tests have access to a wide variety of databases (postgres, mongo, redis,
-mysql), solr, sphinx, selenium/webdriver browsers, webkit,
+mysql, memcache), solr, sphinx, selenium/webdriver browsers, webkit and culerity.
 EOF
 
   s.rubyforge_project = "tddium"
