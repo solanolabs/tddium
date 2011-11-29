@@ -416,14 +416,15 @@ class Tddium < Thor
   end
 
   def write_tddium_to_gitignore
-    content = File.exists?(Git::GITIGNORE) ? File.read(Git::GITIGNORE) : ''
+    gitignore = File.join(git_root, Git::GITIGNORE)
+    content = File.exists?(gitignore) ? File.read(gitignore) : ''
     unless content.include?(".tddium*\n")
-      File.open(Git::GITIGNORE, "a") do |file|
+      File.open(gitignore, "a") do |file|
         file.write(".tddium*\n")
       end
     end
     unless content.include?(".tddium\n")
-      File.open(Git::GITIGNORE, "a") do |file|
+      File.open(gitignore, "a") do |file|
         file.write(".tddium\n")
       end
     end
