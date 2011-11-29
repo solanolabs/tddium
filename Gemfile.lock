@@ -50,7 +50,7 @@ GEM
       plist
       rack
       sinatra
-    multi_json (1.0.3)
+    multi_json (1.0.4)
     multi_xml (0.4.1)
     pickle (0.4.8)
       cucumber (>= 0.8)
@@ -67,7 +67,7 @@ GEM
     rspec-expectations (2.6.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.6.0)
-    simplecov (0.5.3)
+    simplecov (0.5.4)
       multi_json (~> 1.0.3)
       simplecov-html (~> 0.5.3)
     simplecov-html (0.5.3)
