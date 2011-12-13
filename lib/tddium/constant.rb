@@ -99,7 +99,7 @@ Generated and authorized key '%s'.
 
 Add the following to ~/.ssh/config to use this new key with Tddium:
 
-Hostname %s
+Host %s
   IdentityFile /home/user/.ssh/identity.tddium.%s
   IdentitiesOnly yes
 EOF
