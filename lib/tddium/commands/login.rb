@@ -11,7 +11,7 @@ class Tddium
     set_default_environment
     if user_logged_in?
       say Text::Process::ALREADY_LOGGED_IN
-    elsif login_user(:params => get_user_credentials(options), :show_error => true)
+    elsif user = login_user(:params => get_user_credentials(options), :show_error => true)
       say Text::Process::LOGGED_IN_SUCCESSFULLY 
     else
       exit_failure

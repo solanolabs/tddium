@@ -21,6 +21,13 @@ Feature: Keys command
     And the output should contain "another"
     And the output should contain "keys:add"
 
+  Scenario: Handle no keys
+    Given the user is logged in
+    And the user has no keys
+    When I run `tddium keys`
+    And the exit status should be 0
+    And the output should contain "keys:add"
+
   Scenario: Handle API failure
     Given the user is logged in
     And there is a problem retrieving keys
@@ -31,6 +38,17 @@ Feature: Keys command
   Scenario: Fail if the user isn't logged in
     When I run `tddium keys`
     Then it should fail with a login hint
+
+  Scenario: Add first key
+    Given the user is logged in
+    And the user has no keys
+    And adding the key "third" will succeed
+    When I run `tddium keys:add third`
+    Then the exit status should be 0
+    And the key file named "third" should exist
+    And the output should contain "Generating"
+    And the output should contain "authorized"
+    And the output should contain "Hostname"
 
   Scenario: Add key successfully
     Given the user is logged in

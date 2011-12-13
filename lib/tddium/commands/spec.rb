@@ -172,7 +172,7 @@ class Tddium
                 else nil
               end
       print prefix
-      say message["text"], color
+      say message["text"].rstrip, color
     end
 
     def display_alerts(messages, level, heading)

@@ -93,6 +93,7 @@ Read them at this URL:
 
 EOF
       ADD_KEYS = "Generating key '%s'"
+      NO_KEYS = "No authorized keys."
       ADD_KEYS_DONE =<<EOF
 Generated and authorized key '%s'.
 
@@ -201,7 +202,7 @@ EOF
       DETECTED_BRANCH = "Detected branch %s"
       SETUP_CI_FIRST_TIME =<<EOF;
 
-Tddium includes a Hosted Continuous Integration srvice that will run a
+Tddium includes a Hosted Continuous Integration service that will run a
 CI build when it's triggered by a POST:
 
 1. Pull from your git server

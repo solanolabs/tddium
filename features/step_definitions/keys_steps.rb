@@ -12,6 +12,10 @@ Given /^the user has the following keys:$/ do |table|
   Antilles.install(:get, "/1/keys", {:status=>0, :keys=>key_data})
 end
 
+Given /^the user has no keys$/ do 
+  Antilles.install(:get, "/1/keys", {:status=>0, :keys=>nil})
+end
+
 Given /^there is a problem retrieving keys$/ do
   Antilles.install(:get, "/1/keys", {:status=>1, :explanation=>"problem"}, :code=>409)
 end

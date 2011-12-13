@@ -30,7 +30,8 @@ class Tddium
 
     begin
       keys_details = call_api(:get, Api::Path::KEYS)
-      if keys_details["keys"].count{|x|x['name'] == name} > 0
+      keys_details = keys_details["keys"] || []
+      if keys_details.count{|x|x['name'] == name} > 0
         exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
       end
       say Text::Process::ADD_KEYS % name
@@ -60,13 +61,17 @@ class Tddium
   private
 
     def show_keys_details(keys)
-      keys = keys["keys"]
+      keys = keys["keys"] || []
       say Text::Status::KEYS_DETAILS
-      keys.each do |k| 
-        if k["fingerprint"]
-          say (" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip
-        else
-          say (" %-18.18s" % k["name"]).rstrip
+      if keys.length == 0
+        say Text::Process::NO_KEYS
+      else
+        keys.each do |k| 
+          if k["fingerprint"]
+            say (" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip
+          else
+            say (" %-18.18s" % k["name"]).rstrip
+          end
         end
       end
       say Text::Process::KEYS_EDIT_COMMANDS
