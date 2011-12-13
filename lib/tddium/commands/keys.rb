@@ -18,6 +18,17 @@ class Tddium
     end
   end
 
+  #desc "keys:config", "Print sample SSH config sections for ~/.ssh/config"
+  method_option :dir, :type=>:string, :default=>nil
+  define_method "keys:config" do 
+    set_shell
+    set_default_environment
+    user_details = user_logged_in?(true, true)
+    exit_failure unless user_details
+
+    show_ssh_config(options[:dir])
+  end
+
   desc "keys:add [NAME]", "Generate an SSH keypair and authorize it with Tddium"
   method_option :dir, :type=>:string, :default=>nil
   define_method "keys:add" do |name|
@@ -75,6 +86,17 @@ class Tddium
         end
       end
       say Text::Process::KEYS_EDIT_COMMANDS
+    end
+
+    def show_ssh_config(dir=nil)
+      dir ||= ENV['TDDIUM_GEM_KEY_DIR']
+      dir ||= Default::SSH_OUTPUT_DIR
+
+      path = File.expand_path(File.join(dir, "identity.tddium.*"))
+
+      Dir[path].reject{|fn| fn =~ /.pub$/}.each do |fn|
+        say Text::Process::SSH_CONFIG % {:git=>"git.tddium.com", :file=>fn}
+      end
     end
 end
 

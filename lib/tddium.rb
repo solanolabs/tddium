@@ -240,7 +240,9 @@ class Tddium < Thor
       say Text::Process::SSH_KEY_NEEDED
       keydata = prompt_ssh_key(nil)
       result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
+      return true
     end
+    false
   rescue TddiumError => e
     exit_failure e.message
   rescue TddiumClient::Error::API => e

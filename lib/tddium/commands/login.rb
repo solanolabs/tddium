@@ -17,6 +17,8 @@ class Tddium
     else
       exit_failure
     end
-    prompt_missing_ssh_key
+    if prompt_missing_ssh_key
+      say Text::Process::NEXT_STEPS
+    end
   end
 end

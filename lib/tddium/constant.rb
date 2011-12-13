@@ -93,6 +93,7 @@ Read them at this URL:
 
 EOF
       SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\nContinue to use an existing key.\nPress Ctrl-C now and run `tddium keys:add` to generate a new key.\n\n"
+      DEFAULT_KEY_ADDED = "SSH key authorized."
       ADD_KEYS = "Generating key '%s'"
       NO_KEYS = "No authorized keys."
       ADD_KEYS_DONE =<<EOF
@@ -105,6 +106,11 @@ Host %{git}
   IdentityFile %{dir}/identity.tddium.%{name}
   IdentitiesOnly yes
 EOF
+      SSH_CONFIG="
+Host %{git}
+  IdentityFile %{file}
+  IdentitiesOnly yes
+"
       REMOVE_KEYS = "Removing key '%s'"
       REMOVE_KEYS_DONE = "Removed key '%s'"
       KEYS_EDIT_COMMANDS =<<EOF
@@ -138,6 +144,18 @@ EOF
       CREATED_SUITE = "Created suite...\n\n%s"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
+      NEXT_STEPS = "
+
+Next, you should:
+
+1. Register your test suite by running:
+
+tddium suite
+
+2. Start tests by running:
+
+tddium spec
+"
       ACCOUNT_CREATED = "
 Congratulations %s, your tddium account has been created!
 

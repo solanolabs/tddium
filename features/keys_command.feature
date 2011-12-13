@@ -130,4 +130,7 @@ Feature: Keys command
     Then the exit status should not be 0
     And the output should contain "API Error"
 
-
+  @wip
+  Scenario: Display ssh key configs
+    Given the user is logged in
+    And the user 
