@@ -92,15 +92,17 @@ Read them at this URL:
  https://www.tddium.com/terms.html 
 
 EOF
+      SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\nContinue to use an existing key.\nPress Ctrl-C now and run `tddium keys:add` to generate a new key.\n\n"
       ADD_KEYS = "Generating key '%s'"
       NO_KEYS = "No authorized keys."
       ADD_KEYS_DONE =<<EOF
-Generated and authorized key '%s'.
+Generated and authorized key '%{name}'.
 
-Add the following to ~/.ssh/config to use this new key with Tddium:
+Append the following to ~/.ssh/config to use this new key with Tddium:
 
-Host %s
-  IdentityFile /home/user/.ssh/identity.tddium.%s
+# Tddium SSH Config
+Host %{git}
+  IdentityFile %{dir}/identity.tddium.%{name}
   IdentitiesOnly yes
 EOF
       REMOVE_KEYS = "Removing key '%s'"

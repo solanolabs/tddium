@@ -48,7 +48,7 @@ Feature: Keys command
     And the key file named "third" should exist
     And the output should contain "Generating"
     And the output should contain "authorized"
-    And the output should contain "Hostname"
+    And the output should contain "Host"
 
   Scenario: Add key successfully
     Given the user is logged in
@@ -62,7 +62,7 @@ Feature: Keys command
     And the key file named "third" should exist
     And the output should contain "Generating"
     And the output should contain "authorized"
-    And the output should contain "Hostname"
+    And the output should contain "Host"
 
   Scenario: Fail to add key if the user isn't logged in
     When I run `tddium keys:add third`

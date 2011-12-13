@@ -6,6 +6,7 @@ class Tddium
   desc "login", "Log in to tddium using your email address and password"
   method_option :email, :type => :string, :default => nil
   method_option :password, :type => :string, :default => nil
+  method_option :ssh_key_file, :type => :string, :default => nil
   def login
     set_shell
     set_default_environment
@@ -16,5 +17,6 @@ class Tddium
     else
       exit_failure
     end
+    prompt_missing_ssh_key
   end
 end

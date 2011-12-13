@@ -233,6 +233,20 @@ class Tddium < Thor
     value.empty? ? default_value : value
   end
 
+  def prompt_missing_ssh_key
+    keys = call_api(:get, Api::Path::KEYS)
+    keys = keys["keys"] || []
+    if keys.length == 0
+      say Text::Process::SSH_KEY_NEEDED
+      keydata = prompt_ssh_key(nil)
+      result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
+    end
+  rescue TddiumError => e
+    exit_failure e.message
+  rescue TddiumClient::Error::API => e
+    exit_failure e.explanation
+  end
+
   def prompt_ssh_key(current, name='default')
     # Prompt for ssh-key file
     ssh_file = prompt(Text::Prompt::SSH_KEY, current, Default::SSH_FILE)
