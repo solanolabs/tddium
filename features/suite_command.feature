@@ -28,6 +28,7 @@ Feature: suite command
     When I run `tddium suite` interactively
     Then the output from "tddium suite" should contain "Looks like"
     And I respond to "repo name" with "beta"
+    Then the stderr from "tddium suite" should not contain "WARNING: Unable to parse"
     Then the output from "tddium suite" should contain "Detected branch test/foobar"
     When I choose defaults for test pattern, CI and campfire settings
     Then the output from "tddium suite" should contain "Created suite..."

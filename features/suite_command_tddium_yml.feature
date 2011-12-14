@@ -49,6 +49,7 @@ Feature: suite command
     Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
     Then the output should contain "Detected ruby"
     Then the output should contain "Created suite..."
+    Then the output should not contain "WARNING: Unable to parse"
     Then the exit status should be 0
 
   Scenario: Non-YAML tddium.yml should generate a warning and then prompt

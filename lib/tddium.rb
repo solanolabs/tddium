@@ -362,7 +362,8 @@ class Tddium < Thor
     return @tddium_yml if @tddium_yml
 
     config = begin
-               YAML.load(File.read(Config::CONFIG_PATH))
+               rawconfig = File.read(Config::CONFIG_PATH) rescue :notfound
+               rawconfig == :notfound ? {} : YAML.load(rawconfig)
              rescue
                warn(Text::Warning::YAML_PARSE_FAILED % Config::CONFIG_PATH)
                {}
