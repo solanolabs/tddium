@@ -92,7 +92,7 @@ Read them at this URL:
  https://www.tddium.com/terms.html 
 
 EOF
-      SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\nContinue to use an existing key.\nPress Ctrl-C now and run `tddium keys:add` to generate a new key.\n\n"
+      SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\n\n"
       DEFAULT_KEY_ADDED = "SSH key authorized."
       ADD_KEYS = "Generating key '%s'"
       NO_KEYS = "No authorized keys."

@@ -18,17 +18,6 @@ class Tddium
     end
   end
 
-  #desc "keys:config", "Print sample SSH config sections for ~/.ssh/config"
-  method_option :dir, :type=>:string, :default=>nil
-  define_method "keys:config" do 
-    set_shell
-    set_default_environment
-    user_details = user_logged_in?(true, true)
-    exit_failure unless user_details
-
-    show_ssh_config(options[:dir])
-  end
-
   desc "keys:add [NAME]", "Generate an SSH keypair and authorize it with Tddium"
   method_option :dir, :type=>:string, :default=>nil
   define_method "keys:add" do |name|
