@@ -33,8 +33,8 @@ Feature: Login command
     """
     And adding the key "default" will succeed
     When I run `tddium login` interactively
-    And I type "foo@example.com"
-    And I type "barbarbar"
+    And I respond to "Enter your email address" with "foo@example.com"
+    And I respond to "Enter password" with "barbarbar"
     And I respond to "ssh key" with "ssh_public_key"
     And the console session ends
     Then the output should contain:

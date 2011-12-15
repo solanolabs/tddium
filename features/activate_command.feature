@@ -23,7 +23,7 @@ Feature: Activate command
     """
     When I run `tddium activate` interactively
     And I respond to "token" with "abcdef"
-    And I respond to "Enter password" with "password"
+    And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "I AGREE"
@@ -35,7 +35,7 @@ Feature: Activate command
     Given "abcdef" is a valid invitation token
     When I run `tddium activate` interactively
     And I respond to "token" with "abcdef"
-    And I respond to "Enter password" with "password"
+    And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     Then the output from "tddium activate" should contain "not accessible"
@@ -52,7 +52,7 @@ Feature: Activate command
     """
     When I run `tddium activate` interactively
     And I respond to "token" with "abcdef"
-    And I respond to "Enter password" with "password"
+    And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "I AGREE"
@@ -69,7 +69,7 @@ Feature: Activate command
     """
     When I run `tddium activate` interactively
     And I respond to "token" with "abcdef"
-    And I respond to "Enter password" with "password"
+    And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "NO WAY"
@@ -85,7 +85,7 @@ Feature: Activate command
     """
     When I run `tddium activate` interactively
     And I respond to "token" with "abcdef"
-    And I respond to "Enter password" with "password"
+    And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "wordpass"
     Then the output from "tddium activate" should contain "confirmation incorrect"
      And the output from "tddium activate" should not contain "Creating account"

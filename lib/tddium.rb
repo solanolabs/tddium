@@ -178,10 +178,11 @@ class Tddium < Thor
     if options[:invited]
       token = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
       params[:invitation_token] = token.strip
+      params[:password] = options[:password] || HighLine.ask(Text::Prompt::NEW_PASSWORD) { |q| q.echo = "*" }
     else
       params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+      params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
     end
-    params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
     params
   end
 

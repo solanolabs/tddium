@@ -62,7 +62,9 @@ Feature: Keys command
     And the key file named "third" should exist
     And the output should contain "Generating"
     And the output should contain "authorized"
-    And the output should contain "Host"
+    And the output should contain "Host git.tddium.com"
+    And the output should contain "IdentityFile"
+    And the output should contain "identity.tddium.third"
 
   Scenario: Fail to add key if the user isn't logged in
     When I run `tddium keys:add third`
@@ -129,8 +131,3 @@ Feature: Keys command
     When I run `tddium keys:remove default`
     Then the exit status should not be 0
     And the output should contain "API Error"
-
-  @wip
-  Scenario: Display ssh key configs
-    Given the user is logged in
-    And the user 

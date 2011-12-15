@@ -103,14 +103,9 @@ Append the following to ~/.ssh/config to use this new key with Tddium:
 
 # Tddium SSH Config
 Host %{git}
-  IdentityFile %{dir}/identity.tddium.%{name}
-  IdentitiesOnly yes
-EOF
-      SSH_CONFIG="
-Host %{git}
   IdentityFile %{file}
   IdentitiesOnly yes
-"
+EOF
       REMOVE_KEYS = "Removing key '%s'"
       REMOVE_KEYS_DONE = "Removed key '%s'"
       KEYS_EDIT_COMMANDS =<<EOF
