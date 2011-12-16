@@ -69,9 +69,9 @@ class Tddium
       else
         keys.each do |k| 
           if k["fingerprint"]
-            say (" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip
+            say((" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip)
           else
-            say (" %-18.18s" % k["name"]).rstrip
+            say((" %-18.18s" % k["name"]).rstrip)
           end
         end
       end
