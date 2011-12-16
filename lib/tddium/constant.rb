@@ -97,13 +97,13 @@ EOF
       ADD_KEYS = "Generating key '%s'"
       NO_KEYS = "No authorized keys."
       ADD_KEYS_DONE =<<EOF
-Generated and authorized key '%{name}'.
+Generated and authorized key '%s'.
 
 Append the following to ~/.ssh/config to use this new key with Tddium:
 
 # Tddium SSH Config
-Host %{git}
-  IdentityFile %{file}
+Host %s
+  IdentityFile %s
   IdentitiesOnly yes
 EOF
       REMOVE_KEYS = "Removing key '%s'"
