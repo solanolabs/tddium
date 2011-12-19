@@ -28,7 +28,7 @@ end
 
 Given /^the user can update the suite's test_pattern to "([^"]*)"$/ do |pattern|
   options = {}
-  options["params"] = {"suite"=>{"test_pattern"=>pattern}}
+  options["params"] = {"test_pattern"=>pattern}
   Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
 end
 

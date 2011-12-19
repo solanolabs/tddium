@@ -201,7 +201,7 @@ class Tddium
       end
 
       if configured && current_suite["suite"]["test_pattern"] != configured
-        call_api(:put, current_suite_path, :suite=>{:test_pattern=>configured})
+        call_api(:put, current_suite_path, :test_pattern=>configured)
         say Text::Process::UPDATED_TEST_PATTERN % configured
       end
     end
