@@ -62,8 +62,12 @@ class Tddium
 
     exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
 
+    update_suite_parameters!(suite_details)
+
     # Push the latest code to git
-    exit_failure Text::Error::GIT_PUSH_FAILED unless update_git_remote_and_push(suite_details)
+    unless update_git_remote_and_push(suite_details)
+      exit_failure Text::Error::GIT_PUSH_FAILED 
+    end
 
     # Create a session
     new_session = call_api(:post, Api::Path::SESSIONS)
@@ -151,8 +155,10 @@ class Tddium
     write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
 
     exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
-  rescue TddiumClient::Error::Base
-    exit_failure "Failed due to error communicating with Tddium"
+  rescue TddiumClient::Error::API => e
+    exit_failure "Failed due to error: #{e.explanation}"
+  rescue TddiumClient::Error::Base => e
+    exit_failure "Failed due to error: #{e.message}"
   rescue RuntimeError => e
     exit_failure "Failed due to internal error: #{e.inspect} #{e.backtrace}"
   ensure
@@ -183,6 +189,20 @@ class Tddium
         interest.each do |m|
           display_message(m, '')
         end
+      end
+    end
+
+    # Update the suite parameters from tddium.yml
+    def update_suite_parameters!(current_suite)
+      configured = configured_test_pattern
+      
+      if configured.is_a?(Array)
+        configured = configured.join(",")
+      end
+
+      if configured && current_suite["suite"]["test_pattern"] != configured
+        call_api(:put, current_suite_path, :suite=>{:test_pattern=>configured})
+        say Text::Process::UPDATED_TEST_PATTERN % configured
       end
     end
 end

@@ -59,7 +59,6 @@ Feature: spec command
     And the output should not contain "emembered"
     And options should not be saved
 
-
   Scenario: Output machine readable data with --machine
     Given the destination repo exists
     And a git repo is initialized
@@ -112,7 +111,8 @@ Feature: spec command
     Then the exit status should be 0
     And the output should contain "Test report"
     And the output should contain "Ctrl-C"
-    And the output should contain "--->"
+    And the output should contain "---> abcdef"
+    And the output should not contain "---> abcdef --->"
     And the output should not contain:
       """
       %%%% TDDIUM CI DATA BEGIN %%%%
@@ -121,3 +121,44 @@ Feature: spec command
       %%%% TDDIUM CI DATA END %%%%
       """
 
+  Scenario: Update suite settings from tddium.yml
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And a file named "config/tddium.yml" with:
+    """
+    ---
+    :tddium:
+      :test_pattern:
+        - spec/foo_spec.rb
+        - features/blah.feature
+    """
+    And the user can update the suite's test_pattern to "spec/foo_spec.rb,features/blah.feature"
+    And the user can create a session
+    And the user successfully registers tests for the suite
+    And the tests start successfully
+    And the test all pass with messages
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Updated test pattern"
+    
+  Scenario: Fail to update suite settings from tddium.yml
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And a file named "config/tddium.yml" with:
+    """
+    ---
+    :tddium:
+      :test_pattern:
+        - spec/foo_spec.rb
+    """
+    And the user fails to update the suite's test_pattern
+    And the user can create a session
+    And the user successfully registers tests for the suite
+    And the tests start successfully
+    And the test all pass with messages
+    When I run `tddium spec`
+    Then the exit status should be 1
+    And the output should not contain "Updated test pattern"
+    

@@ -202,6 +202,7 @@ with Tddium.
 
 "
       UPDATED_SUITE = "Updated suite successfully."
+      UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
       DEPENDENCY_VERSION = "Detected %s %s"
       CONFIGURED_VERSION = "Configured %s %s from config/tddium.yml"
       CONFIGURED_PATTERN =<<EOF;

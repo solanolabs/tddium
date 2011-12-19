@@ -1,4 +1,4 @@
 :tddium:
   :test_pattern:
     - features/*.feature
-    - spec/heroku_spec.rb
+    - spec/*_spec.rb

@@ -73,7 +73,7 @@ SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
 PASSWORD_ERROR_EXPLANATION = "bad confirmation"
 PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
 SAMPLE_ACCOUNT_USAGE = {"status"=>0, "usage"=>"Usage: something"}
-SAMPLE_MESSAGE_ENTRY = {"level"=>"notice", "text"=>"abcdef", "seqno"=>1}
+SAMPLE_MESSAGE_ENTRY = {"level"=>"notice", "text"=>"abcdef    ", "seqno"=>1}
 SAMPLE_START_TEST_EXECUTIONS_RESPONSE = {"status"=>0, "started"=>4, "report"=>SAMPLE_REPORT_URL}
 SAMPLE_TEST_EXECUTIONS_PASSED_RESPONSE = {
   "status"=>0,
@@ -85,7 +85,7 @@ SAMPLE_TEST_EXECUTIONS_PASSED_RESPONSE = {
 SAMPLE_TEST_EXECUTIONS_MESSAGE_RESPONSE = {
   "status"=>0,
   "report"=>SAMPLE_REPORT_URL,
-  "messages"=>[SAMPLE_MESSAGE_ENTRY],
+  "messages"=>[SAMPLE_MESSAGE_ENTRY, SAMPLE_MESSAGE_ENTRY],
   "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"passed"},
             "spec/pig_spec.rb"=>{"finished" => true, "status"=>"passed"},
             "spec/dog_spec.rb"=>{"finished" => true, "status"=>"passed"},

@@ -26,6 +26,16 @@ Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)"$/ do |na
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>make_suite_response(name, branch)}, :code=>201)
 end
 
+Given /^the user can update the suite's test_pattern to "([^"]*)"$/ do |pattern|
+  options = {}
+  options["params"] = {"suite"=>{"test_pattern"=>pattern}}
+  Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
+end
+
+Given /^the user fails to update the suite's test_pattern$/ do
+  Antilles.install(:put, "/1/suites/1", {:status=>1, :explanation=>"Some error"})
+end
+
 Given /^I choose defaults for test pattern, CI and campfire settings$/ do
   steps %Q{
     And I respond to "test pattern" with ""
