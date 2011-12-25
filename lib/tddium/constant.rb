@@ -113,7 +113,7 @@ EOF
 Use `tddium keys:add` to generate and authorize a new SSH keypair.
 Use `tddium keys:remove` to remove an authorized key from Tddium.
 
-Use `ssh-keygen -lf <filename>` to get the fingerprint of an existing public key.
+Use `ssh-keygen -lf <filename>` to print fingerprint of an existing public key.
 
 EOF
       TEST_PATTERN_INSTRUCTIONS =<<EOF
