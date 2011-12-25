@@ -581,7 +581,7 @@ describe Tddium do
         tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
         account_should_fail(tddium, :ssh_key_file => Tddium::Default::SSH_FILE) do
           tddium.should_receive(:exit_failure).with(Tddium::Text::Error::INVALID_SSH_PUBLIC_KEY % Tddium::Default::SSH_FILE)
-	end
+        end
       end
 
       it "should fail if key file is an SSH private key" do
@@ -589,7 +589,7 @@ describe Tddium do
         tddium.should_not_receive(:ask).with(Tddium::Text::Prompt::SSH_KEY % Tddium::Default::SSH_FILE, anything)
         account_should_fail(tddium, :ssh_key_file => Tddium::Default::SSH_FILE) do
           tddium.should_receive(:exit_failure).with(Tddium::Text::Error::INVALID_SSH_PUBLIC_KEY % Tddium::Default::SSH_FILE)
-	end
+        end
       end
 
     end
