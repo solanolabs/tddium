@@ -44,7 +44,7 @@ Given /^the key file named "([^"]*)" exists$/ do |arg1|
   steps %Q{
     Given a file named "identity.tddium.#{arg1}" with:
     """
-    SOME DATA
+    ssh-rsa SOME DATA
     """
   } 
 end

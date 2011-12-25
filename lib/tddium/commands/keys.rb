@@ -18,13 +18,16 @@ class Tddium
     end
   end
 
-  desc "keys:add [NAME]", "Generate an SSH keypair and authorize it with Tddium"
+  desc "keys:add [NAME]", "Authorize a keypair with Tddium; generate one if key is not specified"
   method_option :dir, :type=>:string, :default=>nil
+  method_option :key, :type=>:string, :default=>nil
   define_method "keys:add" do |name|
     set_shell
     set_default_environment
     user_details = user_logged_in?(true, true)
     exit_failure unless user_details
+
+    path = options[:key]
 
     output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR'] || Default::SSH_OUTPUT_DIR
 
@@ -34,11 +37,20 @@ class Tddium
       if keys_details.count{|x|x['name'] == name} > 0
         exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
       end
-      say Text::Process::ADD_KEYS % name
-      keydata = generate_keypair(name, output_dir)
+      if path then
+        say Text::Process::ADD_KEYS_ADD % name
+        keydata = load_ssh_key(path, name)
+      else
+        say Text::Process::ADD_KEYS_GENERATE % name
+        keydata = generate_keypair(name, output_dir)
+      end
       result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
-      outfile = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
-      say Text::Process::ADD_KEYS_DONE % [name, result["git_server"] || Default::GIT_SERVER, outfile]
+      if path then
+        say Text::Process::ADD_KEYS_ADD_DONE % [name, result["git_server"] || Default::GIT_SERVER, path]
+      else
+        outfile = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
+        say Text::Process::ADD_KEYS_GENERATE_DONE % [name, result["git_server"] || Default::GIT_SERVER, outfile]
+      end
     rescue TddiumClient::Error::API => e
       exit_failure Text::Error::ADD_KEYS_ERROR % name
     end

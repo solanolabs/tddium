@@ -81,6 +81,17 @@ Feature: Keys command
     And the key file named "another" should not exist
     And the output should contain "already have"
 
+  Scenario: Fail to add key with duplicate name
+    Given the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
+      | another   |
+    And the key file named "another" exists
+    When I run `tddium keys:add another --key identity.tddium.another`
+    Then the exit status should not be 0
+    And the output should contain "already have"
+
   Scenario: Fail to generate key that already exists in the filesystem
     Given the user is logged in
     And the user has the following keys:
@@ -92,6 +103,30 @@ Feature: Keys command
     When I run `tddium keys:add third`
     Then the exit status should not be 0
     And the output should contain "already exists"
+
+  Scenario: Add an existing key in the filesystem
+    Given the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
+      | another   |
+    And adding the key "third" will succeed
+    And the key file named "third" exists
+    When I run `tddium keys:add third --key identity.tddium.third`
+    Then the exit status should be 0
+    And the output should contain "Adding"
+    And the output should contain "Authorized"
+    And the output should contain "Host"
+
+  Scenario: Fail to add key that does not exist in the filesystem
+    Given the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
+      | another   |
+    When I run `tddium keys:add third --key identity.tddium.third`
+    Then the exit status should not be 0
+    And the output should contain "is not accessible"
 
   Scenario: Fail to add on API error
     Given the user is logged in

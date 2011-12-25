@@ -94,9 +94,20 @@ Read them at this URL:
 EOF
       SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\n\n"
       DEFAULT_KEY_ADDED = "SSH key authorized."
-      ADD_KEYS = "Generating key '%s'"
       NO_KEYS = "No authorized keys."
-      ADD_KEYS_DONE =<<EOF
+      ADD_KEYS_ADD = "Adding key '%s'"
+      ADD_KEYS_ADD_DONE =<<EOF
+Authorized key '%s'.
+
+Append the following to ~/.ssh/config to use this new key with Tddium:
+
+# Tddium SSH Config
+Host %s
+  IdentityFile %s
+  IdentitiesOnly yes
+EOF
+      ADD_KEYS_GENERATE = "Generating key '%s'"
+      ADD_KEYS_GENERATE_DONE =<<EOF
 Generated and authorized key '%s'.
 
 Append the following to ~/.ssh/config to use this new key with Tddium:
