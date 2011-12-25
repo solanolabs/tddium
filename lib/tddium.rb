@@ -253,17 +253,20 @@ class Tddium < Thor
   def prompt_ssh_key(current, name='default')
     # Prompt for ssh-key file
     ssh_file = prompt(Text::Prompt::SSH_KEY, current, Default::SSH_FILE)
+    load_ssh_key(ssh_file, name)
+  end
 
+  def load_ssh_key(ssh_file, name)
     begin
       data = File.open(File.expand_path(ssh_file)) {|file| file.read}
     rescue Errno::ENOENT => e
       raise TddiumError.new(Text::Error::INACCESSIBLE_SSH_PUBLIC_KEY % [ssh_file, e])
     end
 
-    if data =~ /^-+BEGIN [DR]SA PRIVATE KEY-+/ then
+    if data =~ /^-+BEGIN \S+ PRIVATE KEY-+/ then
       raise TddiumError.new(Text::Error::INVALID_SSH_PUBLIC_KEY % ssh_file)
     end
-    if data !~ /^\s*ssh-(dss|rsa)/ then
+    if data !~ /^\s*ssh-(dss|rsa)/ && data !~ /^\s*ecdsa-/ then
       raise TddiumError.new(Text::Error::INVALID_SSH_PUBLIC_KEY % ssh_file)
     end
     
