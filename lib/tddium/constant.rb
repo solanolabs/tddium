@@ -1,5 +1,5 @@
 =begin
-Copyright (c) 2011 Solano Labs All Rights Reserved
+Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 =end
 
 module TddiumConstant
@@ -12,7 +12,7 @@ module TddiumConstant
     SLEEP_TIME_BETWEEN_POLLS = 2
     ENVIRONMENT = "production"
     SSH_FILE = "~/.ssh/id_rsa.pub"
-    SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, test/**_test.rb"
+    SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb, spec/javascripts/**.js"
     SSH_OUTPUT_DIR = "~/.ssh/"
     GIT_SERVER = "git.tddium.com"
   end
