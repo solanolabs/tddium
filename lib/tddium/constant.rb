@@ -70,9 +70,7 @@ module TddiumConstant
       TEST_PATTERN = "Enter a pattern or press 'Return'. Using '%s' by default:"
       CI_PULL_URL = "Enter git URL to pull from (default '%s') or enter 'disable':"
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
-      CAMPFIRE_SUBDOMAIN = "Enter your Campfire subdomain (default '%s') or enter 'disable':"
-      CAMPFIRE_ROOM = "Enter the Campfire room name (default '%s'):"
-      CAMPFIRE_TOKEN = "Enter your Campfire API Token (default '%s'):"
+      CAMPFIRE_ROOM = "Enter a Campfire room for this suite (default '%s'):"
     end
 
     module Warning
@@ -132,12 +130,12 @@ EOF
 >>> Tddium selects tests to run by default (e.g., in CI) by matching against a
     list of Ruby glob patterns.  Use "," to join multiple globs.
 
-    You can instead specify a test pattern Array in config/tddium.yml.
+    You can instead specify a list of test patterns in config/tddium.yml.
 
     Read more here: https://www.tddium.com/support/reference#customization
 
 EOF
-      NO_CONFIGURED_SUITE = "Looks like you haven't set up a suite on this computer for %s/%s..."
+      NO_CONFIGURED_SUITE = "\nLooks like you haven't set up a suite on this computer for %s/%s...\n"
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       GIT_PUSH = "Pushing changes to Tddium..."
@@ -145,9 +143,9 @@ EOF
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
-      EXISTING_SUITE = "Current suite...\n\n%s"
+      EXISTING_SUITE = "\nCurrent suite...\n"
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
-      CREATED_SUITE = "Created suite...\n\n%s"
+      CREATED_SUITE = "\nCreated suite...\n"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
       NEXT_STEPS = "
@@ -214,66 +212,32 @@ with Tddium.
 "
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
-      DEPENDENCY_VERSION = "Detected %s %s"
+      UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
+      DEPENDENCY_VERSION = "... Detected %s %s"
       CONFIGURED_VERSION = "Configured %s %s from config/tddium.yml"
       CONFIGURED_PATTERN =<<EOF;
-Configured test pattern from config/tddium.yml:
+... Configured test pattern from config/tddium.yml:
 
 %s
 
 >>> To change the pattern:
     1. Edit config/tddium.yml
     2. Run `tddium suite --edit` again.
-
 EOF
-      DETECTED_BRANCH = "Detected branch %s"
-      SETUP_CI_FIRST_TIME =<<EOF;
+      DETECTED_BRANCH = "... Detected branch %s"
+      SETUP_CI=<<EOF;
 
-Tddium includes a Hosted Continuous Integration service that will run a
-CI build when it's triggered by a POST:
+>>> To set up Hosted CI, enter a git URL to pull from. 
+    You can also set a git URL to push to after tests pass.
 
-1. Pull from your git server
-2. Run tests that match the test pattern you saved for this suite
-3. Notify you by email and/or campfire
-4. Optionally, Tddium CI will then push to a git server (push to URL).  For
-   example, enter the git URL to your Heroku staging app.
-
-When everything's been set up, you'll receive an SSH public key to authorize in
-git for pulls and pushes, and a Hook URL to configure in a post-commit hook.
-
-Tddium CI will not start builds on its own.
-
->>> To set up Hosted CI, enter a git URL to pull from.
 >>> Set both pull and push URLs to 'disable' to disable hosted CI completely.
 
 EOF
-      SETUP_CAMPFIRE_FIRST_TIME =<<EOF;
+      SETUP_CAMPFIRE=<<EOF;
 
->>> To enable Campfire notifications, enter your Campfire subdomain, API token, 
-    and the room name to post for this suite's builds.
-
-Subdomain and API token are shared by all suites that belong to you.
-
->>> Leave the Campfire room name blank to disable Campfire for this suite.
 
 EOF
 
-      SETUP_CI_EDIT =<<EOF;
-
-Tddium Hosted CI is enabled for this suite.
-
-Set the "git URL to pull from" to 'disable' to disable CI completely.
-Set the "git URL to push to" to 'disable' to disable CI completely.
-
-EOF
-      SETUP_CAMPFIRE_EDIT =<<EOF;
-
-Campfire notifications are enabled for this suite.
-Subdomain and API token are shared by all suites that belong to you (%s).
-
-Set the "Campfire room name" to 'disable' to disable Campfire notifications
-for this suite.
-EOF
       ADDING_MEMBER = "Adding %s as %s..."
       ADDED_MEMBER = "Added %s"
       REMOVING_MEMBER = "Removing %s. This may take a few seconds..."
@@ -294,22 +258,20 @@ EOF
       SESSION_DETAIL = " open %s # %8.8s Started: %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
-      USING_SUITE = "Using suite...\n\n%s"
+      USING_SUITE = "\nUsing suite...\n"
       USER_DETAILS =<<EOF;
 
-Username: <%=user["email"]%>
-Account Created: <%=user["created_at"]%>
-Plan: <%=user["plan"]%>
-<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
-<% if user["account_url"] %>Account Management URL: <%=user["account_url"]%><% end %>
-<% if user["heroku"] %>Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
+  Username: <%=user["email"]%>
+  Account Created: <%=user["created_at"]%>
+  Plan: <%=user["plan"]%>
+<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>  Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
+<% if user["account_url"] %>  Account Management URL: <%=user["account_url"]%><% end %>
+<% if user["heroku"] %>  Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
 <% if user["third_party_pubkey"] %>
-Test Worker SSH Identity:
+>>> Authorize the following SSH public key to allow Tddium's test workers to install gems
+    from private git repos or communicate via SSH to your servers:
 
-<%= user["third_party_pubkey"] %>
-
->>> Authorize this SSH public key to allow Tddium's test workers to install gems
-    from private git repos or communicate via SSH to your servers.
+    <%= user["third_party_pubkey"] %>
 
 <%end%>
 EOF
@@ -328,71 +290,59 @@ $ tddium spec
 
 "
       SUITE_DETAILS =<<EOF;
-Repo: <%=suite["repo_name"]%>/<%=suite["branch"]%>
-Default Test Pattern: <%=suite["test_pattern"]%>
-Ruby Version: <%=suite["ruby_version"]%>
-Rubygems Version: <%=suite["rubygems_version"]%>
-Bundler Version: <%=suite["bundler_version"]%>
+  Repo: <%=suite["repo_name"]%>/<%=suite["branch"]%>
+  Default Test Pattern: <%=suite["test_pattern"]%>
+  Ruby Version: <%=suite["ruby_version"]%>
+  Rubygems Version: <%=suite["rubygems_version"]%>
+  Bundler Version: <%=suite["bundler_version"]%>
 <% if suite["ci_pull_url"] %>
 Tddium Hosted CI is enabled with the following parameters:
 
-Pull URL: <%=suite["ci_pull_url"]%>
-Push URL: <%=suite["ci_push_url"]%>
+  Pull URL: <%=suite["ci_pull_url"]%>
+  Push URL: <%=suite["ci_push_url"]%>
 
 Notifications:
+
 <%=suite["ci_notifications"]%>
 
+<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+>>> Tddium will pull from your Github repository.
+
+    Visit https://github.com/<%= $1 %>/admin/keys
+    then click "Add another deploy key" and copy and paste this key:
+
+    <%=suite["ci_ssh_pubkey"]%>
+<% else %>
 >>> Authorize the following SSH key to let Tddium's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
-<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
-Tddium will pull from your Github repository. Visit
+<% end %><% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
+>>> Tddium will push to your Heroku application <%= $1 %>.
+    To authorize the key, use the following command:
 
-https://github.com/<%= $1 %>/admin/keys
+    heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
+<% end %><% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
+>>> Configure Github to notify Tddium of your commits with a post-receive hook.
 
-then click "Add another deploy key" and copy and paste the above key.
-<% end %>
-<% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
-Tddium will push to your Heroku application <%= $1 %>.
-To authorize the key, use the following command:
-
-heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
-<% end %>
-
-<% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
->>> Github can notify Tddium of your commits with a post-receive hook. Visit
-
-https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
-
-then add the following URL and click "Update Settings":
-
-<%=suite["hook_uri"]%>
+    Visit https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
+    then add the following URL and click "Update Settings":
+    <%=suite["hook_uri"]%>
 <% else %>
 >>> In order for Tddium to know that your repo has changed, you'll need to
     configure a post-commit hook in your Git server.
 
-In Unix-based Git repositories, find the repository root and look for a shell
-script in `.git/hooks/post-commit`.
+    In Unix-based Git repositories, find the repository root and look for a shell
+    script in `.git/hooks/post-commit`.
 
-To trigger CI builds, POST to the following URL from a post-commit hook:
-<%=suite["hook_uri"]%>
+    To trigger CI builds, POST to the following URL from a post-commit hook:
+    <%=suite["hook_uri"]%>
 <% end %>
 
 >>> See http://www.tddium.com/support for more information on Tddium CI.
+>>> You can enable Campfire and HipChat notifications from your Tddium Dashboard.
 <% end %>
-
-If your tests don't require a database or your app uses pure ActiveRecord
-you're all set and can now run tddium spec.
-
->>> If your app needs database-specific features (triggers, stored procedures),
-    you'll need to configure a custom database setup hook.
-
-    See http://www.tddium.com/support/reference#setup_hooks to create a Rake
-    task for Tddium to set up your database.
-
-Run 'tddium suite --edit' to edit suite settings.
-
-Run 'tddium spec' to run tests in this suite.
+>>> Run 'tddium suite --edit' to edit these settings.
+>>> Run 'tddium spec' to run tests in this suite.
 EOF
       ACCOUNT_MEMBERS = "\nAuthorized users in this account:\n"
       KEYS_DETAILS =<<EOF

@@ -229,9 +229,9 @@ class Tddium < Thor
     login_result
   end
 
-  def prompt(text, current_value, default_value)
-    value = current_value || ask(text % default_value, :bold)
-    value.empty? ? default_value : value
+  def prompt(text, current_value, default_value, dont_prompt=false)
+    value = current_value || (dont_prompt ? nil : ask(text % default_value, :bold))
+    (value.nil? || value.empty?) ? default_value : value
   end
 
   def prompt_missing_ssh_key

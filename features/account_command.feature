@@ -25,7 +25,7 @@ Feature: Account command
     [admin]  admin@example.com
     """
     And the output should contain "alpha/master"
-    And the output should not contain "Test Worker SSH"
+    And the output should not contain "Authorize the following SSH"
 
   Scenario: Display account information with third-party key
     Given the user is logged in with a third-party key
@@ -38,7 +38,7 @@ Feature: Account command
     [admin]  admin@example.com
     """
     And the output should contain "alpha/master"
-    And the output should contain "Test Worker SSH"
+    And the output should contain "Authorize the following SSH"
     And the ouptut should contain the third party key
 
 

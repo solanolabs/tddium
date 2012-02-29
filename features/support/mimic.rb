@@ -14,7 +14,9 @@ module Mimic
       def matches?(request)
         if @params.any?
           puts "checking params... got: #{request.params.inspect}, expected: #{@params.inspect}"
-          request.params == @params
+          @params.all? do |k,v|
+            request.params[k] == v
+          end
         else
           true
         end
