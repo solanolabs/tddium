@@ -32,22 +32,27 @@ Given /^the user can update the suite's test_pattern to "([^"]*)"$/ do |pattern|
   Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
 end
 
+Given /^the user can update the suite's ruby_version to "([^"]*)"$/ do |ruby_version|
+  options = {}
+  options["params"] = {"ruby_version"=>ruby_version}
+  Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
+end
+
 Given /^the user fails to update the suite's test_pattern$/ do
   Antilles.install(:put, "/1/suites/1", {:status=>1, :explanation=>"Some error"})
 end
 
-Given /^I choose defaults for test pattern, CI and campfire settings$/ do
+Given /^I choose defaults for test pattern, CI settings$/ do
   steps %Q{
     And I respond to "test pattern" with ""
-    And I choose defaults for CI and campfire settings
+    And I choose defaults for CI settings
   }
 end
 
-Given /^I choose defaults for CI and campfire settings$/ do
+Given /^I choose defaults for CI settings$/ do
   steps %Q{
     And I respond to "URL to pull from" with "disable"
     And I respond to "URL to push to" with "disable"
-    And I respond to "Campfire subdomain" with "disable"
   }
 end
 

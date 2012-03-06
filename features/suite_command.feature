@@ -30,8 +30,16 @@ Feature: suite command
     And I respond to "repo name" with "beta"
     Then the stderr from "tddium suite" should not contain "WARNING: Unable to parse"
     Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    When I choose defaults for test pattern, CI and campfire settings
+    When I choose defaults for test pattern, CI settings
     Then the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
 
+  Scenario: Edit a suite with CLI parameters
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in with a configured suite on branch "test/foobar"
+    And the user can update the suite's test_pattern to "spec/foo"
+    When I run `tddium suite --edit --test-pattern=spec/foo --non-interactive` 
+    Then the output should contain "Updated suite successfully"
+    Then the exit status should be 0

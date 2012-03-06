@@ -17,7 +17,7 @@ Feature: suite command
     :tddium:
        :ruby_version:  ruby-1.9.2-p290-psych
     """
-    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/*`
     Then the output should contain "Looks like"
     Then the output should contain "Detected branch test/foobar"
     Then the output should contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
@@ -32,7 +32,7 @@ Feature: suite command
     :foo:
        :ruby_version:  ruby-1.9.2-p290-psych
     """
-    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/*`
     Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
     Then the output should contain "Detected ruby"
     Then the output should contain "Created suite..."
@@ -43,7 +43,7 @@ Feature: suite command
     And a file named "config/tddium.yml" with:
     """
     """
-    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/* --campfire-subdomain=disable`
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/*`
     Then the output should contain "Looks like"
     Then the output should contain "Detected branch test/foobar"
     Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
@@ -67,7 +67,7 @@ Feature: suite command
     And I respond to "repo name" with "beta"
     Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
     Then the output from "tddium suite" should contain "Detected ruby"
-    When I choose defaults for test pattern, CI and campfire settings
+    When I choose defaults for test pattern, CI settings
     Then the output from "tddium suite" should contain "Created suite..."
     Then the stderr from "tddium suite" should contain "WARNING: Unable to parse"
     When the console session ends
@@ -96,7 +96,7 @@ Feature: suite command
      - features/api/**.feature
      - test/unit/**_test.rb
     """
-    When I choose defaults for CI and campfire settings
+    When I choose defaults for CI settings
     Then the output from "tddium suite" should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
