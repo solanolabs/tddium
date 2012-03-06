@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 # 
-# Copyright (c) 2011 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 #
 
 require 'yaml'
@@ -14,7 +14,7 @@ if ENV['COVERAGE']
     require 'simplecov'
     SimpleCov.root(ENV['COVERAGE_ROOT'])
     SimpleCov.start do
-      add_group "Commands", "lib/tddium/commands"
+      add_group "Commands", "lib/cli/tddium/commands"
     end
   rescue => e
     STDERR.puts "Can't load simplecov: #{e.inspect} #{e.backtrace}"
@@ -22,4 +22,5 @@ if ENV['COVERAGE']
 end
 
 require "tddium"
-Tddium.start
+require "tddium/cli"
+Tddium::TddiumCli.start
