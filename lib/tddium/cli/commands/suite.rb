@@ -7,10 +7,8 @@ module Tddium
     method_option :name, :type => :string, :default => nil
     method_option :ci_pull_url, :type => :string, :default => nil
     method_option :ci_push_url, :type => :string, :default => nil
-    method_option :campfire_subdomain, :type=> :string, :default => nil
-    method_option :campfire_room, :type=> :string, :default => nil
-    method_option :campfire_token, :type=> :string, :default => nil
     method_option :test_pattern, :type => :string, :default => nil
+    method_option :non_interactive, :type => :boolean, :default => false
     def suite
       set_default_environment
       git_version_ok
@@ -24,7 +22,8 @@ module Tddium
           if options[:edit]
             update_suite(current_suite, options)
           else
-            say Text::Process::EXISTING_SUITE % format_suite_details(current_suite)
+            say Text::Process::EXISTING_SUITE, :bold
+            say format_suite_details(current_suite)
           end
         else
           params[:branch] = current_git_branch
@@ -38,7 +37,8 @@ module Tddium
           if use_existing_suite
             # Write to file and exit when using the existing suite
             write_suite(existing_suite)
-            say Text::Status::USING_SUITE % format_suite_details(existing_suite)
+            say Text::Status::USING_SUITE, :bold
+            say format_suite_details(existing_suite)
             return
           end
 
@@ -54,7 +54,8 @@ module Tddium
           # Save the created suite
           write_suite(new_suite["suite"])
 
-          say Text::Process::CREATED_SUITE % format_suite_details(new_suite["suite"])
+          say Text::Process::CREATED_SUITE, :bold
+          say format_suite_details(new_suite["suite"])
         end
       rescue TddiumClient::Error::Base
         exit_failure
@@ -92,7 +93,7 @@ module Tddium
       params[:rubygems_version] = tool_version(:gem)
 
       ask_or_update = lambda do |key, text, default|
-        params[key] = prompt(text, options[key], current.fetch(key.to_s, default))
+        params[key] = prompt(text, options[key], current.fetch(key.to_s, default), options[:non_interactive])
       end
 
       pattern = configured_test_pattern
@@ -103,31 +104,17 @@ module Tddium
       elsif pattern
         exit_failure Text::Error::INVALID_CONFIGURED_PATTERN % pattern.inspect
       else
-        say Text::Process::TEST_PATTERN_INSTRUCTIONS
+        say Text::Process::TEST_PATTERN_INSTRUCTIONS unless options[:non_interactive]
         ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
       end
 
 
-      if current.size > 0 && current['ci_pull_url']
-        say(Text::Process::SETUP_CI_EDIT)
-      else
-        say(Text::Process::SETUP_CI_FIRST_TIME)
+      unless options[:non_interactive]
+        say(Text::Process::SETUP_CI)
       end
 
       ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, git_origin_url) 
       ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
-
-      if current.size > 0 && current['campfire_room']
-        say(Text::Process::SETUP_CAMPFIRE_EDIT)
-      else
-        say(Text::Process::SETUP_CAMPFIRE_FIRST_TIME)
-      end
-
-      subdomain = ask_or_update.call(:campfire_subdomain, Text::Prompt::CAMPFIRE_SUBDOMAIN, nil)
-      if !subdomain.nil? && subdomain != 'disable' then
-        ask_or_update.call(:campfire_token, Text::Prompt::CAMPFIRE_TOKEN, nil)
-        ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, nil)
-      end
     end
 
     def update_suite(suite, options)

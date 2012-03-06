@@ -149,7 +149,7 @@ module Tddium
       # Print out the result
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
-      say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending"
+      say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
 
       write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
 
@@ -193,15 +193,31 @@ module Tddium
 
       # Update the suite parameters from tddium.yml
       def update_suite_parameters!(current_suite)
-        configured = configured_test_pattern
+        update_params = {}
 
-        if configured.is_a?(Array)
-          configured = configured.join(",")
+        pattern = configured_test_pattern
+        if pattern.is_a?(Array)
+          pattern = pattern.join(",")
         end
 
-        if configured && current_suite["suite"]["test_pattern"] != configured
-          call_api(:put, current_suite_path, :test_pattern=>configured)
-          say Text::Process::UPDATED_TEST_PATTERN % configured
+        if pattern && current_suite["suite"]["test_pattern"] != pattern
+          update_params[:test_pattern] = pattern
+        end
+
+        configured_ruby_version = tddium_config[:ruby_version]
+        if configured_ruby_version && 
+           configured_ruby_version != current_suite["suite"]["ruby_version"]
+          update_params[:ruby_version] = configured_ruby_version
+        end
+
+        unless update_params.empty?
+          call_api(:put, current_suite_path, update_params)
+          if update_params[:test_pattern]
+            say Text::Process::UPDATED_TEST_PATTERN % pattern
+          end
+          if update_params[:ruby_version]
+            say Text::Process::UPDATED_RUBY_VERSION % configured_ruby_version
+          end
         end
       end
   end
