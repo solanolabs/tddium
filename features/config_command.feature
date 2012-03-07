@@ -8,32 +8,16 @@ Feature: Config command
 
   Background:
     Given the command is "tddium config"
+    And a git repo is initialized on branch "test/foobar"
 
   Scenario: Display suite config
     Given the user is logged in with a configured suite on branch "test/foobar"
     And the user has the following config:
       | scope     | name      | value     |
       | account   | foo       | bar       |
-      | repo      | bar       | baz       |
       | suite     | quz       | blehher   |
     When I run `tddium config`
-    Then the output should contain "foo=bar"
-    Then the output should contain "bar=baz"
     Then the output should contain "quz=blehher"
-    And the exit status should be 0
-    And the output should contain "config:add"
-
-  Scenario: Display repo config
-    Given the user is logged in with a configured suite on branch "test/foobar"
-    And the user has the following config:
-      | scope     | name      | value     |
-      | account   | foo       | bar       |
-      | repo      | bar       | baz       |
-      | suite     | quz       | blehher   |
-    When I run `tddium config repo`
-    Then the output should contain "foo=bar"
-    Then the output should contain "bar=baz"
-    Then the output should not contain "quz=blehher"
     And the exit status should be 0
     And the output should contain "config:add"
 
@@ -42,24 +26,21 @@ Feature: Config command
     And the user has the following config:
       | scope     | name      | value     |
       | account   | foo       | bar       |
-      | repo      | bar       | baz       |
       | suite     | quz       | blehher   |
     When I run `tddium config account`
     Then the output should contain "foo=bar"
-    Then the output should not contain "bar=baz"
-    Then the output should not contain "quz=blehher"
     And the exit status should be 0
     And the output should contain "config:add"
 
   Scenario: Handle no keys
-    Given the user is logged in
+    Given the user is logged in with a configured suite on branch "test/foobar"
     And the user has no config
     When I run `tddium config`
     And the exit status should be 0
     And the output should contain "config:add"
 
   Scenario: Handle API failure
-    Given the user is logged in
+    Given the user is logged in with a configured suite on branch "test/foobar"
     And there is a problem retrieving config
     When I run `tddium config`
     Then the exit status should not be 0
@@ -104,6 +85,6 @@ Feature: Config command
   Scenario: Fail to remove on API error
     Given the user is logged in with a configured suite on branch "test/foobar"
     But removing config "default" from the suite will fail
-    When I run `tddium config:remove suite third`
+    When I run `tddium config:remove suite default`
     Then the exit status should not be 0
     And the output should contain "API Error"

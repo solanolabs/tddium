@@ -108,6 +108,14 @@ module Tddium
       tddium_settings["branches"][current_git_branch]["id"] if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
     end
 
+    def current_account_id
+      if user_details = user_logged_in?(true, false)
+        user_details["user"]["account_id"]
+      else
+        nil
+      end
+    end
+
     def current_suite_options
       if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
         tddium_settings["branches"][current_git_branch]["options"]

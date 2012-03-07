@@ -21,7 +21,9 @@ SAMPLE_RUBY_VERSION = "ruby 1.8.7 (2010-08-16 patchlevel 302) [i686-darwin10.5.0
 SAMPLE_RECURLY_URL = "https://tddium.recurly.com/account/1"
 SAMPLE_SESSION_ID = 1
 SAMPLE_SUITE_ID = 1
+SAMPLE_REPO_ID = 1
 SAMPLE_USER_ID = 1
+SAMPLE_ACCOUNT_ID = 1
 SAMPLE_ROLE = "member"
 SAMPLE_ACCOUNT_NAME = "owner@example.com"
 DEFAULT_TEST_PATTERN = "**/*_spec.rb"
@@ -46,6 +48,7 @@ SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
     "email" => SAMPLE_EMAIL, 
     "created_at" => SAMPLE_DATE_TIME, 
     "account" => SAMPLE_EMAIL,
+    "account_id" => SAMPLE_ACCOUNT_ID,
     "recurly_url" => SAMPLE_RECURLY_URL}}
 SAMPLE_THIRD_PARTY_PUBKEY = "ABCDEF"
 SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE = {"status"=>0, "user"=>

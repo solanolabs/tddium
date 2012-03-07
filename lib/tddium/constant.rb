@@ -38,6 +38,9 @@ module TddiumConstant
       ACCOUNT_USAGE = "accounts/usage"
       MEMBERSHIPS = "memberships"
       KEYS = "keys"
+      CONFIG = "env"
+      ACCOUNTS = "accounts"
+      REPOS = "repos"
     end
     module ErrorCode
       INVALID_INVITATION = 2
@@ -115,6 +118,16 @@ Host %s
 EOF
       REMOVE_KEYS = "Removing key '%s'"
       REMOVE_KEYS_DONE = "Removed key '%s'"
+
+      NO_CONFIG = "No environment variables configured."
+      ADD_CONFIG = "Adding config %s=%s to %s"
+      ADD_CONFIG_DONE = "Added config %s=%s to %s"
+      REMOVE_CONFIG = "Removing config '%s' from %s"
+      REMOVE_CONFIG_DONE = "Removed config '%s' from %s"
+      CONFIG_EDIT_COMMANDS =<<EOF
+Use `tddium config:add <scope> <key> <value>` to set a config key.
+Use `tddium config:remove <scope> <key>` to remove a key.
+EOF
       KEYS_EDIT_COMMANDS =<<EOF
 
 Use `tddium keys:add` to generate and authorize a new SSH keypair.
@@ -350,6 +363,10 @@ You have authorized the following SSH public keys to communicate with Tddium:
  Name               Fingerprint
  ------------------ ------------------------------------------------------------
 EOF
+      CONFIG_DETAILS =<<EOF
+The following environment variables are set for this %s:
+
+EOF
     end
 
     module Error
@@ -359,6 +376,9 @@ EOF
       REMOVE_KEYS_ERROR = "Failed to remove key '%s'"
       ADD_KEYS_DUPLICATE = "You already have a key named '%s'"
       ADD_KEYS_ERROR = "Failed to add key '%s'"
+      LIST_CONFIG_ERROR = "Error listing configuration variables"
+      ADD_CONFIG_ERROR = "Error settng configuration variable"
+      REMOVE_CONFIG_ERROR = "Error removing configuration variable"
       INVALID_CONFIGURED_PATTERN =<<EOF;
 Configuring test pattern from config/tddium.yml...
 
