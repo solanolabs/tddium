@@ -69,10 +69,10 @@ module Tddium
       end
 
       def show_config_details(scope, config)
-        say Text::Status::CONFIG_DETAILS % scope
         if !config || config.length == 0
           say Text::Process::NO_CONFIG
         else
+          say Text::Status::CONFIG_DETAILS % scope
           config.each do |k,v| 
             say "#{k}=#{v}"
           end

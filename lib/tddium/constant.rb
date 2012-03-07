@@ -125,8 +125,10 @@ EOF
       REMOVE_CONFIG = "Removing config '%s' from %s"
       REMOVE_CONFIG_DONE = "Removed config '%s' from %s"
       CONFIG_EDIT_COMMANDS =<<EOF
+
 Use `tddium config:add <scope> <key> <value>` to set a config key.
 Use `tddium config:remove <scope> <key>` to remove a key.
+
 EOF
       KEYS_EDIT_COMMANDS =<<EOF
 
