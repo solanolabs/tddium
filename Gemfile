@@ -10,5 +10,4 @@ group :development, :test do
   gem 'daemons'
   gem 'httparty'
   gem 'antilles'
-  gem 'ruby-debug19'
 end
