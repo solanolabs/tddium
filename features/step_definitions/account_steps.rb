@@ -29,5 +29,3 @@ Then /^the ouptut should contain the third party key$/ do
     Then the output should contain "#{SAMPLE_THIRD_PARTY_PUBKEY}"
   }
 end
-
-

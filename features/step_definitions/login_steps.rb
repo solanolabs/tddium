@@ -76,4 +76,3 @@ Then /^options should not be saved$/ do
     And the file ".tddium.mimic" should not contain "user_data_file"
   }
 end
-

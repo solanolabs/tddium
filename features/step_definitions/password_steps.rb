@@ -9,4 +9,3 @@ end
 Given /^the confirmation doesn't match$/ do
   Antilles.install(:put, "/1/users/1/", {:status=>1, :explanation=>"Password doesn't match confirmation"})
 end
-

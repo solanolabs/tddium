@@ -56,4 +56,3 @@ end
 Given /^removing the key "([^"]*)" will fail$/ do |arg1|
   Antilles.install(:delete, "/1/keys/#{arg1}", {:status=>1, :explanation=>"problem"}, :code=>409)
 end
-

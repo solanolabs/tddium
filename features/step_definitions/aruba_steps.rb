@@ -12,4 +12,3 @@ end
 Then /^the output from "([^"]*)" should contain:$/ do |cmd, expected|
   assert_partial_output(expected, output_from(cmd))
 end
-

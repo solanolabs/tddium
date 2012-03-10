@@ -32,4 +32,3 @@ Given /^a git repo is initialized(?: on branch "([^"]*)")?$/ do |branch|
     }
   end
 end
-

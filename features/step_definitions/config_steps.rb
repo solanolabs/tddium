@@ -44,4 +44,3 @@ Given /^removing config "([^"]*)" from the #{capture_scope} will fail$/ do |arg1
   Antilles.install(:delete, "/1/#{scope}s/#{eval("SAMPLE_#{scope.upcase}_ID")}/env/#{arg1}",
                    {:status=>1, :explanation=>"error"}, :code=>409)
 end
-
