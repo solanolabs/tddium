@@ -37,6 +37,7 @@ module TddiumConstant
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
       ACCOUNT_USAGE = "accounts/usage"
       MEMBERSHIPS = "memberships"
+      INSTANCES = "instances"
       KEYS = "keys"
       CONFIG = "env"
       ACCOUNTS = "accounts"
