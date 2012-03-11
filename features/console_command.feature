@@ -12,6 +12,6 @@ Feature: Console command
     When I run `tddium console 1` interactively
     Then the output should contain:
     """
-    ssh: connect to host localhost port 22: Connection refused
+    Pseudo-terminal will not be allocated because stdin is not a terminal.
     """
     And the exit status should be 255

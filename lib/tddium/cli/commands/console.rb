@@ -41,7 +41,7 @@ module Tddium
 
       cmd = "ssh -l #{user}"
       cmd += " -o 'UserKnownHostsFile #{known_hosts_file.path}' "
-      cmd += " #{ssh_args.join(' ')}" unless ssh_args.empty?
+      cmd += " #{ssh_args.join(' ')}" unless ssh_args.nil? || ssh_args.empty?
       cmd += " #{host}"
 
       argv = Shellwords.shellsplit(cmd)
