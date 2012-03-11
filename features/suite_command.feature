@@ -43,3 +43,21 @@ Feature: suite command
     When I run `tddium suite --edit --test-pattern=spec/foo --non-interactive` 
     Then the output should contain "Updated suite successfully"
     Then the exit status should be 0
+
+  Scenario: Edit a suite's campfire room with CLI parameters
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in with a configured suite on branch "test/foobar"
+    And the user can update the suite's campfire_room to "foobar"
+    When I run `tddium suite --edit --campfire-room=foobar --non-interactive` 
+    Then the output should contain "Updated suite successfully"
+    Then the exit status should be 0
+
+  Scenario: Edit a suite's hipchat room with CLI parameters
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in with a configured suite on branch "test/foobar"
+    And the user can update the suite's hipchat_room to "foobar"
+    When I run `tddium suite --edit --hipchat-room=foobar --non-interactive` 
+    Then the output should contain "Updated suite successfully"
+    Then the exit status should be 0

@@ -72,7 +72,8 @@ module TddiumConstant
       TEST_PATTERN = "Enter a pattern or press 'Return'. Using '%s' by default:"
       CI_PULL_URL = "Enter git URL to pull from (default '%s') or enter 'disable':"
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
-      CAMPFIRE_ROOM = "Enter a Campfire room for this suite (default '%s'):"
+      CAMPFIRE_ROOM = "Custom Campfire room for this suite (current: '%s') or enter 'disable':"
+      HIPCHAT_ROOM = "Custom HipChat room for this suite (current: '%s') or enter 'disable':"
     end
 
     module Warning

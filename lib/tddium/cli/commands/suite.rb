@@ -8,6 +8,8 @@ module Tddium
     method_option :ci_pull_url, :type => :string, :default => nil
     method_option :ci_push_url, :type => :string, :default => nil
     method_option :test_pattern, :type => :string, :default => nil
+    method_option :campfire_room, :type => :string, :default => nil
+    method_option :hipchat_room, :type => :string, :default => nil
     method_option :non_interactive, :type => :boolean, :default => false
     def suite
       set_default_environment
@@ -120,6 +122,14 @@ module Tddium
     def update_suite(suite, options)
       params = {}
       prompt_suite_params(options, params, suite)
+
+      ask_or_update = lambda do |key, text, default|
+        params[key] = prompt(text, options[key], suite.fetch(key.to_s, default), options[:non_interactive])
+      end
+
+      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, '') 
+      ask_or_update.call(:hipchat_room, Text::Prompt::HIPCHAT_ROOM, '') 
+
       call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
       say Text::Process::UPDATED_SUITE
     end

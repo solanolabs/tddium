@@ -26,15 +26,9 @@ Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)"$/ do |na
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>make_suite_response(name, branch)}, :code=>201)
 end
 
-Given /^the user can update the suite's test_pattern to "([^"]*)"$/ do |pattern|
+Given /^the user can update the suite's (.*?) to "([^"]*)"$/ do |field, value|
   options = {}
-  options["params"] = {"test_pattern"=>pattern}
-  Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
-end
-
-Given /^the user can update the suite's ruby_version to "([^"]*)"$/ do |ruby_version|
-  options = {}
-  options["params"] = {"ruby_version"=>ruby_version}
+  options["params"] = {field=>value}
   Antilles.install(:put, "/1/suites/1", {:status=>0}, options)
 end
 
