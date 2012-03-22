@@ -99,3 +99,5 @@ DEPENDENCIES
   rspec
   simplecov
   tddium!
+
+# foo
