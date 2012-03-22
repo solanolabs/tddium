@@ -346,8 +346,8 @@ Notifications:
 >>> In order for Tddium to know that your repo has changed, you'll need to
     configure a post-commit hook in your Git server.
 
-    In Unix-based Git repositories, find the repository root and look for a shell
-    script in `.git/hooks/post-commit`.
+    In Unix-based Git repositories, find the repository root and look for
+    a shell script in `.git/hooks/post-commit`.
 
     To trigger CI builds, POST to the following URL from a post-commit hook:
     <%=suite["hook_uri"]%>
