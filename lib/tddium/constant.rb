@@ -401,7 +401,8 @@ EOF
 The git push to Tddium failed.
 
 If you get a "Permission denied (publickey)" message, ensure that SSH is
-configured to send a key you have authorized with Tddium.
+configured to send a key you have authorized with Tddium (Run `tddium keys` to
+see a list.)
 
 For any other error, contact us at: support@tddium.com
 
