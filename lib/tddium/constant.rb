@@ -400,12 +400,11 @@ EOF
 
 The git push to Tddium failed.
 
-SSH may not be configured to authenticate with the keypair you
-provided when you set up your account.
+If you get a "Permission denied (publickey)" message, ensure that SSH is
+configured to send a key you have authorized with Tddium.
 
-See this URL for SSH configuration instructions:
+For any other error, contact us at: support@tddium.com
 
-https://www.tddium.com/support/faq#othersshkey
 
 EOF
       INVALID_SSH_PUBLIC_KEY = '%s does not appear to be a valid SSH public key'
