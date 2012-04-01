@@ -7,9 +7,9 @@ end
 Given /^the user successfully registers tests for the suite(?: with test_pattern: (.*))?$/ do |pattern|
   options = {}
   if pattern == 'default'
-    options['params'] = {'suite_id'=>SAMPLE_SUITE_ID.to_s, 'test_pattern'=>''}
+    options['params'] = {'suite_id'=>SAMPLE_SUITE_ID, 'test_pattern'=>nil}
   elsif pattern
-    options['params'] = {'suite_id'=>SAMPLE_SUITE_ID.to_s, 'test_pattern'=>pattern.gsub(/"/,'')}
+    options['params'] = {'suite_id'=>SAMPLE_SUITE_ID, 'test_pattern'=>pattern.gsub(/"/,'')}
   end
   res = Antilles.install(:post, "/1/sessions/#{SAMPLE_SESSION_ID}/test_executions/register", {:status=>0}, options)
   puts res.parsed_response
