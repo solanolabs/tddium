@@ -13,17 +13,21 @@ Gem::Specification.new do |s|
   s.authors     = ["Solano Labs"]
   s.email       = ["info@tddium.com"]
   s.homepage    = "http://www.tddium.com/"
-  s.summary     = %q{tddium Hosted Ruby Testing}
+  s.summary     = %q{tddium Hosted Test Environment}
   s.description = <<-EOF
-tddium runs your rspec, cucumber, and test::unit tests in our managed
+tddium runs your test suite simply and quickly in our managed
 cloud environment.  You can run tests by hand, or enable our hosted CI to watch
 your git repos automatically.
 
-Tddium parallelizes your tests to save you time, and takes care of setting up
-fresh isolated DB instances for each test thread.
+Tddium automatically and safely parallelizes your tests to save you time, and
+takes care of setting up fresh isolated DB instances for each test thread.
 
 Tests have access to a wide variety of databases (postgres, mongo, redis,
 mysql, memcache), solr, sphinx, selenium/webdriver browsers, webkit and culerity.
+
+Tddium supports all common Ruby test frameworks, including rspec, cucumber,
+test::uni, and spinacht.  Tddium also supports Javascript testing using
+jasmine-headless-webkit.
 EOF
 
   s.rubyforge_project = "tddium"
