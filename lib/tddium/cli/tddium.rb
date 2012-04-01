@@ -4,6 +4,7 @@ require "rubygems"
 require "thor"
 require "highline/import"
 require "json"
+require "launchy"
 require "tddium_client"
 require "shellwords"
 require "base64"
@@ -41,6 +42,7 @@ module Tddium
     require "tddium/cli/commands/keys"
     require "tddium/cli/commands/config"
     require "tddium/cli/commands/console"
+    require "tddium/cli/commands/web"
 
     map "-v" => :version
     desc "version", "Print the tddium gem version"

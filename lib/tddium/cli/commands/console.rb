@@ -46,7 +46,7 @@ module Tddium
 
       argv = Shellwords.shellsplit(cmd)
       Kernel.exec(*argv)
-      #known_hosts_file.unlink
+      known_hosts_file.unlink
     end
   end
 end
