@@ -48,36 +48,5 @@ module Tddium
         exit_failure Text::Error::REMOVE_CONFIG_ERROR
       end
     end
-
-    private
-
-      def env_path(scope, key=nil)
-        path = "/#{scope}s/#{get_current_id(scope)}/env"
-        path += "/#{key}" if key
-        path
-      end
-
-      def get_current_id(scope)
-        case scope
-        when "suite"
-          current_suite_id
-        when "account"
-          current_account_id
-        else
-          raise "unrecognized scope"
-        end
-      end
-
-      def show_config_details(scope, config)
-        if !config || config.length == 0
-          say Text::Process::NO_CONFIG
-        else
-          say Text::Status::CONFIG_DETAILS % scope
-          config.each do |k,v| 
-            say "#{k}=#{v}"
-          end
-        end
-        say Text::Process::CONFIG_EDIT_COMMANDS
-      end
   end
 end  

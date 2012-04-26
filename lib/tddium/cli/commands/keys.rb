@@ -69,35 +69,5 @@ module Tddium
         exit_failure Text::Error::REMOVE_KEYS_ERROR % name
       end
     end
-
-    private
-
-      def show_keys_details(keys)
-        keys = keys["keys"] || []
-        say Text::Status::KEYS_DETAILS
-        if keys.length == 0
-          say Text::Process::NO_KEYS
-        else
-          keys.each do |k| 
-            if k["fingerprint"]
-              say((" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip)
-            else
-              say((" %-18.18s" % k["name"]).rstrip)
-            end
-          end
-        end
-        say Text::Process::KEYS_EDIT_COMMANDS
-      end
-
-      def show_ssh_config(dir=nil)
-        dir ||= ENV['TDDIUM_GEM_KEY_DIR']
-        dir ||= Default::SSH_OUTPUT_DIR
-
-        path = File.expand_path(File.join(dir, "identity.tddium.*"))
-
-        Dir[path].reject{|fn| fn =~ /.pub$/}.each do |fn|
-          say Text::Process::SSH_CONFIG % {:git=>"git.tddium.com", :file=>fn}
-        end
-      end
   end
 end  

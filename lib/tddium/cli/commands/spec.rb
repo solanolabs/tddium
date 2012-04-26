@@ -151,7 +151,7 @@ module Tddium
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
 
-      write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
+      tddium_write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
 
       exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
     rescue TddiumClient::Error::API => e
@@ -167,58 +167,5 @@ module Tddium
         say "%%%% TDDIUM CI DATA END %%%%"
       end
     end
-
-    private
-
-      def display_message(message, prefix=' ---> ')
-        color = case message["level"]
-                  when "error" then :red
-                  when "warn" then :yellow
-                  else nil
-                end
-        print prefix
-        say message["text"].rstrip, color
-      end
-
-      def display_alerts(messages, level, heading)
-        return unless messages
-        interest = messages.select{|m| [level].include?(m['level'])}
-        if interest.size > 0
-          say heading
-          interest.each do |m|
-            display_message(m, '')
-          end
-        end
-      end
-
-      # Update the suite parameters from tddium.yml
-      def update_suite_parameters!(current_suite)
-        update_params = {}
-
-        pattern = configured_test_pattern
-        if pattern.is_a?(Array)
-          pattern = pattern.join(",")
-        end
-
-        if pattern && current_suite["suite"]["test_pattern"] != pattern
-          update_params[:test_pattern] = pattern
-        end
-
-        configured_ruby_version = tddium_config[:ruby_version]
-        if configured_ruby_version && 
-           configured_ruby_version != current_suite["suite"]["ruby_version"]
-          update_params[:ruby_version] = configured_ruby_version
-        end
-
-        unless update_params.empty?
-          call_api(:put, current_suite_path, update_params)
-          if update_params[:test_pattern]
-            say Text::Process::UPDATED_TEST_PATTERN % pattern
-          end
-          if update_params[:ruby_version]
-            say Text::Process::UPDATED_RUBY_VERSION % configured_ruby_version
-          end
-        end
-      end
   end
 end

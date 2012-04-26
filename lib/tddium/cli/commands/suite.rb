@@ -34,11 +34,11 @@ module Tddium
 
           say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
 
-          use_existing_suite, existing_suite = resolve_suite_name(options, params, default_suite_name)
+          use_existing_suite, existing_suite = suite_resolve_name(options, params, default_suite_name)
 
           if use_existing_suite
             # Write to file and exit when using the existing suite
-            write_suite(existing_suite)
+            tddium_write_suite(existing_suite)
             say Text::Status::USING_SUITE, :bold
             say format_suite_details(existing_suite)
             return
@@ -54,7 +54,7 @@ module Tddium
           say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
           new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
           # Save the created suite
-          write_suite(new_suite["suite"])
+          tddium_write_suite(new_suite["suite"])
 
           say Text::Process::CREATED_SUITE, :bold
           say format_suite_details(new_suite["suite"])
@@ -62,109 +62,6 @@ module Tddium
       rescue TddiumClient::Error::Base
         exit_failure
       end
-    end
-
-    private
-
-    def tool_version(tool)
-      key = "#{tool}_version".to_sym
-      result = tddium_config[key]
-
-      if result
-        say Text::Process::CONFIGURED_VERSION % [tool, result]
-        return result
-      end
-
-      result = `#{tool} -v`.strip
-      say Text::Process::DEPENDENCY_VERSION % [tool, result]
-      result
-    end
-
-    def configured_test_pattern
-      pattern = tddium_config[:test_pattern] || tddium_config['test_pattern']
-
-      return nil if pattern.nil? || pattern.empty?
-
-      return pattern
-    end
-
-    def prompt_suite_params(options, params, current={})
-      say Text::Process::DETECTED_BRANCH % params[:branch] if params[:branch]
-      params[:ruby_version] = tool_version(:ruby)
-      params[:bundler_version] = tool_version(:bundle)
-      params[:rubygems_version] = tool_version(:gem)
-
-      ask_or_update = lambda do |key, text, default|
-        params[key] = prompt(text, options[key], current.fetch(key.to_s, default), options[:non_interactive])
-      end
-
-      pattern = configured_test_pattern
-
-      if pattern.is_a?(Array)
-        say Text::Process::CONFIGURED_PATTERN % pattern.map{|p| " - #{p}"}.join("\n")
-        params[:test_pattern] = pattern.join(",")
-      elsif pattern
-        exit_failure Text::Error::INVALID_CONFIGURED_PATTERN % pattern.inspect
-      else
-        say Text::Process::TEST_PATTERN_INSTRUCTIONS unless options[:non_interactive]
-        ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
-      end
-
-
-      unless options[:non_interactive]
-        say(Text::Process::SETUP_CI)
-      end
-
-      ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, git_origin_url) 
-      ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
-    end
-
-    def update_suite(suite, options)
-      params = {}
-      prompt_suite_params(options, params, suite)
-
-      ask_or_update = lambda do |key, text, default|
-        params[key] = prompt(text, options[key], suite.fetch(key.to_s, default), options[:non_interactive])
-      end
-
-      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, '') 
-      ask_or_update.call(:hipchat_room, Text::Prompt::HIPCHAT_ROOM, '') 
-
-      call_api(:put, "#{Api::Path::SUITES}/#{suite['id']}", params)
-      say Text::Process::UPDATED_SUITE
-    end
-
-    def resolve_suite_name(options, params, default_suite_name)
-      # XXX updates params
-      existing_suite = nil
-      use_existing_suite = false
-      suite_name_resolved = false
-      while !suite_name_resolved
-        # Check to see if there is an existing suite
-        current_suites = call_api(:get, Api::Path::SUITES, params)
-        existing_suite = current_suites["suites"].first
-
-        # Get the suite name
-        current_suite_name = params[:repo_name]
-        if existing_suite
-          # Prompt for using existing suite (unless suite name is passed from command line) or entering new one
-          params[:repo_name] = prompt(Text::Prompt::USE_EXISTING_SUITE % params[:branch], options[:name], current_suite_name)
-          if options[:name] || params[:repo_name] == Text::Prompt::Response::YES
-            # Use the existing suite, so assign the value back and exit the loop
-            params[:repo_name] = current_suite_name
-            use_existing_suite = true
-            suite_name_resolved = true
-          end
-        elsif current_suite_name == default_suite_name
-          # Prompt for using default suite name or entering new one
-          params[:repo_name] = prompt(Text::Prompt::SUITE_NAME, options[:name], current_suite_name)
-          suite_name_resolved = true if params[:repo_name] == default_suite_name
-        else
-          # Suite name does not exist yet and already prompted
-          suite_name_resolved = true
-        end
-      end
-      [use_existing_suite, existing_suite]
     end
   end
 end

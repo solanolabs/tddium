@@ -37,7 +37,7 @@ module Tddium
         begin
           say Text::Process::STARTING_ACCOUNT_CREATION
           new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-          write_api_key(new_user["user"]["api_key"])
+          tddium_write_api_key(new_user["user"]["api_key"])
           role = new_user["user"]["account_role"]
           if role.nil? || role == "owner"
             u = new_user["user"]

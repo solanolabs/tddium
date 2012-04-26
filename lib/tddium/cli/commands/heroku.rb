@@ -70,7 +70,7 @@ module Tddium
           end
         end
 
-        write_api_key(user["user"]["api_key"])
+        tddium_write_api_key(user["user"]["api_key"])
         say Text::Status::HEROKU_CONFIG 
       end
   end

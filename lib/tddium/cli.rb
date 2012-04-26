@@ -1,3 +1,20 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
+require 'rubygems'
+require 'thor'
+require 'highline/import'
+require 'json'
+require 'launchy'
+require 'tddium_client'
+require 'shellwords'
+require 'base64'
+require 'erb'
+
 require 'tddium/cli/tddium'
+require 'tddium/cli/git'
+require 'tddium/cli/keys'
+require 'tddium/cli/prompt'
+require 'tddium/cli/show'
+require 'tddium/cli/suite'
+require 'tddium/cli/user'
+require 'tddium/cli/util'
