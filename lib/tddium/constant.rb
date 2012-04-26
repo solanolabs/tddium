@@ -159,6 +159,7 @@ EOF
       FINISHED_TEST = "Finished in %s seconds"
       CHECK_TEST_REPORT = "Test report: %s"
       EXISTING_SUITE = "\nCurrent suite...\n"
+      USING_EXISTING_SUITE = "Using suite '%s/%s'."
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
       CREATED_SUITE = "\nCreated suite...\n"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"

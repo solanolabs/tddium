@@ -131,5 +131,35 @@ module Tddium
       end
       result
     end
+
+    def suite_auto_configure
+      if current_suite_id then
+        current_suite = call_api(:get, current_suite_path)["suite"]
+      else
+        default_suite_name = File.basename(git_root)
+
+        params = Hash.new
+        params[:branch] = current_git_branch
+        params[:repo_name] = default_suite_name
+
+        current_suites = call_api(:get, Api::Path::SUITES, params)
+        existing_suite = current_suites["suites"].first
+
+        if existing_suite then
+          current_suite = existing_suite
+          say Text::Process::USING_EXISTING_SUITE % [params[:repo_name], params[:branch]]
+        else
+          # Create new suite if it does not exist yet
+          say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
+
+          new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
+          current_suite = new_suite['suite']
+        end
+
+        # Save the created suite
+        tddium_write_suite(current_suite)
+      end
+      return current_suite
+    end
   end
 end

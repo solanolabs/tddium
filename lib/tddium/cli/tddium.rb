@@ -84,6 +84,10 @@ module Tddium
       return File.join(git_root, ".tddium#{extension}")
     end
 
+    def tddium_settings_clear
+      @tddium_settings = nil
+    end
+
     def tddium_settings(options = {})
       options[:fail_with_message] = true unless options[:fail_with_message] == false
       if @tddium_settings.nil? || options[:force_reload]
@@ -105,6 +109,7 @@ module Tddium
       File.open(tddium_file_name, "w") do |file|
         file.write(settings.merge({"api_key" => api_key}).to_json)
       end
+      tddium_settings_clear
       tddium_write_gitignore
     end
 
@@ -118,6 +123,7 @@ module Tddium
       File.open(tddium_deploy_key_file_name, "w") do |file|
         file.write(suite["ci_ssh_pubkey"])
       end
+      tddium_settings_clear
       tddium_write_gitignore
     end
 
