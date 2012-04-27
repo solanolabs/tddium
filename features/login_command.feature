@@ -24,6 +24,23 @@ Feature: Login command
     And the exit status should be 0
     And dotfiles should be updated
 
+  Scenario: Interactively log in successfully with user on command line
+    Given the user can log in and gets API key "apikey"
+    And the user has the following keys:
+      | name      |
+      | default   |
+    When I run `tddium login foo@example.com` interactively
+    And I type "barbarbar"
+    And the console session ends
+    Then the output should contain:
+    """
+    Logged in successfully
+    """
+    And the output should not contain "tddium suite"
+    And the output should not contain "tddium spec"
+    And the exit status should be 0
+    And dotfiles should be updated
+
   Scenario: Interactively log in successfully without an ssh key
     Given the user can log in and gets API key "apikey"
     And the user has no keys
