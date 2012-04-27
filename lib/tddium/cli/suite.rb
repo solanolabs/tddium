@@ -5,13 +5,15 @@ module Tddium
     protected
 
     def current_suite_id
-      tddium_settings["branches"][current_git_branch]["id"] if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
+      branch = Tddium::Git.git_current_branch
+      id = @api_config.fetch('branches', branch, 'id')
+      return id
     end
 
     def current_suite_options
-      if tddium_settings["branches"] && tddium_settings["branches"][current_git_branch]
-        tddium_settings["branches"][current_git_branch]["options"]
-      end || {}
+      branch = Tddium::Git.git_current_branch
+      options = @api_config.fetch('branches', branch, 'options')
+      return options
     end
 
     def current_suite_path
@@ -33,7 +35,7 @@ module Tddium
 
     def suite_for_current_branch?
       unless current_suite_id
-        message = Text::Error::NO_SUITE_EXISTS % current_git_branch
+        message = Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_current_branch
         say message
       end
       message.nil?
@@ -100,7 +102,7 @@ module Tddium
         update_params[:test_pattern] = pattern
       end
 
-      configured_ruby_version = tddium_config[:ruby_version]
+      configured_ruby_version = @repo_config[:ruby_version]
       if configured_ruby_version && 
          configured_ruby_version != current_suite["suite"]["ruby_version"]
         update_params[:ruby_version] = configured_ruby_version
@@ -128,7 +130,7 @@ module Tddium
         result = default
       end
 
-      if result
+      if result then
         msg = Text::Process::USING_SPEC_OPTION[key] % result
         msg +=  Text::Process::REMEMBERED if remembered
         msg += "\n"
@@ -142,10 +144,10 @@ module Tddium
       if current_suite_id then
         current_suite = call_api(:get, current_suite_path)["suite"]
       else
-        default_suite_name = git_repo_name
+        default_suite_name = Tddium::Git.git_repo_name
 
         params = Hash.new
-        params[:branch] = current_git_branch
+        params[:branch] = Tddium::Git.git_current_branch
         params[:repo_name] = default_suite_name
 
         current_suites = call_api(:get, Api::Path::SUITES, params)
@@ -166,7 +168,7 @@ module Tddium
         end
 
         # Save the created suite
-        tddium_write_suite(current_suite)
+        @api_config.set_suite(current_suite)
       end
       return current_suite
     end

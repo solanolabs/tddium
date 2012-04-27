@@ -6,8 +6,10 @@ module Tddium
     def config(scope="suite")
       set_shell
       set_default_environment
+      Tddium::Git.git_version_ok
+
       user_details = user_logged_in?(true, true)
-      exit_failure unless git_repo? && user_details && suite_for_current_branch?
+      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
 
       begin
         config_details = call_api(:get, env_path(scope))
@@ -22,7 +24,7 @@ module Tddium
       set_shell
       set_default_environment
       user_details = user_logged_in?(true, true)
-      exit_failure unless git_repo? && user_details && suite_for_current_branch?
+      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
 
       begin
         say Text::Process::ADD_CONFIG % [key, value, scope]
@@ -38,7 +40,7 @@ module Tddium
       set_shell
       set_default_environment
       user_details = user_logged_in?(true, true)
-      exit_failure unless git_repo? && user_details && suite_for_current_branch?
+      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
 
       begin
         say Text::Process::REMOVE_CONFIG % [key, scope]

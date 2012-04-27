@@ -28,7 +28,7 @@ module Tddium
     def prompt_ssh_key(current, name='default')
       # Prompt for ssh-key file
       ssh_file = prompt(Text::Prompt::SSH_KEY, current, Default::SSH_FILE)
-      load_ssh_key(ssh_file, name)
+      Tddium::Ssh.load_ssh_key(ssh_file, name)
     end
 
     def prompt_suite_params(options, params, current={})

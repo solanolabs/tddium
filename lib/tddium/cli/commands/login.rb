@@ -17,10 +17,10 @@ module Tddium
         say Text::Process::ALREADY_LOGGED_IN
       elsif user = login_user(:params => get_user_credentials(login_options), :show_error => true)
         say Text::Process::LOGGED_IN_SUCCESSFULLY 
-        if git_repo? then
-          suites = get_suites({:repo_name => git_repo_name})
+        if Tddium::Git.git_repo? then
+          suites = get_suites({:repo_name => Tddium::Git.git_repo_name})
           suites.each do |ste|
-            tddium_write_suite(ste)
+            @api_config.set_suite(ste)
           end
         end
       else

@@ -6,7 +6,7 @@ module Tddium
     def account
       set_shell
       set_default_environment
-      git_version_ok
+      Tddium::Git.git_version_ok
       if user_details = user_logged_in?(true, true)
         # User is already logged in, so just display the info
         show_user_details(user_details)
@@ -18,7 +18,7 @@ module Tddium
     desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your account"
     define_method "account:add" do |role, email|
       set_shell
-      git_version_ok
+      Tddium::Git.git_version_ok
       set_default_environment
       user_details = user_logged_in?(true, true)
       exit_failure unless user_details
@@ -36,7 +36,7 @@ module Tddium
     desc "account:remove [EMAIL]", "Remove a user from your account"
     define_method "account:remove" do |email|
       set_shell
-      git_version_ok
+      Tddium::Git.git_version_ok
       set_default_environment
       user_details = user_logged_in?(true, true)
       exit_failure unless user_details

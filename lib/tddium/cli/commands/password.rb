@@ -7,7 +7,7 @@ module Tddium
     def password
       set_shell
       set_default_environment
-      exit_failure unless tddium_settings
+      exit_failure unless @api_config.valid?
       user_details = user_logged_in?
       exit_failure unless user_details
 
@@ -18,8 +18,7 @@ module Tddium
 
       begin
         user_id = user_details["user"]["id"]
-        result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params},
-                          tddium_settings["api_key"], false)
+        result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params}, nil, false)
         say Text::Process::PASSWORD_CHANGED
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::PASSWORD_ERROR % e.explanation

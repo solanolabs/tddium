@@ -9,7 +9,7 @@ module Tddium
     def activate
       set_shell
       set_default_environment
-      git_version_ok
+      Tddium::Git.git_version_ok
       if user_details = user_logged_in?
         exit_failure Text::Error::ACTIVATE_LOGGED_IN
       else
@@ -37,7 +37,7 @@ module Tddium
         begin
           say Text::Process::STARTING_ACCOUNT_CREATION
           new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-          tddium_write_api_key(new_user["user"]["api_key"])
+	  @api_config.set_api_key(new_user["user"]["api_key"])
           role = new_user["user"]["account_role"]
           if role.nil? || role == "owner"
             u = new_user["user"]

@@ -16,14 +16,14 @@ module Tddium
 
       set_shell
       set_default_environment
-      git_version_ok
+      Tddium::Git.git_version_ok
 
       user_details = user_logged_in?(true, true)
-      exit_failure unless git_repo? && user_details
+      exit_failure unless Tddium::Git.git_repo? && user_details
       suite_auto_configure
       exit_failure unless suite_for_current_branch?
 
-      if git_changes then
+      if Tddium::Git.git_changes then
         exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
         warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
       end
@@ -67,7 +67,7 @@ module Tddium
       update_suite_parameters!(suite_details)
 
       # Push the latest code to git
-      unless update_git_remote_and_push(suite_details)
+      unless Tddium::Git.update_git_remote_and_push(suite_details)
         exit_failure Text::Error::GIT_PUSH_FAILED 
       end
 
@@ -154,7 +154,8 @@ module Tddium
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
 
-      tddium_write_suite(suite_details["suite"].merge({"id" => current_suite_id}))
+      suite = suite_details["suite"].merge({"id" => current_suite_id})
+      @api_config.set_suite(suite)
 
       exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
     rescue TddiumClient::Error::API => e

@@ -34,15 +34,14 @@ module Tddium
       # POST (email, password) to /users/sign_in to retrieve an API key
       begin
         login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error])
-        # On success, write the API key to "~/.tddium.<environment>"
-        tddium_write_api_key(login_result["api_key"])
+        @api_config.set_api_key(login_result["api_key"])
       rescue TddiumClient::Error::Base
       end
       login_result
     end
 
     def user_logged_in?(active = true, message = false)
-      result = tddium_settings(:fail_with_message => message) && tddium_settings["api_key"]
+      result = @api_config.get_api_key
       (result && active) ? get_user : result
     end
   end

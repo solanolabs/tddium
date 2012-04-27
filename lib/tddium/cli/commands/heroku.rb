@@ -10,7 +10,7 @@ module Tddium
     def heroku
       set_shell
       set_default_environment
-      git_version_ok
+      Tddium::Git.git_version_ok
       if user_details = user_logged_in?
         # User is already logged in, so just display the info
         show_user_details(user_details)
@@ -70,7 +70,7 @@ module Tddium
           end
         end
 
-        tddium_write_api_key(user["user"]["api_key"])
+	@api_config.set_api_key(new_user["user"]["api_key"])
         say Text::Status::HEROKU_CONFIG 
       end
   end

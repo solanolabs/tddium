@@ -27,28 +27,9 @@ module Tddium
       end
     end
 
-    def environment
-      tddium_client.environment.to_sym
-    end
-
-    def set_default_environment
-      env = options[:environment] || ENV['TDDIUM_CLIENT_ENVIRONMENT']
-      if env.nil?
-        tddium_client.environment = :development
-        tddium_client.environment = :production unless File.exists?(tddium_file_name)
-      else
-        tddium_client.environment = env.to_sym
-      end
-
-      port = options[:port] || ENV['TDDIUM_CLIENT_PORT']
-      if port
-        tddium_client.port = port.to_i
-      end
-    end
-
     def tool_version(tool)
       key = "#{tool}_version".to_sym
-      result = tddium_config[key]
+      result = @repo_config[key]
 
       if result
         say Text::Process::CONFIGURED_VERSION % [tool, result]

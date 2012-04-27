@@ -6,8 +6,8 @@ module Tddium
     def status
       set_shell
       set_default_environment
-      git_version_ok
-      exit_failure unless git_repo? && tddium_settings
+      Tddium::Git.git_version_ok
+      exit_failure unless Tddium::Git.git_repo? && @api_config.valid?
 
       begin
         current_suites = call_api(:get, Api::Path::SUITES)

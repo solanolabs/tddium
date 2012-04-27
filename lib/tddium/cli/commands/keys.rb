@@ -38,10 +38,10 @@ module Tddium
         end
         if path then
           say Text::Process::ADD_KEYS_ADD % name
-          keydata = load_ssh_key(path, name)
+          keydata = Tddium::Ssh.load_ssh_key(path, name)
         else
           say Text::Process::ADD_KEYS_GENERATE % name
-          keydata = generate_keypair(name, output_dir)
+          keydata = Tddium::Ssh.generate_keypair(name, output_dir)
         end
         result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
         if path then

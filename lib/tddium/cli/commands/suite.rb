@@ -13,8 +13,8 @@ module Tddium
     method_option :non_interactive, :type => :boolean, :default => false
     def suite
       set_default_environment
-      git_version_ok
-      exit_failure unless tddium_settings && git_repo?
+      Tddium::Git.git_version_ok
+      exit_failure unless Tddium::Git.git_repo? && @api_config.valid?
 
       params = {}
       begin
@@ -28,8 +28,8 @@ module Tddium
             say format_suite_details(current_suite)
           end
         else
-          params[:branch] = current_git_branch
-          default_suite_name = git_repo_name
+          params[:branch] = Tddium::Git.git_current_branch
+          default_suite_name = Tddium::Git.git_repo_name
           params[:repo_name] = options[:name] || default_suite_name
 
           say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
@@ -38,7 +38,7 @@ module Tddium
 
           if use_existing_suite
             # Write to file and exit when using the existing suite
-            tddium_write_suite(existing_suite)
+            @api_config.set_suite(existing_suite)
             say Text::Status::USING_SUITE, :bold
             say format_suite_details(existing_suite)
             return
@@ -54,7 +54,7 @@ module Tddium
           say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
           new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
           # Save the created suite
-          tddium_write_suite(new_suite["suite"])
+          @api_config.set_suite(new_suite["suite"])
 
           say Text::Process::CREATED_SUITE, :bold
           say format_suite_details(new_suite["suite"])
