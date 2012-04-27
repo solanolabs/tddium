@@ -18,6 +18,12 @@ module Tddium
       "#{Api::Path::SUITES}/#{current_suite_id}"
     end
 
+    def get_suites(params={})
+      current_suites = call_api(:get, Api::Path::SUITES, params)
+      current_suites ||= {}
+      return current_suites['suites'] || []
+    end
+
     def format_suite_details(suite)
       # Given an API response containing a "suite" key, compose a string with
       # important information about the suite
@@ -136,7 +142,7 @@ module Tddium
       if current_suite_id then
         current_suite = call_api(:get, current_suite_path)["suite"]
       else
-        default_suite_name = File.basename(git_root)
+        default_suite_name = git_repo_name
 
         params = Hash.new
         params[:branch] = current_git_branch

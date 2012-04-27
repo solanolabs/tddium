@@ -69,6 +69,10 @@ module Tddium
       return Dir.pwd
     end
 
+    def git_repo_name
+      return File.basename(git_root)
+    end
+
     def git_origin_url
       result = `(git config --get remote.origin.url || echo GIT_FAILED) 2>/dev/null`
       return nil if result =~ /GIT_FAILED/

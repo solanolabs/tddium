@@ -29,7 +29,7 @@ module Tddium
           end
         else
           params[:branch] = current_git_branch
-          default_suite_name = File.basename(git_root)
+          default_suite_name = git_repo_name
           params[:repo_name] = options[:name] || default_suite_name
 
           say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
