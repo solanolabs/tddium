@@ -10,4 +10,7 @@ group :development, :test do
   gem 'daemons'
   gem 'httparty'
   gem 'antilles'
+
+  gem 'rspec'
+  gem 'cucumber'
 end

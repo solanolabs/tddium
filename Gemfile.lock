@@ -94,6 +94,7 @@ DEPENDENCIES
   antilles
   aruba
   bundler (~> 1.1.0)
+  cucumber
   daemons
   fakefs
   httparty
