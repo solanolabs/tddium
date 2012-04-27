@@ -14,6 +14,19 @@ Feature: spec command
     And the output should contain "tddium login"
     And the output should contain "tddium heroku"
 
+  Scenario: Use suite on API server but not in local configuration
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in
+    And the user has a suite for "repo" on "master"
+    And the user can create a session
+    And the user successfully registers tests for the suite 
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Using suite"
+
   Scenario: Don't remember test pattern or max-parallelism
     Given the destination repo exists
     And a git repo is initialized
