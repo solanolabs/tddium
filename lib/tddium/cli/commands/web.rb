@@ -1,7 +1,7 @@
 # Copyright (c) 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "web", "Open build report in web browser"
     def web(*args)
       set_default_environment

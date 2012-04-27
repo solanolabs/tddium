@@ -1,7 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
     method_option :edit, :type => :boolean, :default => false
     method_option :name, :type => :string, :default => nil

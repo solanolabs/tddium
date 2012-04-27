@@ -1,7 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "login", "Log in to tddium using your email address and password"
     method_option :email, :type => :string, :default => nil
     method_option :password, :type => :string, :default => nil

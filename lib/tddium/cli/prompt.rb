@@ -1,7 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     protected
 
     def prompt(text, current_value, default_value, dont_prompt=false)

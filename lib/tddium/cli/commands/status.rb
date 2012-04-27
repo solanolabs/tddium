@@ -1,7 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "status", "Display information about this suite, and any open dev sessions"
     def status
       set_shell

@@ -1,7 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "config [SCOPE=suite]", "Display config variables for SCOPE (account, repo, suite)"
     def config(scope="suite")
       set_shell

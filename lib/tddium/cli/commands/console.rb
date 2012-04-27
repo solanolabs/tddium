@@ -1,7 +1,7 @@
 # Copyright (c) 2012 Solano Labs All Rights Reserved
 
 module Tddium
-  class TddiumCli
+  class TddiumCli < Thor
     desc "console <session>", "Connect to Tddium instance"
     method_option :user, :type => :string, :default => nil
     def console(id, *args)
