@@ -12,17 +12,15 @@ module TddiumConstant
     SSH_FILE = "~/.ssh/id_rsa.pub"
     SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb, spec/javascripts/**.js"
     SSH_OUTPUT_DIR = "~/.ssh/"
+
     GIT_SERVER = "git.tddium.com"
+    READY_TRIES = 3
   end
 
   module Config
-    CONFIG_PATH = "config/tddium.yml"
-  end
-
-  module Git
     REMOTE_NAME = "tddium"
-    GITIGNORE = ".gitignore"
-    READY_TRIES = 3
+    GIT_IGNORE = ".gitignore"
+    CONFIG_PATH = "config/tddium.yml"
   end
 
   module Api
@@ -78,7 +76,6 @@ module TddiumConstant
 
     module Warning
       GIT_VERSION = "Unsupported git version: %s"
-      GIT_NOT_A_REPOSITORY = "Current working directory is not in a repository"
       GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
@@ -376,7 +373,7 @@ EOF
     end
 
     module Error
-      KEY_ALREADY_EXISTS = "Aborting.  SSH key already exists: %s"
+      KEY_ALREADY_EXISTS = "Aborting. SSH key already exists: %s"
       KEYGEN_FAILED = "Failed to generate new SSH key for '%s'"
       LIST_KEYS_ERROR = "Error listing SSH keys"
       REMOVE_KEYS_ERROR = "Failed to remove key '%s'"
@@ -385,6 +382,7 @@ EOF
       LIST_CONFIG_ERROR = "Error listing configuration variables"
       ADD_CONFIG_ERROR = "Error settng configuration variable"
       REMOVE_CONFIG_ERROR = "Error removing configuration variable"
+      GIT_NOT_A_REPOSITORY = "Current working directory is not in a repository"
       INVALID_CONFIGURED_PATTERN =<<EOF;
 Configuring test pattern from config/tddium.yml...
 

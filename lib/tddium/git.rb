@@ -50,7 +50,7 @@ module Tddium
   
       def git_push
         say Text::Process::GIT_PUSH
-        system("git push -f #{Git::REMOTE_NAME} #{current_git_branch}")
+        system("git push -f #{Config::REMOTE_NAME} #{git_current_branch}")
       end
   
       def git_repo?
@@ -86,9 +86,9 @@ module Tddium
   
       def update_git_remote_and_push(suite_details)
         git_repo_uri = suite_details["suite"]["git_repo_uri"]
-        unless `git remote show -n #{REMOTE_NAME}` =~ /#{git_repo_uri}/
-          `git remote rm #{REMOTE_NAME} > /dev/null 2>&1`
-          `git remote add #{REMOTE_NAME} #{git_repo_uri}`
+        unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
+          `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
+          `git remote add #{Config::REMOTE_NAME} #{git_repo_uri}`
         end
         git_push
       end

@@ -19,7 +19,7 @@ module Tddium
         if File.exists?(Config::CONFIG_PATH) then
           begin
             rawconfig = File.read(Config::CONFIG_PATH)
-            if rawconfig then
+            if rawconfig && rawconfig !~ /^\s*$/ then
               config = YAML.load(rawconfig)
               config = config[:tddium] || config['tddium'] || Hash.new
             end
@@ -95,14 +95,14 @@ module Tddium
         File.open(tddium_file_name, "w") do |file|
           file.write(@config.to_json)
         end
-        File.open(tddium_deploy_key_file_name, "w") do |file|
-          file.write(suite["ci_ssh_pubkey"])
-        end
+#        File.open(tddium_deploy_key_file_name, "w") do |file|
+#          file.write(suite["ci_ssh_pubkey"])
+#        end
         write_gitignore		# BOTCH: no need to write every time
       end
 
       def write_gitignore
-        gitignore = File.join(Tddium::Git.git_root, Git::GITIGNORE)
+        gitignore = File.join(Tddium::Git.git_root, Config::GIT_IGNORE)
         content = File.exists?(gitignore) ? File.read(gitignore) : ''
         unless content.include?(".tddium*\n")
           File.open(gitignore, "a") do |file|

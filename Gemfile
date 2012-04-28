@@ -4,7 +4,7 @@ source "http://rubygems.org"
 gemspec
 
 group :development, :test do
-  gem 'aruba'
+  gem 'aruba', '0.4.6'
   gem 'pickle'
   gem 'mimic'
   gem 'daemons'

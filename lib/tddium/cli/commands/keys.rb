@@ -46,6 +46,8 @@ module Tddium
         end
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_KEYS_ERROR % name
+      rescue TddiumError => e
+        exit_failure e.message
       end
     end
 

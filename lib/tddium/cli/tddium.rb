@@ -88,6 +88,9 @@ module Tddium
       params[:repo] = params[:repo] == true
       params[:suite] = params[:suite] == true
 
+      $stdout.sync = true
+      $stderr.sync = true
+
       set_shell
       set_default_environment
       Tddium::Git.git_version_ok if params[:git]

@@ -18,10 +18,11 @@ module Tddium
         say Text::Process::LOGGED_IN_SUCCESSFULLY 
         if Tddium::Git.git_repo? then
           suites = get_suites({:repo_name => Tddium::Git.git_repo_name})
-          suites.each do |ste|
-            @api_config.set_suite(ste)
-          end
+#          suites.each do |ste|
+#            @api_config.set_suite(ste)
+#          end
         end
+        @api_config.write_config
       else
         exit_failure
       end

@@ -63,13 +63,13 @@ Feature: suite command
         + 
     """
     When I run `tddium suite` interactively
+    Then the output from "tddium suite" should contain "Unable to parse"
     Then the output from "tddium suite" should contain "Looks like"
     And I respond to "repo name" with "beta"
     Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
     Then the output from "tddium suite" should contain "Detected ruby"
     When I choose defaults for test pattern, CI settings
     Then the output from "tddium suite" should contain "Created suite..."
-    Then the stderr from "tddium suite" should contain "Unable to parse"
     When the console session ends
     Then the exit status should be 0
 

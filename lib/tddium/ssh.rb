@@ -28,7 +28,9 @@ module Tddium
       def generate_keypair(name, output_dir)
         filename = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
         pub_filename = filename + ".pub"
-        exit_failure Text::Error::KEY_ALREADY_EXISTS % filename if File.exists?(filename)
+        if File.exists?(filename) then
+          raise TddiumError.new(Text::Error::KEY_ALREADY_EXISTS % filename)
+        end
         cmd = "ssh-keygen -q -t rsa -P '' -C 'tddium.#{name}' -f #{filename}"
         exit_failure Text::Error::KEYGEN_FAILED % name unless system(cmd)
         {:name=>name,
