@@ -69,7 +69,7 @@ module Tddium
     def set_default_environment
       env = options[:environment] || ENV['TDDIUM_CLIENT_ENVIRONMENT']
       if env.nil? then
-        if File.exists?(@api_config.tddium_file) then
+        if File.exists?(@api_config.tddium_file_name) then
           @tddium_client.environment = :development
         else
           @tddium_client.environment = :production
@@ -80,6 +80,35 @@ module Tddium
 
       port = options[:port] || ENV['TDDIUM_CLIENT_PORT']
       @tddium_client.port = port.to_i if port
+    end
+
+    def tddium_setup(params={})
+      params[:git] = true unless params.member?(:git)
+      params[:login] = true unless params.member?(:login)
+      params[:repo] = params[:repo] == true
+      params[:suite] = params[:suite] == true
+
+      set_shell
+      set_default_environment
+      Tddium::Git.git_version_ok if params[:git]
+
+      if params[:repo] && !Tddium::Git.git_repo? then
+        say Text::Error::GIT_NOT_A_REPOSITORY
+        exit_failure
+      end
+
+      @api_config.load_config
+
+      user_details = user_logged_in?(true, params[:login])
+      if params[:login] && user_details.nil? then
+        exit_failure
+      end
+
+      if params[:suite] && !suite_for_current_branch? then
+        say Test::Process::NO_CONFIGURED_SUITE
+        exit_failure
+      end
+      return user_details
     end
   end
 end

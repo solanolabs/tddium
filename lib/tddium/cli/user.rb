@@ -18,6 +18,7 @@ module Tddium
 
     def get_user_credentials(options = {})
       params = {}
+
       # prompt for email/invitation and password
       if options[:invited]
         token = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
@@ -42,6 +43,9 @@ module Tddium
 
     def user_logged_in?(active = true, message = false)
       result = @api_config.get_api_key
+      if message && result.nil? then
+        say Text::Error::NOT_INITIALIZED
+      end
       (result && active) ? get_user : result
     end
   end

@@ -58,7 +58,7 @@ module Tddium
         say(Text::Process::SETUP_CI)
       end
 
-      ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, git_origin_url) 
+      ask_or_update.call(:ci_pull_url, Text::Prompt::CI_PULL_URL, Tddium::Git.git_origin_url) 
       ask_or_update.call(:ci_push_url, Text::Prompt::CI_PUSH_URL, nil)
     end
   end

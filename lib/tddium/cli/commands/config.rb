@@ -4,12 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "config [SCOPE=suite]", "Display config variables for SCOPE (account, repo, suite)"
     def config(scope="suite")
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
-
-      user_details = user_logged_in?(true, true)
-      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
+      tddium_setup({:repo => true, :suite => true})
 
       begin
         config_details = call_api(:get, env_path(scope))
@@ -21,10 +16,7 @@ module Tddium
 
     desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE (of account, repo, suite)"
     define_method "config:add" do |scope, key, value|
-      set_shell
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
+      tddium_setup({:repo => true, :suite => true})
 
       begin
         say Text::Process::ADD_CONFIG % [key, value, scope]
@@ -37,10 +29,7 @@ module Tddium
 
     desc "config:remove [SCOPE] [KEY]", "Remove config variable NAME from SCOPE"
     define_method "config:remove" do |scope, key|
-      set_shell
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless Tddium::Git.git_repo? && user_details && suite_for_current_branch?
+      tddium_setup({:repo => true, :suite => true})
 
       begin
         say Text::Process::REMOVE_CONFIG % [key, scope]

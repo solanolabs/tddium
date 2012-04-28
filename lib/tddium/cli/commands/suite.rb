@@ -12,9 +12,7 @@ module Tddium
     method_option :hipchat_room, :type => :string, :default => nil
     method_option :non_interactive, :type => :boolean, :default => false
     def suite
-      set_default_environment
-      Tddium::Git.git_version_ok
-      exit_failure unless Tddium::Git.git_repo? && @api_config.valid?
+      tddium_setup({:repo => true})
 
       params = {}
       begin
@@ -36,7 +34,7 @@ module Tddium
 
           use_existing_suite, existing_suite = suite_resolve_name(options, params, default_suite_name)
 
-          if use_existing_suite
+          if use_existing_suite then
             # Write to file and exit when using the existing suite
             @api_config.set_suite(existing_suite)
             say Text::Status::USING_SUITE, :bold
@@ -59,8 +57,8 @@ module Tddium
           say Text::Process::CREATED_SUITE, :bold
           say format_suite_details(new_suite["suite"])
         end
-      rescue TddiumClient::Error::Base
-        exit_failure
+      rescue TddiumClient::Error::Base => e
+        exit_failure(e)
       end
     end
   end

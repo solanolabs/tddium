@@ -7,13 +7,12 @@ module Tddium
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
     def login(*args)
-      set_shell
-      set_default_environment
+      user_details = tddium_setup({:login => false, :git => false})
 
       login_options = options.dup
       login_options[:email] ||= args.first if args.first
 
-      if user_logged_in?
+      if user_details then
         say Text::Process::ALREADY_LOGGED_IN
       elsif user = login_user(:params => get_user_credentials(login_options), :show_error => true)
         say Text::Process::LOGGED_IN_SUCCESSFULLY 

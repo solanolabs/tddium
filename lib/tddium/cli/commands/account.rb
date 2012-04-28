@@ -4,10 +4,9 @@ module Tddium
   class TddiumCli < Thor
     desc "account", "View account information"
     def account
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
-      if user_details = user_logged_in?(true, true)
+      user_details = tddium_setup({:git => false})
+
+      if user_details then
         # User is already logged in, so just display the info
         show_user_details(user_details)
       else
@@ -17,11 +16,7 @@ module Tddium
 
     desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your account"
     define_method "account:add" do |role, email|
-      set_shell
-      Tddium::Git.git_version_ok
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless user_details
+      tddium_setup({:git => false})
 
       params = {:role=>role, :email=>email}
       begin
@@ -35,11 +30,7 @@ module Tddium
 
     desc "account:remove [EMAIL]", "Remove a user from your account"
     define_method "account:remove" do |email|
-      set_shell
-      Tddium::Git.git_version_ok
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless user_details
+      tddium_setup({:git => false})
 
       begin
         say Text::Process::REMOVING_MEMBER % email

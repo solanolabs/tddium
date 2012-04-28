@@ -4,7 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "web", "Open build report in web browser"
     def web(*args)
-      set_default_environment
+      tddium_setup({:login => false, :git => false})
 
       session_id = args.first
       if session_id then

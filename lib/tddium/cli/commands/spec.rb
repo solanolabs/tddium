@@ -14,12 +14,8 @@ module Tddium
     def spec(*pattern)
       machine_data = {}
 
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
+      tddium_setup({:repo => true})
 
-      user_details = user_logged_in?(true, true)
-      exit_failure unless Tddium::Git.git_repo? && user_details
       suite_auto_configure
       exit_failure unless suite_for_current_branch?
 

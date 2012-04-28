@@ -4,10 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "status", "Display information about this suite, and any open dev sessions"
     def status
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
-      exit_failure unless Tddium::Git.git_repo? && @api_config.valid?
+      tddium_setup
 
       begin
         current_suites = call_api(:get, Api::Path::SUITES)

@@ -5,11 +5,7 @@ module Tddium
     desc "password", "Change password"
     map "passwd" => :password
     def password
-      set_shell
-      set_default_environment
-      exit_failure unless @api_config.valid?
-      user_details = user_logged_in?
-      exit_failure unless user_details
+      user_details = tddium_setup({:git => false})
 
       params = {}
       params[:current_password] = HighLine.ask(Text::Prompt::CURRENT_PASSWORD) { |q| q.echo = "*" }

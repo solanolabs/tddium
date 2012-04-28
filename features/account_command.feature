@@ -75,7 +75,7 @@ Feature: Account command
     When I run `tddium account:add member member@example.com`
     Then it should fail with:
     """
-    tddium must be initialized. Try 'tddium login'
+    Tddium must be initialized. Try 'tddium login'
     """
 
   Scenario: Remove member from account successfully
@@ -96,5 +96,5 @@ Feature: Account command
     When I run `tddium account:remove member@example.com`
     Then it should fail with:
     """
-    tddium must be initialized. Try 'tddium login'
+    Tddium must be initialized. Try 'tddium login'
     """

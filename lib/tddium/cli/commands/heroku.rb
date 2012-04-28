@@ -8,10 +8,9 @@ module Tddium
     method_option :ssh_key_file, :type => :string, :default => nil
     method_option :app, :type => :string, :default => nil
     def heroku
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
-      if user_details = user_logged_in?
+      user_details = tddium_setup
+
+      if user_details then
         # User is already logged in, so just display the info
         show_user_details(user_details)
       else
@@ -70,7 +69,7 @@ module Tddium
           end
         end
 
-	@api_config.set_api_key(new_user["user"]["api_key"])
+        @api_config.set_api_key(new_user["user"]["api_key"])
         say Text::Status::HEROKU_CONFIG 
       end
   end

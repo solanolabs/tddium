@@ -7,10 +7,9 @@ module Tddium
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
     def activate
-      set_shell
-      set_default_environment
-      Tddium::Git.git_version_ok
-      if user_details = user_logged_in?
+      user_details = tddium_setup({:login => false})
+
+      if user_details then
         exit_failure Text::Error::ACTIVATE_LOGGED_IN
       else
         params = get_user_credentials(options.merge(:invited => true))
@@ -37,7 +36,7 @@ module Tddium
         begin
           say Text::Process::STARTING_ACCOUNT_CREATION
           new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-	  @api_config.set_api_key(new_user["user"]["api_key"])
+          @api_config.set_api_key(new_user["user"]["api_key"])
           role = new_user["user"]["account_role"]
           if role.nil? || role == "owner"
             u = new_user["user"]

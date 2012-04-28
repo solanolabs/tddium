@@ -19,14 +19,16 @@ module Tddium
         if File.exists?(Config::CONFIG_PATH) then
           begin
             rawconfig = File.read(Config::CONFIG_PATH)
-            config = YAML.load(rawconfig)
-            config = config[:tddium] || config['tddium'] || Hash.new
-          rescue
+            if rawconfig then
+              config = YAML.load(rawconfig)
+              config = config[:tddium] || config['tddium'] || Hash.new
+            end
+          rescue Exception => e
             warn(Text::Warning::YAML_PARSE_FAILED % Config::CONFIG_PATH)
           end
-	end
+        end
 
-	config ||= Hash.new
+        config ||= Hash.new
         return config
       end
     end
@@ -35,44 +37,36 @@ module Tddium
       include TddiumConstant
 
       def initialize(tddium_client)
-        @dirty = false
-	@tddium_client = tddium_client
-        @config = load_config
+        @valid = true
+        @tddium_client = tddium_client
+        @config = Hash.new
       end
 
       def valid?
-        return !@config.nil?
+        return @valid == true
       end
 
-      def dirty?
-        return @dirty == true
-      end
-
-      def dirty!
-        @dirty = true
-      end
-
-      def [](key)
-        return @config[key]
-      end
-
-      def []=(key, value)
-        @dirty = true
-        return @config[key] = value
+      def fetch(*args)
+        h = @config
+        while !args.empty? do
+          return nil unless h.is_a?(Hash)
+          return nil unless h.member?(args.first)
+          h = h[args.first]
+          args.shift
+        end
+        return h
       end
 
       def get_api_key
-        return nil unless valid?
         return @config['api_key']
       end
 
       def set_api_key(api_key)
-        @dirty = true
         @config['api_key'] = api_key
       end
 
-      def set_suite(branch, suite)
-        @dirty = true
+      def set_suite(suite, branch=nil)
+        branch ||= Tddium::Git.git_current_branch
 
         suite_id = suite["id"]
         branches = @config["branches"] || {}
@@ -83,28 +77,28 @@ module Tddium
       def load_config(options={})
         path = tddium_file_name
 
-        return unless File.exists?(path)
-
-        data = File.read(path)
-        config = JSON.parse(data) rescue nil
-
-        if config.nil? && options[:fail_with_message] then
-          say (Text::Error::INVALID_TDDIUM_FILE % environment)
+        if File.exists?(path) then
+          data = File.read(path)
+          config = JSON.parse(data) rescue nil
+  
+          @valid = config.is_a?(Hash)
+          if valid? then
+            @config = config
+          else
+            say (Text::Error::INVALID_TDDIUM_FILE % environment)
+          end
         end
-	return config
+        return @config
       end
 
       def write_config
-        if @dirty then
-          File.open(tddium_file_name, "w") do |file|
-            file.write(@config.to_json)
-          end
-          File.open(tddium_deploy_key_file_name, "w") do |file|
-            file.write(suite["ci_ssh_pubkey"])
-          end
-          write_gitignore	# BOTCH: no need to write every time
+        File.open(tddium_file_name, "w") do |file|
+          file.write(@config.to_json)
         end
-        @dirty = false
+        File.open(tddium_deploy_key_file_name, "w") do |file|
+          file.write(suite["ci_ssh_pubkey"])
+        end
+        write_gitignore		# BOTCH: no need to write every time
       end
 
       def write_gitignore

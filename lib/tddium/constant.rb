@@ -78,6 +78,7 @@ module TddiumConstant
 
     module Warning
       GIT_VERSION = "Unsupported git version: %s"
+      GIT_NOT_A_REPOSITORY = "Current working directory is not in a repository"
       GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
@@ -150,7 +151,7 @@ EOF
     Read more here: https://www.tddium.com/support/reference#customization
 
 EOF
-      NO_CONFIGURED_SUITE = "\nLooks like you haven't set up a suite on this computer for %s/%s...\n"
+      NO_CONFIGURED_SUITE = "Looks like you haven't set up a suite on this computer for %s/%s...\n"
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       GIT_PUSH = "Pushing changes to Tddium..."
@@ -418,7 +419,7 @@ Commit changes before running 'tddium spec'.
 
 Use 'tddium spec --force' to test with only already-committed changes.
 EOF
-      NOT_INITIALIZED = "tddium must be initialized. Try 'tddium login' or 'tddium heroku'"
+      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login' or 'tddium heroku'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;

@@ -3,6 +3,8 @@
 module Tddium
   class Ssh
     class << self
+      include TddiumConstant
+
       def load_ssh_key(ssh_file, name)
         begin
           data = File.open(File.expand_path(ssh_file)) {|file| file.read}

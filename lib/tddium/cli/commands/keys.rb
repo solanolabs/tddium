@@ -4,10 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "keys", "List SSH keys authorized with Tddium"
     def keys
-      set_shell
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless user_details
+      tddium_setup({:git => false})
 
       begin
         keys_details = call_api(:get, Api::Path::KEYS)
@@ -21,10 +18,7 @@ module Tddium
     method_option :dir, :type=>:string, :default=>nil
     method_option :key, :type=>:string, :default=>nil
     define_method "keys:add" do |name|
-      set_shell
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless user_details
+      tddium_setup({:git => false})
 
       path = options[:key]
 
@@ -57,10 +51,8 @@ module Tddium
 
     desc "keys:remove [NAME]", "Remove a key that was authorized with Tddium"
     define_method "keys:remove" do |name|
-      set_shell
-      set_default_environment
-      user_details = user_logged_in?(true, true)
-      exit_failure unless user_details
+      tddium_setup({:git => false})
+
       begin
         say Text::Process::REMOVE_KEYS % name
         result = call_api(:delete, "#{Api::Path::KEYS}/#{name}")

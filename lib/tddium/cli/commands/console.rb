@@ -5,8 +5,7 @@ module Tddium
     desc "console <session>", "Connect to Tddium instance"
     method_option :user, :type => :string, :default => nil
     def console(id, *args)
-      set_shell
-      set_default_environment
+      tddium_setup({:git => false})
 
       ssh_args = *args
 

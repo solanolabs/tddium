@@ -86,9 +86,9 @@ module Tddium
   
       def update_git_remote_and_push(suite_details)
         git_repo_uri = suite_details["suite"]["git_repo_uri"]
-        unless `git remote show -n #{Git::REMOTE_NAME}` =~ /#{git_repo_uri}/
-          `git remote rm #{Git::REMOTE_NAME} > /dev/null 2>&1`
-          `git remote add #{Git::REMOTE_NAME} #{git_repo_uri}`
+        unless `git remote show -n #{REMOTE_NAME}` =~ /#{git_repo_uri}/
+          `git remote rm #{REMOTE_NAME} > /dev/null 2>&1`
+          `git remote add #{REMOTE_NAME} #{git_repo_uri}`
         end
         git_push
       end

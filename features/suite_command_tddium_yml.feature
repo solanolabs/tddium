@@ -49,7 +49,7 @@ Feature: suite command
     Then the output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
     Then the output should contain "Detected ruby"
     Then the output should contain "Created suite..."
-    Then the output should not contain "WARNING: Unable to parse"
+    Then the output should not contain "Unable to parse"
     Then the exit status should be 0
 
   Scenario: Non-YAML tddium.yml should generate a warning and then prompt
@@ -69,7 +69,7 @@ Feature: suite command
     Then the output from "tddium suite" should contain "Detected ruby"
     When I choose defaults for test pattern, CI settings
     Then the output from "tddium suite" should contain "Created suite..."
-    Then the stderr from "tddium suite" should contain "WARNING: Unable to parse"
+    Then the stderr from "tddium suite" should contain "Unable to parse"
     When the console session ends
     Then the exit status should be 0
 
