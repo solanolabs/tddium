@@ -152,6 +152,7 @@ module Tddium
 
       suite = suite_details["suite"].merge({"id" => current_suite_id})
       @api_config.set_suite(suite)
+      @api_config.write_config
 
       exit_failure if test_statuses["failed"] > 0 || test_statuses["error"] > 0
     rescue TddiumClient::Error::API => e

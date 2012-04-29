@@ -37,6 +37,7 @@ module Tddium
           if use_existing_suite then
             # Write to file and exit when using the existing suite
             @api_config.set_suite(existing_suite)
+            @api_config.write_config
             say Text::Status::USING_SUITE, :bold
             say format_suite_details(existing_suite)
             return
@@ -53,6 +54,7 @@ module Tddium
           new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
           # Save the created suite
           @api_config.set_suite(new_suite["suite"])
+          @api_config.write_config
 
           say Text::Process::CREATED_SUITE, :bold
           say format_suite_details(new_suite["suite"])
