@@ -95,10 +95,18 @@ module Tddium
         File.open(tddium_file_name, "w") do |file|
           file.write(@config.to_json)
         end
-#        File.open(tddium_deploy_key_file_name, "w") do |file|
-#          file.write(suite["ci_ssh_pubkey"])
-#        end
-        write_gitignore		# BOTCH: no need to write every time
+
+        if Tddium::Git.git_repo? then
+          branch = Tddium::Git.git_current_branch
+          suite = @config['branches'][branch] rescue nil
+
+          if suite then
+            File.open(tddium_deploy_key_file_name, "w") do |file|
+              file.write(suite["ci_ssh_pubkey"])
+            end
+          end
+          write_gitignore		# BOTCH: no need to write every time
+        end
       end
 
       def write_gitignore
@@ -111,10 +119,11 @@ module Tddium
         end
       end
 
-      def tddium_file_name(kind='')
+      def tddium_file_name(kind='', root=nil)
         env = environment
         ext = env == :production ? '' : ".#{env}"
-        return File.join(Tddium::Git.git_root, ".tddium#{kind}#{ext}")
+        root = Tddium::Git.git_root if root.nil?
+        return File.join(root, ".tddium#{kind}#{ext}")
       end
 
       def tddium_deploy_key_file_name

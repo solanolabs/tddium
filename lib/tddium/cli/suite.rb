@@ -169,6 +169,7 @@ module Tddium
 
         # Save the created suite
         @api_config.set_suite(current_suite)
+        @api_config.write_config
       end
       return current_suite
     end
