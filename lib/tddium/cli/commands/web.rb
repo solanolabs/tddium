@@ -13,7 +13,7 @@ module Tddium
       fragment ||= 'latest'
 
       begin
-        Launchy.open("https://#{tddium_client.host}/#{fragment}")
+        Launchy.open("https://#{@tddium_client.host}/#{fragment}")
       rescue TddiumClient::Error::Base
         exit_failure
       end
