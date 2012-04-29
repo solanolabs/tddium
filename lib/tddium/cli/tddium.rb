@@ -95,15 +95,15 @@ module Tddium
       set_default_environment
       Tddium::Git.git_version_ok if params[:git]
 
-      if params[:repo] && !Tddium::Git.git_repo? then
-        say Text::Error::GIT_NOT_A_REPOSITORY
-        exit_failure
-      end
-
       @api_config.load_config
 
       user_details = user_logged_in?(true, params[:login])
       if params[:login] && user_details.nil? then
+        exit_failure
+      end
+
+      if params[:repo] && !Tddium::Git.git_repo? then
+        say Text::Error::GIT_NOT_A_REPOSITORY
         exit_failure
       end
 
