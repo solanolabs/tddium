@@ -11,6 +11,8 @@ Feature: Login command
     And the user has the following keys:
       | name      |
       | default   |
+    And the user has no suites
+    And a git repo is initialized
     When I run `tddium login` interactively
     And I type "foo@example.com"
     And I type "barbarbar"
@@ -29,6 +31,8 @@ Feature: Login command
     And the user has the following keys:
       | name      |
       | default   |
+    And the user has no suites
+    And a git repo is initialized
     When I run `tddium login foo@example.com` interactively
     And I type "barbarbar"
     And the console session ends
@@ -41,8 +45,28 @@ Feature: Login command
     And the exit status should be 0
     And dotfiles should be updated
 
+  Scenario: Interactive log in successfully without a git repository
+    Given the user can log in and gets API key "apikey"
+    And the user has the following keys:
+      | name      |
+      | default   |
+    And the user has no suites
+    When I run `tddium login` interactively
+    And I type "foo@example.com"
+    And I type "barbarbar"
+    And the console session ends
+    Then the output should contain:
+    """
+    Logged in successfully
+    """
+    And the output should not contain "tddium suite"
+    And the output should not contain "tddium spec"
+    And the exit status should be 0
+
   Scenario: Interactively log in successfully without an ssh key
     Given the user can log in and gets API key "apikey"
+    And a git repo is initialized
+    And the user has no suites
     And the user has no keys
     And a file named "ssh_public_key" with:
     """
@@ -65,6 +89,8 @@ Feature: Login command
 
   Scenario: Already logged in
     Given the user is logged in
+    And the user has no suites
+    And a git repo is initialized
     And the user has the following keys:
       | name      |
       | default   |
@@ -77,6 +103,8 @@ Feature: Login command
     And the user has the following keys:
       | name      |
       | default   |
+    And the user has no suites
+    And a git repo is initialized
     When I run `tddium login --email=foo@example.com --password=barbarbar`
     Then the output should contain:
     """
@@ -87,6 +115,7 @@ Feature: Login command
 
   Scenario: Non-interactively log in unsuccessfully
     Given the user cannot log in
+    And a git repo is initialized
     When I run `tddium login --email=foo@example.com --password=barbarbar`
     Then the output should contain:
     """
