@@ -34,8 +34,9 @@ module Tddium
     def login_user(options = {})
       # POST (email, password) to /users/sign_in to retrieve an API key
       begin
-        login_result = call_api(:post, Api::Path::SIGN_IN, {:user => options[:params]}, false, options[:show_error])
-        @api_config.set_api_key(login_result["api_key"])
+        user = options[:params]
+        login_result = call_api(:post, Api::Path::SIGN_IN, {:user => user}, false, options[:show_error])
+        @api_config.set_api_key(login_result["api_key"], user[:email])
       rescue TddiumClient::Error::Base
       end
       login_result

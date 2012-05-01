@@ -37,13 +37,8 @@ module Tddium
       include TddiumConstant
 
       def initialize(tddium_client)
-        @valid = true
         @tddium_client = tddium_client
         @config = Hash.new
-      end
-
-      def valid?
-        return @valid == true
       end
 
       def fetch(*args)
@@ -57,11 +52,11 @@ module Tddium
         return h
       end
 
-      def get_api_key
+      def get_api_key(user=nil)
         return @config['api_key']
       end
 
-      def set_api_key(api_key)
+      def set_api_key(api_key, user)
         @config['api_key'] = api_key
       end
 
@@ -75,15 +70,22 @@ module Tddium
       end
 
       def load_config(options={})
-        path = tddium_file_name
+        @config = Hash.new
 
+        path = tddium_file_name(:global)
+        if File.exists?(path) then
+          data = File.read(path)
+          config = JSON.parse(data) rescue nil
+          @config['api_key'] = config['api_key']
+        end
+
+        path = tddium_file_name(:repo)
         if File.exists?(path) then
           data = File.read(path)
           config = JSON.parse(data) rescue nil
   
-          @valid = config.is_a?(Hash)
-          if valid? then
-            @config = config
+          if config.is_a?(Hash) then
+            @config.merge!(config)
           else
             say (Text::Error::INVALID_TDDIUM_FILE % environment)
           end
@@ -92,7 +94,14 @@ module Tddium
       end
 
       def write_config
-        File.open(tddium_file_name, "w") do |file|
+        path = tddium_file_name(:repo)
+        File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) do |file|
+          config = {'api_key' => @config['api_key']}
+          file.write(config.to_json)
+        end
+
+        path = tddium_file_name(:repo)
+        File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) do |file|
           file.write(@config.to_json)
         end
 
@@ -101,7 +110,8 @@ module Tddium
           suite = @config['branches'][branch] rescue nil
 
           if suite then
-            File.open(tddium_deploy_key_file_name, "w") do |file|
+            path = tddium_deploy_key_file_name
+            File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0644) do |file|
               file.write(suite["ci_ssh_pubkey"])
             end
           end
@@ -110,24 +120,31 @@ module Tddium
       end
 
       def write_gitignore
-        gitignore = File.join(Tddium::Git.git_root, Config::GIT_IGNORE)
-        content = File.exists?(gitignore) ? File.read(gitignore) : ''
+        path = File.join(Tddium::Git.git_root, Config::GIT_IGNORE)
+        content = File.exists?(path) ? File.read(path) : ''
         unless content.include?(".tddium*\n")
-          File.open(gitignore, "a") do |file|
+          File.open(path, File::CREAT|File::APPEND|File::RDWR, 0644) do |file|
             file.write(".tddium*\n")
           end
         end
       end
 
-      def tddium_file_name(kind='', root=nil)
+      def tddium_file_name(scope=:repo, kind='', root=nil)
         env = environment
         ext = env == :production ? '' : ".#{env}"
-        root = Tddium::Git.git_root if root.nil?
+
+        case scope
+        when :repo
+          root = Tddium::Git.git_root if root.nil?
+        when :global
+          root = ENV['HOME']
+        end
+
         return File.join(root, ".tddium#{kind}#{ext}")
       end
 
       def tddium_deploy_key_file_name
-        return tddium_file_name('-deploy-key')
+        return tddium_file_name(:repo, '-deploy-key')
       end
 
       def environment

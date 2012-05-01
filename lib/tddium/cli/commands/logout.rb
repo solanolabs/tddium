@@ -6,8 +6,8 @@ module Tddium
     def logout
       tddium_setup({:login => false, :git => false})
 
-      file_name = @api_config.tddium_file_name
-      FileUtils.rm_f(file_name) if File.exists?(file_name)
+      @api_config.logout
+      @api_config.write_config
 
       say Text::Process::LOGGED_OUT_SUCCESSFULLY
     end

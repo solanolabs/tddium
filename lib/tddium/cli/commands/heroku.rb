@@ -69,7 +69,8 @@ module Tddium
           end
         end
 
-        @api_config.set_api_key(new_user["user"]["api_key"])
+        @api_config.set_api_key(user["user"]["api_key"], user["user"]["email"])
+        @api_config.write_config
         say Text::Status::HEROKU_CONFIG 
       end
   end
