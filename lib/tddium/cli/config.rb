@@ -41,15 +41,20 @@ module Tddium
         @config = Hash.new
       end
 
-      def fetch(*args)
-        h = @config
-        while !args.empty? do
-          return nil unless h.is_a?(Hash)
-          return nil unless h.member?(args.first)
-          h = h[args.first]
-          args.shift
+      def logout
+        @config.delete('api_key')
+      end
+
+      def get_branch(branch, var)
+        val = fetch('branches', branch, var)
+	return val unless val.nil?
+
+        args = {:repo_name => Tddium::Git.git_repo_name}
+#        suites = Tddium::TddiumCli.get_suites(args)
+        suites.each do |ste|
+          set_suite(ste)
         end
-        return h
+        return fetch('branches', branch, var)
       end
 
       def get_api_key(user=nil)
@@ -60,8 +65,9 @@ module Tddium
         @config['api_key'] = api_key
       end
 
-      def set_suite(suite, branch=nil)
-        branch ||= Tddium::Git.git_current_branch
+      def set_suite(suite)
+        branch = suite['branch']
+	return if branch.nil? || branch.empty?
 
         suite_id = suite["id"]
         branches = @config["branches"] || {}
@@ -94,9 +100,10 @@ module Tddium
       end
 
       def write_config
-        path = tddium_file_name(:repo)
+        path = tddium_file_name(:global)
         File.open(path, File::CREAT|File::TRUNC|File::RDWR, 0600) do |file|
-          config = {'api_key' => @config['api_key']}
+          config = Hash.new
+          config['api_key'] = @config['api_key'] if @config.member?('api_key')
           file.write(config.to_json)
         end
 
@@ -149,6 +156,19 @@ module Tddium
 
       def environment
         @tddium_client.environment.to_sym
+      end
+
+      protected
+
+      def fetch(*args)
+        h = @config
+        while !args.empty? do
+          return nil unless h.is_a?(Hash)
+          return nil unless h.member?(args.first)
+          h = h[args.first]
+          args.shift
+        end
+        return h
       end
     end
   end
