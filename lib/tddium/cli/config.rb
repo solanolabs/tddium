@@ -36,7 +36,9 @@ module Tddium
     class ApiConfig
       include TddiumConstant
 
-      def initialize(tddium_client)
+      # BOTCH: should be a state object rather than entire CLI object
+      def initialize(tddium_cli, tddium_client)
+        @tddium_cli = tddium_cli
         @tddium_client = tddium_client
         @config = Hash.new
       end
@@ -50,7 +52,7 @@ module Tddium
 	return val unless val.nil?
 
         args = {:repo_name => Tddium::Git.git_repo_name}
-#        suites = Tddium::TddiumCli.get_suites(args)
+        suites = @tddium_cli.get_suites(args)
         suites.each do |ste|
           set_suite(ste)
         end

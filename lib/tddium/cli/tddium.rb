@@ -11,7 +11,7 @@ module Tddium
                            c.caller_version = "tddium-#{TddiumVersion::VERSION}"
                          end
 
-      @api_config = ApiConfig.new(tddium_client)
+      @api_config = ApiConfig.new(self, tddium_client)
       @repo_config = RepoConfig.new
       @tddium_client = tddium_client
     end
