@@ -49,7 +49,7 @@ module Tddium
 
       def get_branch(branch, var)
         val = fetch('branches', branch, var)
-	return val unless val.nil?
+        return val unless val.nil?
 
         args = {:repo_name => Tddium::Git.git_repo_name}
         suites = @tddium_cli.get_suites(args)
@@ -69,7 +69,7 @@ module Tddium
 
       def set_suite(suite)
         branch = suite['branch']
-	return if branch.nil? || branch.empty?
+        return if branch.nil? || branch.empty?
 
         suite_id = suite["id"]
         branches = @config["branches"] || {}
@@ -144,7 +144,10 @@ module Tddium
 
         case scope
         when :repo
-          root = Tddium::Git.git_root if root.nil?
+          if root.nil? then
+            Tddium::Git.git_repo?
+            root = Tddium::Git.git_root
+          end
         when :global
           root = ENV['HOME']
         end
