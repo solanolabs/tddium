@@ -17,9 +17,10 @@ module Tddium
       tddium_setup({:repo => true})
 
       suite_auto_configure
+
       exit_failure unless suite_for_current_branch?
 
-      if Tddium::Git.git_changes then
+      if Tddium::Git.git_changes?(:exclude=>".gitignore")
         exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
         warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
       end

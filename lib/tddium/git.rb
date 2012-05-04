@@ -5,8 +5,10 @@ module Tddium
     class << self
       include TddiumConstant
 
-      def git_changes
-        cmd = "(git ls-files --exclude-standard -d -m -t || echo GIT_FAILED) < /dev/null 2>&1"
+      def git_changes?(options={})
+        options[:exclude] ||= []
+        options[:exclude] = [options[:exclude]] unless options[:exclude].is_a?(Array)
+        cmd = "(git status --porcelain -uno || echo GIT_FAILED) < /dev/null 2>&1"
         p = IO.popen(cmd)
         changes = false
         while line = p.gets do
@@ -15,8 +17,8 @@ module Tddium
             return false
           end
           line = line.strip
-          fields = line.split(/\s+/)
-          status = fields[0]
+          status, name = line.split(/\s+/)
+          next if options[:exclude].include?(name)
           if status !~ /^\?/ then
             changes = true
             break

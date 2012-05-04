@@ -14,6 +14,17 @@ Feature: spec command
     And the output should contain "tddium login"
     And the output should contain "tddium heroku"
 
+  @announce-cmd
+  Scenario: Fail if user has uncommitted changes
+    Given a git repo is initialized
+    And the user is logged in
+    And the user has a suite for "repo" on "master"
+    And the user can create a session
+    But the user has uncommitted changes to "foo.rb"
+    When I run `tddium spec`
+    Then the exit status should not be 0
+    And the output should contain "uncommitted"
+
   Scenario: Use suite on API server but not in local configuration
     Given the destination repo exists
     And a git repo is initialized
@@ -26,9 +37,25 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should be 0
 
-  Scenario: Auto-create a new suite
+  Scenario: Auto-create a new suite with no .gitignore
     Given the destination repo exists
     And a git repo is initialized on branch "foobar"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "work/foobar" on branch "foobar"
+    And the user creates a suite for "work/foobar" on branch "foobar"
+    And the user can create a session
+    And the user successfully registers tests for the suite 
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Creating suite"
+
+  Scenario: Auto-create a new suite with .gitignore
+    Given the destination repo exists
+    And a git repo is initialized on branch "foobar"
+    And a .gitignore file exists in git
     And the user is logged in
     And the user has no suites
     And the user can create a suite named "work/foobar" on branch "foobar"
