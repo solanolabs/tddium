@@ -54,14 +54,25 @@ module Tddium
         say Text::Process::USING_SPEC_OPTION[:test_pattern] % test_pattern
       end
 
-      start_time = Time.now
+      tries = 0
+      while tries < Default::GIT_READY_TRIES do
+        # Call the API to get the suite and its tests
+        suite_details = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
 
-      # Call the API to get the suite and its tests
-      suite_details = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
+        tries += 1
 
+        if suite_details["repoman_current"] == true
+          break
+        else
+          say Text::Process::GIT_REPO_WAIT
+          sleep Default::GIT_READY_SLEEP
+        end
+      end
       exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["repoman_current"]
 
       update_suite_parameters!(suite_details)
+
+      start_time = Time.now
 
       # Push the latest code to git
       git_repo_uri = suite_details["git_repo_uri"]

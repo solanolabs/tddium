@@ -8,6 +8,7 @@ module TddiumConstant
 
   module Default
     SLEEP_TIME_BETWEEN_POLLS = 2
+    
     ENVIRONMENT = "production"
     SSH_FILE = "~/.ssh/id_rsa.pub"
     SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb, spec/javascripts/**.js"
@@ -15,6 +16,8 @@ module TddiumConstant
 
     GIT_SERVER = "git.tddium.com"
     READY_TRIES = 3
+    GIT_READY_TRIES = 18
+    GIT_READY_SLEEP = 10
   end
 
   module Config
@@ -152,6 +155,7 @@ EOF
       TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
       INTERRUPT = "Interrupted"
       GIT_PUSH = "Pushing changes to Tddium..."
+      GIT_REPO_WAIT = "Waiting for your git repository to become ready.  Sleeping for 10 seconds ..."
       STARTING_TEST = "Starting Session with %s tests..."
       CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"

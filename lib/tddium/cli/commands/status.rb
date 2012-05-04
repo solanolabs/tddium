@@ -11,7 +11,7 @@ module Tddium
         if current_suites.empty? then
           say Text::Status::NO_SUITE
         else
-          if current_suite = current_suites.detect {|suite| suite["id"] == current_suite_id}
+          if current_suite = current_suites.detect {|suite| suite["id"] == @tddium_api.current_suite_id}
             say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
             show_attributes(DisplayedAttributes::SUITE, current_suite)
             say Text::Status::SEPARATOR
