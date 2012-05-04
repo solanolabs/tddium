@@ -7,11 +7,11 @@ module Tddium
       tddium_setup
 
       begin
-        current_suites = call_api(:get, Api::Path::SUITES)
-        if current_suites["suites"].size == 0
+        current_suites = @tddium_api.get_suites
+        if current_suites.empty? then
           say Text::Status::NO_SUITE
         else
-          if current_suite = current_suites["suites"].detect {|suite| suite["id"] == current_suite_id}
+          if current_suite = current_suites.detect {|suite| suite["id"] == current_suite_id}
             say Text::Status::CURRENT_SUITE % current_suite["repo_name"]
             show_attributes(DisplayedAttributes::SUITE, current_suite)
             say Text::Status::SEPARATOR

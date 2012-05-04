@@ -10,6 +10,7 @@ Feature: suite command
     Given the command is "tddium suite"
 
   Scenario: Fail if the user is not logged in
+    Given the destination repo exists
     When I run `tddium suite`
     Then it should fail with a login hint
 

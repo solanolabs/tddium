@@ -21,7 +21,7 @@ module Tddium
       params = {:role=>role, :email=>email}
       begin
         say Text::Process::ADDING_MEMBER % [params[:email], params[:role]]
-        result = call_api(:post, Api::Path::MEMBERSHIPS, params)
+        result = @tddium_api.set_memberships(params)
         say Text::Process::ADDED_MEMBER % email
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_MEMBER_ERROR % [email, e.message]
@@ -34,7 +34,7 @@ module Tddium
 
       begin
         say Text::Process::REMOVING_MEMBER % email
-        result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}")
+        result = @tddium_api.delete_memberships(email)
         say Text::Process::REMOVED_MEMBER % email
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::REMOVE_MEMBER_ERROR % [email, e.message]

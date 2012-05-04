@@ -18,6 +18,10 @@ Given /^the user has no suites/ do
   Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[]})
 end
 
+Given /^the user creates a suite for "([^"]*)" on branch "([^"]*)"$/ do |name, branch|
+  Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>make_suite_response(name, branch)})
+end
+
 Given /^there is a problem retrieving suite information$/ do
   Antilles.install(:get, "/1/suites", {:status=>1, :explanation=>"Some error"})
 end

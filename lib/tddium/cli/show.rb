@@ -23,7 +23,6 @@ module Tddium
     end
 
     def show_keys_details(keys)
-      keys = keys["keys"] || []
       say Text::Status::KEYS_DETAILS
       if keys.length == 0
         say Text::Process::NO_KEYS
@@ -51,48 +50,45 @@ module Tddium
     end
 
     def show_session_details(params, no_session_prompt, all_session_prompt)
-      begin
-        current_sessions = call_api(:get, Api::Path::SESSIONS, params)
-        say Text::Status::SEPARATOR
-        if current_sessions["sessions"].size == 0
-          say no_session_prompt
-        else
-          say all_session_prompt
-          current_sessions["sessions"].reverse_each do |session|
-            duration = "(%ds)" % ((session["end_time"] ? Time.parse(session["end_time"]) : Time.now) - Time.parse(session["start_time"])).round
-            say Text::Status::SESSION_DETAIL % [session["report"],
-                                                duration,
-                                                session["start_time"],
-                                                session["test_execution_stats"]]
-          end
+      current_sessions = @tddium_api.get(sessions, params)
+      say Text::Status::SEPARATOR
+      if current_sessions.empty? then
+        say no_session_prompt
+      else
+        say all_session_prompt
+        current_sessions.reverse_each do |session|
+          duration = "(%ds)" % ((session["end_time"] ? Time.parse(session["end_time"]) : Time.now) - Time.parse(session["start_time"])).round
+          say Text::Status::SESSION_DETAIL % [session["report"],
+                                              duration,
+                                              session["start_time"],
+                                              session["test_execution_stats"]]
         end
-      rescue TddiumClient::Error::Base
       end
     end
 
-    def show_user_details(api_response)
-      # Given the user is logged in, she should be able to use "tddium account" to display information about her account:
+    def show_user_details(user)
+      # Given the user is logged in, he should be able to
+      # use "tddium account" to display information about his account:
       # Email address
       # Account creation date
-      user = api_response["user"]
       say ERB.new(Text::Status::USER_DETAILS).result(binding)
 
-      current_suites = call_api(:get, Api::Path::SUITES)
-      if current_suites["suites"].size == 0 then
+      current_suites = @tddium_api.get_suites
+      if current_suites.empty? then
         say Text::Status::NO_SUITE
       else
-        say Text::Status::ALL_SUITES % current_suites["suites"].collect {|suite| "#{suite["repo_name"]}/#{suite["branch"]}"}.join(", ")
+        say Text::Status::ALL_SUITES % current_suites.collect {|suite| "#{suite["repo_name"]}/#{suite["branch"]}"}.join(", ")
       end
 
-      memberships = call_api(:get, Api::Path::MEMBERSHIPS)
-      if memberships["memberships"].length > 1
+      memberships = @tddium_api.get_memberships
+      if memberships.length > 1
         say Text::Status::ACCOUNT_MEMBERS
-        say memberships["memberships"].collect{|x|x['display']}.join("\n")
+        say memberships.collect{|x|x['display']}.join("\n")
         say "\n"
       end
 
-      account_usage = call_api(:get, Api::Path::ACCOUNT_USAGE)
-      say account_usage["usage"]
+      account_usage = @tddium_api.get_usage
+      say account_usage
     rescue TddiumClient::Error::Base => e
       exit_failure e.message
     end

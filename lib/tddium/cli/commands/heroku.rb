@@ -39,13 +39,13 @@ module Tddium
 
       def handle_heroku_user(options, heroku_config)
         api_key = heroku_config['TDDIUM_API_KEY']
-        user = call_api(:get, Api::Path::USERS, {}, api_key, false) rescue nil
+        user = @tddium_api.get_user(api_key)
         exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
-        say Text::Process::HEROKU_WELCOME % user["user"]["email"]
+        say Text::Process::HEROKU_WELCOME % user["email"]
 
-        if user["user"]["heroku_needs_activation"] == true
+        if user["heroku_needs_activation"] == true
           say Text::Process::HEROKU_ACTIVATE
-          params = get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
+          params = @tddium_api.get_user_credentials(:email => heroku_config['TDDIUM_USER_NAME'])
           params.delete(:email)
           params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
           begin
@@ -60,8 +60,8 @@ module Tddium
           exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
 
           begin
-            user_id = user["user"]["id"]
-            result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params, :heroku_activation=>true}, api_key)
+            user_id = user["id"]
+            result = @tddium_api.update_user(user_id, {:user=>params, :heroku_activation=>true}, api_key)
           rescue TddiumClient::Error::API => e
             exit_failure Text::Error::HEROKU_MISCONFIGURED % e
           rescue TddiumClient::Error::Base => e
@@ -69,7 +69,7 @@ module Tddium
           end
         end
 
-        @api_config.set_api_key(user["user"]["api_key"], user["user"]["email"])
+        @api_config.set_api_key(user["api_key"], user["email"])
         @api_config.write_config
         say Text::Status::HEROKU_CONFIG 
       end

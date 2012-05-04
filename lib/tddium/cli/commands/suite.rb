@@ -16,9 +16,8 @@ module Tddium
 
       params = {}
       begin
-        if current_suite_id
-          current_suite = call_api(:get, current_suite_path)["suite"]
-
+        if @tddium_api.current_suite_id then
+          current_suite = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
           if options[:edit]
             update_suite(current_suite, options)
           else
@@ -51,13 +50,14 @@ module Tddium
 
           # Create new suite if it does not exist yet
           say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
-          new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
+          new_suite = @tddium_api.create_suite(params)
+
           # Save the created suite
-          @api_config.set_suite(new_suite["suite"])
+          @api_config.set_suite(new_suite)
           @api_config.write_config
 
           say Text::Process::CREATED_SUITE, :bold
-          say format_suite_details(new_suite["suite"])
+          say format_suite_details(new_suite)
         end
       rescue TddiumClient::Error::Base => e
         exit_failure(e)

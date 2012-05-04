@@ -10,12 +10,11 @@ module Tddium
     end
 
     def prompt_missing_ssh_key
-      keys = call_api(:get, Api::Path::KEYS)
-      keys = keys["keys"] || []
-      if keys.length == 0
+      keys = @tddium_api.get_keys
+      if keys.empty? then
         say Text::Process::SSH_KEY_NEEDED
         keydata = prompt_ssh_key(nil)
-        result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
+        result = @tddium_api.set_keys({:keys => [keydata]})
         return true
       end
       false

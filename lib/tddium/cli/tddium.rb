@@ -11,9 +11,15 @@ module Tddium
                            c.caller_version = "tddium-#{TddiumVersion::VERSION}"
                          end
 
-      @api_config = ApiConfig.new(self, tddium_client)
-      @repo_config = RepoConfig.new
       @tddium_client = tddium_client
+
+      @api_config = ApiConfig.new(tddium_client)
+      @repo_config = RepoConfig.new
+
+      @tddium_api = TddiumAPI.new(@api_config, tddium_client)
+
+      # BOTCH: fugly
+      @api_config.set_api(@tddium_api)
     end
 
     class_option :environment, :type => :string, :default => nil
@@ -46,20 +52,6 @@ module Tddium
 
       return nil if pattern.nil? || pattern.empty?
       return pattern
-    end
-
-    def call_api(method, api_path, params = {}, api_key = nil, show_error = true)
-      api_key = @api_config.get_api_key unless api_key == false
-
-      begin
-        result = @tddium_client.call_api(method, api_path, params, api_key)
-      rescue TddiumClient::Error::UpgradeRequired => e
-        exit_failure e.message
-      rescue TddiumClient::Error::Base => e
-        say e.message if show_error
-        raise e
-      end
-      result
     end
 
     def environment
@@ -97,7 +89,7 @@ module Tddium
 
       @api_config.load_config
 
-      user_details = user_logged_in?(true, params[:login])
+      user_details = @tddium_api.user_logged_in?(true, params[:login])
       if params[:login] && user_details.nil? then
         exit_failure
       end

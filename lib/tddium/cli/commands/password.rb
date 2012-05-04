@@ -13,8 +13,8 @@ module Tddium
       params[:password_confirmation] = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
 
       begin
-        user_id = user_details["user"]["id"]
-        result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", {:user=>params}, nil, false)
+        user_id = user_details["id"]
+        @tddium_api.update_user(user_id, {:user => params})
         say Text::Process::PASSWORD_CHANGED
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::PASSWORD_ERROR % e.explanation

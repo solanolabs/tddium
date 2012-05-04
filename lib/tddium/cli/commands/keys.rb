@@ -7,7 +7,7 @@ module Tddium
       tddium_setup({:git => false})
 
       begin
-        keys_details = call_api(:get, Api::Path::KEYS)
+        keys_details = @tddium_api.get_keys
         show_keys_details(keys_details)
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::LIST_KEYS_ERROR
@@ -25,8 +25,7 @@ module Tddium
       output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR'] || Default::SSH_OUTPUT_DIR
 
       begin
-        keys_details = call_api(:get, Api::Path::KEYS)
-        keys_details = keys_details["keys"] || []
+        keys_details = @tddium_api.get_keys
         if keys_details.count{|x|x['name'] == name} > 0
           exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
         end
@@ -37,7 +36,7 @@ module Tddium
           say Text::Process::ADD_KEYS_GENERATE % name
           keydata = Tddium::Ssh.generate_keypair(name, output_dir)
         end
-        result = call_api(:post, Api::Path::KEYS, :keys=>[keydata])
+        result = @tddium_api.set_keys({:keys => [keydata]})
         if path then
           say Text::Process::ADD_KEYS_ADD_DONE % [name, result["git_server"] || Default::GIT_SERVER, path]
         else
@@ -57,7 +56,7 @@ module Tddium
 
       begin
         say Text::Process::REMOVE_KEYS % name
-        result = call_api(:delete, "#{Api::Path::KEYS}/#{name}")
+        result = @tddium_api.delete_keys(name)
         say Text::Process::REMOVE_KEYS_DONE % name
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::REMOVE_KEYS_ERROR % name

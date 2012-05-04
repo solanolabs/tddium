@@ -54,11 +54,8 @@ module Tddium
       end
   
       def git_repo?
-        unless system("test -d .git || git status > /dev/null 2>&1")
-          message = Text::Error::GIT_NOT_INITIALIZED
-          say message
-        end
-        message.nil?
+        ok = system("test -d .git || git status > /dev/null 2>&1")
+        return ok
       end
   
       def git_root
@@ -84,8 +81,7 @@ module Tddium
         end
       end
   
-      def update_git_remote_and_push(suite_details)
-        git_repo_uri = suite_details["suite"]["git_repo_uri"]
+      def update_git_remote_and_push(git_repo_uri)
         unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
           `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
           `git remote add #{Config::REMOTE_NAME} #{git_repo_uri}`

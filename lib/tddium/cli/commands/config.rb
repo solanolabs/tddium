@@ -7,7 +7,7 @@ module Tddium
       tddium_setup({:repo => true, :suite => true})
 
       begin
-        config_details = call_api(:get, env_path(scope))
+        config_details = @tddium_api.get_config_key(scope)
         show_config_details(scope, config_details['env'])
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::LIST_CONFIG_ERROR
@@ -20,7 +20,7 @@ module Tddium
 
       begin
         say Text::Process::ADD_CONFIG % [key, value, scope]
-        result = call_api(:post, env_path(scope), :env=>{key=>value})
+        result = @tddium_api.set_config_key(scope, key, value)
         say Text::Process::ADD_CONFIG_DONE % [key, value, scope]
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_CONFIG_ERROR
@@ -33,7 +33,7 @@ module Tddium
 
       begin
         say Text::Process::REMOVE_CONFIG % [key, scope]
-        result = call_api(:delete, env_path(scope, key))
+        result = @tddium_api.delete_config_key(scope, key)
         say Text::Process::REMOVE_CONFIG_DONE % [key, scope]
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::REMOVE_CONFIG_ERROR

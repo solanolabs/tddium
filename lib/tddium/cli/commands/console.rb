@@ -18,7 +18,7 @@ module Tddium
         path = raw ? Api::Path::INSTANCES : Api::Path::SESSIONS
         path += "/#{id}/sshauth"
 
-        result = call_api(:get, path, {})
+        result = @tddium_api.call_api(:get, path, {})
         user = result["user"] unless raw
         host = result["host"]
         keys = result["keys"]

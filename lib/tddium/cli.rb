@@ -11,9 +11,10 @@ require 'base64'
 require 'erb'
 
 require 'tddium/cli/tddium'
+
+require 'tddium/cli/api'
 require 'tddium/cli/config'
+require 'tddium/cli/suite'
 require 'tddium/cli/prompt'
 require 'tddium/cli/show'
-require 'tddium/cli/suite'
-require 'tddium/cli/user'
 require 'tddium/cli/util'

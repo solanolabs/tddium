@@ -25,7 +25,21 @@ Feature: spec command
     And the test all pass
     When I run `tddium spec`
     Then the exit status should be 0
-    And the output should contain "Using suite"
+
+  Scenario: Auto-create a new suite
+    Given the destination repo exists
+    And a git repo is initialized on branch "foobar"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "work/foobar" on branch "foobar"
+    And the user creates a suite for "work/foobar" on branch "foobar"
+    And the user can create a session
+    And the user successfully registers tests for the suite 
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Creating suite"
 
   Scenario: Don't remember test pattern or max-parallelism
     Given the destination repo exists

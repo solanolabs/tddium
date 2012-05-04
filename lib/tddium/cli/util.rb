@@ -10,23 +10,6 @@ module Tddium
       end
     end
 
-    def env_path(scope, key=nil)
-      path = "/#{scope}s/#{get_current_id(scope)}/env"
-      path += "/#{key}" if key
-      path
-    end
-
-    def get_current_id(scope)
-      case scope
-      when "suite"
-        current_suite_id
-      when "account"
-        current_account_id
-      else
-        raise "unrecognized scope"
-      end
-    end
-
     def tool_version(tool)
       key = "#{tool}_version".to_sym
       result = @repo_config[key]

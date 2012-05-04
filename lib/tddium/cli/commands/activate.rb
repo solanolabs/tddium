@@ -12,7 +12,7 @@ module Tddium
       if user_details then
         exit_failure Text::Error::ACTIVATE_LOGGED_IN
       else
-        params = get_user_credentials(options.merge(:invited => true))
+        params = @tddium_api.get_user_credentials(options.merge(:invited => true))
 
         # Prompt for the password confirmation if password is not from command line
         unless options[:password]
@@ -35,14 +35,13 @@ module Tddium
 
         begin
           say Text::Process::STARTING_ACCOUNT_CREATION
-          new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-          @api_config.set_api_key(new_user["user"]["api_key"], new_user["user"]["email"])
-          role = new_user["user"]["account_role"]
+          new_user = @tddium_api.set_user(params)
+          @api_config.set_api_key(new_user["api_key"], new_user["email"])
+          role = new_user["account_role"]
           if role.nil? || role == "owner"
-            u = new_user["user"]
-            say Text::Process::ACCOUNT_CREATED % [u["email"], u["trial_remaining"], u["recurly_url"]]
+            say Text::Process::ACCOUNT_CREATED % [new_user["email"], new_user["trial_remaining"], new_user["recurly_url"]]
           else
-            say Text::Process::ACCOUNT_ADDED % [new_user["user"]["email"], new_user["user"]["account_role"], new_user["user"]["account"]]
+            say Text::Process::ACCOUNT_ADDED % [new_user["email"], new_user["account_role"], new_user["account"]]
           end
         rescue TddiumClient::Error::API => e
           exit_failure ((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)

@@ -26,8 +26,8 @@ module Tddium
 
       test_execution_params = {}
 
-      if user_data_file_path = options[:user_data_file]
-        if File.exists?(user_data_file_path)
+      if user_data_file_path = options[:user_data_file] then
+        if File.exists?(user_data_file_path) then
           user_data = File.open(user_data_file_path) { |file| file.read }
           test_execution_params[:user_data_text] = Base64.encode64(user_data)
           test_execution_params[:user_data_filename] = File.basename(user_data_file_path)
@@ -37,46 +37,46 @@ module Tddium
         end
       end
 
-      if max_parallelism = options[:max_parallelism]
+      if max_parallelism = options[:max_parallelism] then
         test_execution_params[:max_parallelism] = max_parallelism
         say Text::Process::USING_SPEC_OPTION[:max_parallelism] % max_parallelism
       end
 
       test_pattern = nil
 
-      if pattern.is_a?(Array) && pattern.size > 0
+      if pattern.is_a?(Array) && pattern.size > 0 then
         test_pattern = pattern.join(",")
       end
 
       test_pattern ||= options[:test_pattern]
-      if test_pattern
+      if test_pattern then
         say Text::Process::USING_SPEC_OPTION[:test_pattern] % test_pattern
       end
 
       start_time = Time.now
 
       # Call the API to get the suite and its tests
-      suite_details = call_api(:get, current_suite_path)
+      suite_details = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
 
-      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["suite"]["repoman_current"]
+      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["repoman_current"]
 
       update_suite_parameters!(suite_details)
 
       # Push the latest code to git
-      unless Tddium::Git.update_git_remote_and_push(suite_details)
+      git_repo_uri = suite_details["git_repo_uri"]
+      if !Tddium::Git.update_git_remote_and_push(git_repo_uri) then
         exit_failure Text::Error::GIT_PUSH_FAILED 
       end
 
       # Create a session
-      new_session = call_api(:post, Api::Path::SESSIONS)
-      machine_data[:session_id] = session_id = new_session["session"]["id"]
+      new_session = @tddium_api.create_session
+      machine_data[:session_id] = session_id = new_session["id"]
 
       # Register the tests
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => current_suite_id, :test_pattern => test_pattern})
+      @tddium_api.register_session(session_id, @tddium_api.current_suite_id, test_pattern)
 
       # Start the tests
-      start_test_executions = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", test_execution_params)
-
+      start_test_executions = @tddium_api.start_session(session_id, test_execution_params)
       num_tests_started = start_test_executions["started"].to_i
 
       say Text::Process::STARTING_TEST % num_tests_started.to_s
@@ -100,7 +100,7 @@ module Tddium
 
       while tests_not_finished_yet do
         # Poll the API to check the status
-        current_test_executions = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
+        current_test_executions = @tddium_api.poll_session(session_id)
 
         messages = current_test_executions["messages"]
         if !options[:machine] && finished_tests.size == 0 && messages 
@@ -150,7 +150,7 @@ module Tddium
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
 
-      suite = suite_details["suite"].merge({"id" => current_suite_id})
+      suite = suite_details.merge({"id" => @tddium_api.current_suite_id})
       @api_config.set_suite(suite)
       @api_config.write_config
 
