@@ -88,9 +88,9 @@ Feature: Login command
     And dotfiles should be updated
 
   Scenario: Already logged in
-    Given the user is logged in
+    Given a git repo is initialized
+    And the user is logged in
     And the user has no suites
-    And a git repo is initialized
     And the user has the following keys:
       | name      |
       | default   |
