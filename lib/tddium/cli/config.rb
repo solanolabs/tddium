@@ -71,6 +71,11 @@ module Tddium
       @config['api_key'] = api_key
     end
 
+    def git_ready_sleep
+      s = ENV["TDDIUM_GIT_READY_SLEEP"] || Default::GIT_READY_SLEEP
+      s.to_f
+    end
+
     def set_suite(suite)
       branch = suite['branch']
       return if branch.nil? || branch.empty?

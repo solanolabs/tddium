@@ -70,6 +70,7 @@ Feature: spec command
 
   Scenario: Wait until repo preparation is done
     Given the destination repo exists
+    And the git ready timeout is 0
     And a git repo is initialized on branch "foobar"
     And the user is logged in
     And the user has no suites
@@ -82,6 +83,7 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should be 1
     And the output should contain "Creating suite"
+    And the output should contain "prepped"
 
   Scenario: Don't remember test pattern or max-parallelism
     Given the destination repo exists

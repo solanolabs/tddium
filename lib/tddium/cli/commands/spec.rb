@@ -65,7 +65,7 @@ module Tddium
           break
         else
           say Text::Process::GIT_REPO_WAIT
-          sleep Default::GIT_READY_SLEEP
+          sleep @api_config.git_ready_sleep
         end
       end
       exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["repoman_current"]
@@ -100,8 +100,10 @@ module Tddium
       messages = nil
 
       report = start_test_executions["report"]
+      say ""
       say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
       say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+      say ""
 
       # Catch Ctrl-C to interrupt the test
       Signal.trap(:INT) do
@@ -128,6 +130,7 @@ module Tddium
         # Print out the progress of running tests
         current_test_executions["tests"].each do |test_name, result_params|
           if finished_tests.size == 0 && result_params["finished"] then
+            say ""
             say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
           end
           if result_params["finished"] && !finished_tests[test_name]
@@ -158,9 +161,11 @@ module Tddium
       display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
       # Print out the result
+      say Text::Process::RUN_TDDIUM_WEB
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
+
 
       suite = suite_details.merge({"id" => @tddium_api.current_suite_id})
       @api_config.set_suite(suite)

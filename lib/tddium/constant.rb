@@ -152,14 +152,15 @@ EOF
 
 EOF
       NO_CONFIGURED_SUITE = "Looks like you haven't set up a suite on this computer for %s/%s...\n"
-      TERMINATE_INSTRUCTION = "Press Ctrl-C to stop waiting.  Tests will continue running."
+      TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
-      GIT_PUSH = "Pushing changes to Tddium..."
-      GIT_REPO_WAIT = "Waiting for your git repository to become ready.  Sleeping for 10 seconds ..."
-      STARTING_TEST = "Starting Session with %s tests..."
-      CHECK_TEST_STATUS = "Use 'tddium status' to check on pending jobs"
+      GIT_PUSH = ">>> Pushing changes to Tddium..."
+      GIT_REPO_WAIT = ">>> Waiting for your git repository to become ready.  Sleeping for 10 seconds ..."
+      STARTING_TEST = ">>> Starting Session with %s tests..."
+      CHECK_TEST_STATUS = ">>> Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
-      CHECK_TEST_REPORT = "Test report: %s"
+      RUN_TDDIUM_WEB = "\n>>> Run `tddium web` to open the latest test results in your browser.\n"
+      CHECK_TEST_REPORT = ">>> To view results, visit: %s"
       EXISTING_SUITE = "\nCurrent suite...\n"
       USING_EXISTING_SUITE = "Using suite '%s/%s'."
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
@@ -263,8 +264,8 @@ EOF
     end
 
     module Status
-      SPEC_WARNINGS = "\n\nWarnings:\n\n"
-      SPEC_ERRORS = "\n\nErrors:\n"
+      SPEC_WARNINGS = "\n\n>>> Tddium Warnings:\n\n"
+      SPEC_ERRORS = "\n\n>>> Tddium Errors:\n"
       NO_SUITE = "You currently do not have any suites"
       ALL_SUITES = "Your suites: %s"
       CURRENT_SUITE = "Your current suite: %s"

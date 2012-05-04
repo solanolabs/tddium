@@ -12,6 +12,10 @@ Given /^an old version of git is installed$/ do
   pending
 end
 
+Given "the git ready timeout is 0" do
+  ENV["TDDIUM_GIT_READY_SLEEP"] = "0"
+end
+
 Given /^a git repo is initialized(?: on branch "([^"]*)")?$/ do |branch|
   steps %Q{
     Given a directory named "work"
