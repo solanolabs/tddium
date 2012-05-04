@@ -382,7 +382,7 @@ EOF
       LIST_CONFIG_ERROR = "Error listing configuration variables"
       ADD_CONFIG_ERROR = "Error settng configuration variable"
       REMOVE_CONFIG_ERROR = "Error removing configuration variable"
-      GIT_NOT_A_REPOSITORY = "Current working directory is not in a repository"
+      GIT_NOT_A_REPOSITORY = "Current working directory is not a git repository"
       INVALID_CONFIGURED_PATTERN =<<EOF;
 Configuring test pattern from config/tddium.yml...
 
