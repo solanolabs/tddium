@@ -23,6 +23,7 @@ Feature: Login command
     """
     And the output should not contain "tddium suite"
     And the output should not contain "tddium spec"
+    And the output should not contain "tddium run"
     And the exit status should be 0
     And dotfiles should be updated
 
@@ -42,6 +43,7 @@ Feature: Login command
     """
     And the output should not contain "tddium suite"
     And the output should not contain "tddium spec"
+    And the output should not contain "tddium run"
     And the exit status should be 0
     And dotfiles should be updated
 
@@ -61,6 +63,7 @@ Feature: Login command
     """
     And the output should not contain "tddium suite"
     And the output should not contain "tddium spec"
+    And the output should not contain "tddium run"
     And the exit status should be 0
 
   Scenario: Interactively log in successfully without an ssh key
@@ -82,8 +85,7 @@ Feature: Login command
     """
     Logged in successfully
     """
-    And the output should contain "tddium suite"
-    And the output should contain "tddium spec"
+    And the output should contain "tddium run"
     And the exit status should be 0
     And dotfiles should be updated
 
