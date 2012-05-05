@@ -109,7 +109,15 @@ module Tddium
       if message && result.nil? then
         say Text::Error::NOT_INITIALIZED
       end
-      (result && active) ? get_user : result
+      if result && active
+        u = get_user
+        if message && u.nil?
+          say Text::Error::INVALID_CREDENTIALS
+        end
+        u
+      else
+        result
+      end
     end
 
     def get_memberships(params={})

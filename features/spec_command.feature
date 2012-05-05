@@ -96,7 +96,7 @@ Feature: spec command
     When I run `tddium spec --max-parallelism=1 --test-pattern=spec/foo`
     Then the exit status should be 0
     And the output should contain "Starting Session"
-    And the output should contain "Test report"
+    And the output should contain "To view results"
     And options should not be saved
 
   Scenario: Ignore remembered test pattern and max-parallelism
@@ -109,7 +109,7 @@ Feature: spec command
     And the test all pass
     When I run `tddium spec`
     Then the exit status should be 0
-    And the output should contain "Test report"
+    And the output should contain "To view results"
     And the output should not contain "emembered"
     And options should not be saved
 
@@ -126,7 +126,7 @@ Feature: spec command
     And an empty file named "spec2.rb" 
     When I run `tddium spec spec1.rb spec2.rb`
     Then the exit status should be 0
-    And the output should contain "Test report"
+    And the output should contain "To view results"
     And the output should not contain "emembered"
     And options should not be saved
 
@@ -180,7 +180,7 @@ Feature: spec command
     And the test all pass with messages
     When I run `tddium spec`
     Then the exit status should be 0
-    And the output should contain "Test report"
+    And the output should contain "To view results"
     And the output should contain "Ctrl-C"
     And the output should contain "---> abcdef"
     And the output should not contain "---> abcdef --->"

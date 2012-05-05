@@ -474,6 +474,7 @@ EOF
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
       ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
       USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
+      INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
     end
   end
 
