@@ -169,26 +169,17 @@ EOF
       PASSWORD_CHANGED = "Your password has been changed."
       NEXT_STEPS = "
 
-Next, you should:
+Next, you should register your test suite and start tests by running:
 
-1. Register your test suite by running:
+$ tddium run
 
-tddium suite
-
-2. Start tests by running:
-
-tddium spec
 "
       ACCOUNT_CREATED = "
 Congratulations %s, your tddium account has been created!
 
-Next, you should:
+Next, you should register your test suite and start tests by running:
 
-1. Register your test suite by running:
-tddium suite
-
-2. Start tests by running:
-tddium spec
+$ tddium run
 
 You have %s days left in your free trial.
 
@@ -202,13 +193,10 @@ Congratulations %s, your tddium account has been activated.
 
 You are a %s of the account: %s
 
-Next, you should:
+Next, you should register your test suite and start tests by running:
 
-1. Register your test suite by running:
-tddium suite
+$ tddium run
 
-2. Start tests by running:
-tddium spec
 "
       STARTING_ACCOUNT_CREATION = "Creating account.  This may take a few seconds..."
       ALREADY_LOGGED_IN = "You're already logged in"
@@ -297,15 +285,9 @@ EOF
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
 
-Next, you should:
+Next, you should register your test suite and start tests by running:
 
-1. Register your test suite by running:
-
-$ tddium suite
-
-2. Start tests by running:
-
-$ tddium spec
+$ tddium run
 
 "
       SUITE_DETAILS =<<EOF;
