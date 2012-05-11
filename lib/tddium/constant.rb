@@ -63,7 +63,7 @@ module TddiumConstant
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a repo name or press 'Return'. Using '%s' by default:"
       LICENSE_AGREEMENT = "Type '%s' to accept the Terms of Service and continue:" % Response::AGREE_TO_LICENSE
-      EMAIL = "Enter your email address:"
+      EMAIL = "Enter your email address: "
       CURRENT_PASSWORD = "Enter your old password: "
       PASSWORD = "Enter password: "
       NEW_PASSWORD = "Enter a new password: "

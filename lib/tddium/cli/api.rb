@@ -87,7 +87,7 @@ module Tddium
         params[:invitation_token] = token.strip
         params[:password] = options[:password] || HighLine.ask(Text::Prompt::NEW_PASSWORD) { |q| q.echo = "*" }
       else
-        params[:email] = options[:email] || ask(Text::Prompt::EMAIL)
+        params[:email] = options[:email] || HighLine.ask(Text::Prompt::EMAIL)
         params[:password] = options[:password] || HighLine.ask(Text::Prompt::PASSWORD) { |q| q.echo = "*" }
       end
       params
