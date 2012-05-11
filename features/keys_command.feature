@@ -39,25 +39,25 @@ Feature: Keys command
     When I run `tddium keys`
     Then it should fail with a login hint
 
-  Scenario: Add first key
+  Scenario: Generate first key
     Given the user is logged in
     And the user has no keys
     And adding the key "third" will succeed
-    When I run `tddium keys:add third`
+    When I run `tddium keys:gen third`
     Then the exit status should be 0
     And the key file named "third" should exist
     And the output should contain "Generating"
     And the output should contain "authorized"
     And the output should contain "Host"
 
-  Scenario: Add key successfully
+  Scenario: Generate key successfully
     Given the user is logged in
     And the user has the following keys:
       | name      |
       | default   |
       | another   |
     And adding the key "third" will succeed
-    When I run `tddium keys:add third`
+    When I run `tddium keys:gen third`
     Then the exit status should be 0
     And the key file named "third" should exist
     And the output should contain "Generating"
@@ -67,7 +67,11 @@ Feature: Keys command
     And the output should contain "identity.tddium.third"
 
   Scenario: Fail to add key if the user isn't logged in
-    When I run `tddium keys:add third`
+    When I run `tddium keys:add identitiy.tddium.third third`
+    Then it should fail with a login hint
+
+  Scenario: Fail to generate key if the user isn't logged in
+    When I run `tddium keys:gen third`
     Then it should fail with a login hint
 
   Scenario: Fail to add key with duplicate name
@@ -76,7 +80,7 @@ Feature: Keys command
       | name      |
       | default   |
       | another   |
-    When I run `tddium keys:add another`
+    When I run `tddium keys:gen another`
     Then the exit status should not be 0
     And the key file named "another" should not exist
     And the output should contain "already have"
@@ -88,7 +92,7 @@ Feature: Keys command
       | default   |
       | another   |
     And the key file named "another" exists
-    When I run `tddium keys:add another --key identity.tddium.another`
+    When I run `tddium keys:add identity.tddium.another another`
     Then the exit status should not be 0
     And the output should contain "already have"
 
@@ -100,7 +104,7 @@ Feature: Keys command
       | another   |
     And adding the key "third" will succeed
     But the key file named "third" exists
-    When I run `tddium keys:add third`
+    When I run `tddium keys:gen third`
     Then the exit status should not be 0
     And the output should contain "already exists"
 
@@ -112,7 +116,7 @@ Feature: Keys command
       | another   |
     And adding the key "third" will succeed
     And the key file named "third" exists
-    When I run `tddium keys:add third --key identity.tddium.third`
+    When I run `tddium keys:add identity.tddium.third third`
     Then the exit status should be 0
     And the output should contain "Adding"
     And the output should contain "Authorized"
@@ -124,9 +128,20 @@ Feature: Keys command
       | name      |
       | default   |
       | another   |
-    When I run `tddium keys:add third --key identity.tddium.third`
+    When I run `tddium keys:add identity.tddium.third third`
     Then the exit status should not be 0
     And the output should contain "is not accessible"
+
+  Scenario: Fail to generate on API error
+    Given the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
+      | another   |
+    But adding the key "third" will fail
+    When I run `tddium keys:gen third`
+    Then the exit status should not be 0
+    And the output should contain "API Error"
 
   Scenario: Fail to add on API error
     Given the user is logged in
@@ -134,11 +149,11 @@ Feature: Keys command
       | name      |
       | default   |
       | another   |
+    And the key file named "third" exists
     But adding the key "third" will fail
-    When I run `tddium keys:add third`
+    When I run `tddium keys:add identity.tddium.third third`
     Then the exit status should not be 0
     And the output should contain "API Error"
-
 
   Scenario: Remove key successfully
     Given the user is logged in
