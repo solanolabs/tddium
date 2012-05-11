@@ -19,7 +19,11 @@ module Tddium
         return result
       end
 
-      result = `#{tool} -v`.strip
+      begin
+        result = `#{tool} -v`.strip
+      rescue Errno::ENOENT
+        exit_failure("#{tool} is not on PATH; please install and try again")
+      end
       say Text::Process::DEPENDENCY_VERSION % [tool, result]
       result
     end
