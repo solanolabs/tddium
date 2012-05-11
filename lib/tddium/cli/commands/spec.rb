@@ -132,6 +132,8 @@ module Tddium
           if finished_tests.size == 0 && result_params["finished"] then
             say ""
             say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
+            say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+            say ""
           end
           if result_params["finished"] && !finished_tests[test_name]
             test_status = result_params["status"]

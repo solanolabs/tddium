@@ -2,7 +2,7 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "config [SCOPE=suite]", "Display config variables for SCOPE (account, repo, suite)"
+    desc "config [SCOPE=suite]", "Display config variables for SCOPE (account, suite)"
     def config(scope="suite")
       tddium_setup({:repo => true, :suite => true})
 
@@ -14,7 +14,7 @@ module Tddium
       end
     end
 
-    desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE (of account, repo, suite)"
+    desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE (of account, suite)"
     define_method "config:add" do |scope, key, value|
       tddium_setup({:repo => true, :suite => true})
 
