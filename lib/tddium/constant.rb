@@ -155,7 +155,7 @@ EOF
       TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
       GIT_PUSH = ">>> Pushing changes to Tddium..."
-      GIT_REPO_WAIT = ">>> Waiting for your git repository to become ready. Sleeping for 10 seconds..."
+      GIT_REPO_WAIT = ">>> Waiting for your repository to be prepared. Sleeping for 10 seconds..."
       STARTING_TEST = ">>> Starting Session with %s tests..."
       CHECK_TEST_STATUS = ">>> Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
