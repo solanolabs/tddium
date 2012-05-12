@@ -92,7 +92,7 @@ Feature: Keys command
       | default   |
       | another   |
     And the key file named "another" exists
-    When I run `tddium keys:add identity.tddium.another another`
+    When I run `tddium keys:add another identity.tddium.another`
     Then the exit status should not be 0
     And the output should contain "already have"
 
@@ -116,7 +116,7 @@ Feature: Keys command
       | another   |
     And adding the key "third" will succeed
     And the key file named "third" exists
-    When I run `tddium keys:add identity.tddium.third third`
+    When I run `tddium keys:add third identity.tddium.third`
     Then the exit status should be 0
     And the output should contain "Adding"
     And the output should contain "Authorized"
@@ -151,7 +151,7 @@ Feature: Keys command
       | another   |
     And the key file named "third" exists
     But adding the key "third" will fail
-    When I run `tddium keys:add identity.tddium.third third`
+    When I run `tddium keys:add third identity.tddium.third`
     Then the exit status should not be 0
     And the output should contain "API Error"
 
