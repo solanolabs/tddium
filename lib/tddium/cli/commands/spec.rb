@@ -163,6 +163,7 @@ module Tddium
       display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
       # Print out the result
+      say ""
       say Text::Process::RUN_TDDIUM_WEB
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)

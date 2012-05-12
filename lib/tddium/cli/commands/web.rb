@@ -2,7 +2,7 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "web", "Open build report in web browser"
+    desc "web [SESSION_ID]", "Open build report in web browser"
     def web(*args)
       tddium_setup({:login => false, :git => false})
 
@@ -13,9 +13,11 @@ module Tddium
       fragment ||= 'latest'
 
       begin
+        puts @tddium_client.inspect
+        puts TddiumClient::VERSION
         Launchy.open("https://#{@tddium_client.host}/#{fragment}")
-      rescue TddiumClient::Error::Base
-        exit_failure
+      rescue Launchy::Error => e
+        exit_failure e.message
       end
     end
   end
