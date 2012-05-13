@@ -110,14 +110,13 @@ module Tddium
         pattern = pattern.join(",")
       end
 
-      if pattern && current_suite["test_pattern"] != pattern
+      if pattern && current_suite["test_pattern"] != pattern then
         update_params[:test_pattern] = pattern
       end
 
-      configured_ruby_version = @repo_config[:ruby_version]
-      if configured_ruby_version && 
-         configured_ruby_version != current_suite["ruby_version"]
-        update_params[:ruby_version] = configured_ruby_version
+      ruby_version = sniff_ruby_version
+      if ruby_version && ruby_version != current_suite["ruby_version"] then
+        update_params[:ruby_version] = ruby_version
       end
 
       if !update_params.empty? then
@@ -126,7 +125,7 @@ module Tddium
           say Text::Process::UPDATED_TEST_PATTERN % pattern
         end
         if update_params[:ruby_version]
-          say Text::Process::UPDATED_RUBY_VERSION % configured_ruby_version
+          say Text::Process::UPDATED_RUBY_VERSION % ruby_version
         end
       end
     end
