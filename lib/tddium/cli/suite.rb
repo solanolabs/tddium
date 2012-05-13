@@ -90,6 +90,7 @@ module Tddium
     def format_suite_details(suite)
       # Given an API response containing a "suite" key, compose a string with
       # important information about the suite
+      tddium_deploy_key_file_name = @api_config.tddium_deploy_key_file_name
       details = ERB.new(Text::Status::SUITE_DETAILS).result(binding)
       details
     end

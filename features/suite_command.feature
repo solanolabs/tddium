@@ -63,7 +63,6 @@ Feature: suite command
     Then the output should contain "Updated suite successfully"
     Then the exit status should be 0
 
-  @announce
   Scenario: Configure a suite with a heroku push target
     Given the destination repo exists
     And a git repo is initialized on branch "test/foobar"
