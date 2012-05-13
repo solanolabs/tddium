@@ -28,24 +28,31 @@ module Tddium
       result
     end
 
+    def sniff_ruby_version_rvmrc(rvmrc)
+      ruby_version = nil
+      File.open(rvmrc, 'r') do |file|
+        file.each_line do |line|
+          line.sub!(/^\s+/, '')
+          next unless line =~ /^rvm/
+          fields = Shellwords.shellsplit(line)
+          fields.each do |field|
+            if field =~ /^(ree|1[.][89])/ then
+              ruby_version = field.sub(/@.*/, '')
+            end
+          end
+        end
+      end
+      return ruby_version
+    end
+
     def sniff_ruby_version
       ruby_version = @repo_config[:ruby_version]
       return ruby_version unless ruby_version.nil? || ruby_version.empty?
 
       git_root = Git.git_root
       if git_root then
-        File.open(File.join(git_root, '.rvmrc'), 'r') do |file|
-          file.each_line do |line|
-            line.sub!(/^\s+/, '')
-            next unless line =~ /^rvm/
-            fields = Shellwords.shellsplit(line)
-            fields.each do |field|
-              if field =~ /^(ree|1[.][89])/ then
-                ruby_version = field.sub(/@.*/, '')
-              end
-            end
-          end
-        end
+        rvmrc = File.join(git_root, '.rvmrc')
+        ruby_version = sniff_ruby_version_rvmrc(rvmrc) if File.exists?(rvmrc)
       end
       return ruby_version
     end
