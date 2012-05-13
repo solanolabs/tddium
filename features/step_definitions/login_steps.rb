@@ -24,16 +24,22 @@ Given /^the user is logged in with a third-party key$/ do
   }
 end
 
+Given /^the user has a .tddium for branch "(.*)"$/ do |branch|
+  steps %Q{
+    Given a file named ".tddium.mimic" with:
+    """
+    {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1}}}
+    """
+  }
+end
+
 Given /^the user is logged in with a configured suite(?: on branch "(.*)")?$/ do |branch|
   @api_key = "abcdef"
   branch ||= "master"
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
-    """
-    {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1}}}
-    """
+    Given the user has a .tddium for branch "#{branch}"
     And the user has a suite for "repo" on "#{branch}"
   }
 end

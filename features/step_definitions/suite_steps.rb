@@ -6,12 +6,21 @@ def make_suite_response(name, branch)
   suite["branch"] = branch
   suite["git_repo_uri"] = "file:///#{Dir.tmpdir}/tddium-aruba/repo"
   suite["repoman_current"] = true
+  suite["ci_ssh_pubkey"] = "ssh-rsa ABCDEFGG"
   suite
 end
 
 Given /^the user has a suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
   Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
   Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>make_suite_response(name, branch)})
+end
+
+Given /^the user has a heroku-push suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
+  suite = make_suite_response(name, branch)
+  suite["ci_pull_url"] = "git@github.com:foo.git"
+  suite["ci_push_url"] = "git@heroku.com:foo.git"
+  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[suite]})
+  Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>suite})
 end
 
 Given /^the user has no suites/ do

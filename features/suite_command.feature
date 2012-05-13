@@ -62,3 +62,15 @@ Feature: suite command
     When I run `tddium suite --edit --hipchat-room=foobar --non-interactive` 
     Then the output should contain "Updated suite successfully"
     Then the exit status should be 0
+
+  @announce
+  Scenario: Configure a suite with a heroku push target
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has a .tddium for branch "test/foobar"
+    And the user has a heroku-push suite for "test" on "test/foobar"
+    When I run `tddium suite --name=test --non-interactive`
+    Then the output should contain "Heroku"
+    Then the exit status should be 0
+    
