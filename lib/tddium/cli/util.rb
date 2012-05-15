@@ -10,6 +10,14 @@ module Tddium
       end
     end
 
+    def tool_cli_populate(options, params)
+      if options[:tool].is_a?(Hash) then
+        options[:tool].each_pair do |key, value|
+          params[key.to_sym] = value
+        end
+      end
+    end
+
     def tool_version(tool)
       key = "#{tool}_version".to_sym
       result = @repo_config[key]

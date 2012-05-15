@@ -11,10 +11,12 @@ module Tddium
     method_option :campfire_room, :type => :string, :default => nil
     method_option :hipchat_room, :type => :string, :default => nil
     method_option :non_interactive, :type => :boolean, :default => false
+    method_option :tool, :type => :hash, :default => {}
     def suite
       tddium_setup({:repo => true})
 
       params = {}
+      tool_cli_populate(options, params)
       begin
         if @tddium_api.current_suite_id then
           current_suite = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)

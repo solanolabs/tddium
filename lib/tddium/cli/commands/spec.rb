@@ -11,6 +11,7 @@ module Tddium
     method_option :test_pattern, :type => :string, :default => nil
     method_option :force, :type => :boolean, :default => false
     method_option :machine, :type => :boolean, :default => false
+    method_option :tool, :type => :hash, :default => {}
     def spec(*pattern)
       machine_data = {}
 
@@ -20,7 +21,7 @@ module Tddium
 
       exit_failure unless suite_for_current_branch?
 
-      if Tddium::Git.git_changes?(:exclude=>".gitignore")
+      if Tddium::Git.git_changes?(:exclude=>".gitignore") then
         exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
         warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
       end

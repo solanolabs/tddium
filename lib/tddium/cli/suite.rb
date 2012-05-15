@@ -71,6 +71,7 @@ module Tddium
           say Text::Process::USING_EXISTING_SUITE % [params[:repo_name], params[:branch]]
         else
           #
+          tool_cli_populate(options, params)
           prompt_suite_params(options.merge({:non_interactive => true}), params)
 
           # Create new suite if it does not exist yet
