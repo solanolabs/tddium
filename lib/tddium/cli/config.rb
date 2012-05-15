@@ -104,7 +104,7 @@ module Tddium
         if config.is_a?(Hash) then
           @config.merge!(config)
         else
-          say (Text::Error::INVALID_TDDIUM_FILE % environment)
+          say(Text::Error::INVALID_TDDIUM_FILE % environment)
         end
       end
       return @config
