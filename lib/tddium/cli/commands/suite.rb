@@ -26,6 +26,9 @@ module Tddium
             say Text::Process::EXISTING_SUITE, :bold
             say format_suite_details(current_suite)
           end
+
+          @api_config.set_suite(current_suite)
+          @api_config.write_config
         else
           params[:branch] = Tddium::Git.git_current_branch
           default_suite_name = Tddium::Git.git_repo_name
