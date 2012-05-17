@@ -50,7 +50,7 @@ module Tddium
     end
 
     def show_session_details(params, no_session_prompt, all_session_prompt)
-      current_sessions = @tddium_api.get(sessions, params)
+      current_sessions = @tddium_api.get_sessions(params)
       say Text::Status::SEPARATOR
       if current_sessions.empty? then
         say no_session_prompt
