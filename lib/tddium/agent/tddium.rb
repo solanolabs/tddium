@@ -54,6 +54,11 @@ module Tddium
       return status
     end
 
+    def current_branch
+      cmd = "cd #{ENV['TDDIUM_REPO_ROOT']} && git symbolic-ref HEAD"
+      `#{cmd}`.gsub("\n", "").split("/")[2..-1].join("/")
+    end
+
     # Attach a blob to the session -- excessive storage use is billable
     # @param data blob that is convertible into a string
     # @param metadata hash of metadata options
