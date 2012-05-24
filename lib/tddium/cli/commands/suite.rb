@@ -20,7 +20,7 @@ module Tddium
       begin
         if @tddium_api.current_suite_id then
           current_suite = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
-          if options[:edit]
+          if options[:edit] then
             update_suite(current_suite, options)
           else
             say Text::Process::EXISTING_SUITE, :bold
