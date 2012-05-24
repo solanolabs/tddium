@@ -43,7 +43,7 @@ EOF
   s.add_runtime_dependency("launchy")
   s.add_runtime_dependency("tddium_client", "~> 0.2.0")
 
-  s.add_development_dependency("bundler", "~> 1.1.0")
+#  s.add_development_dependency("bundler", "~> 1.1.0")
   s.add_development_dependency("rspec")
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")

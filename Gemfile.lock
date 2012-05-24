@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (1.4.6)
+    tddium (1.4.7)
       highline
       json
       launchy
@@ -89,7 +89,6 @@ PLATFORMS
 DEPENDENCIES
   antilles
   aruba (= 0.4.6)
-  bundler (~> 1.1.0)
   cucumber
   daemons
   fakefs
