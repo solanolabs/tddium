@@ -39,9 +39,7 @@ module Tddium
 
       def handle_heroku_user(options, heroku_config)
         api_key = heroku_config['TDDIUM_API_KEY']
-        puts api_key
         user = @tddium_api.get_user(api_key)
-        puts user
         exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
         say Text::Process::HEROKU_WELCOME % user["email"]
 
