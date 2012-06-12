@@ -18,7 +18,7 @@ module Tddium
       if File.exists?(Config::CONFIG_PATH) then
         begin
           rawconfig = File.read(Config::CONFIG_PATH)
-          if rawconfig && rawconfig !~ /^\s*$/ then
+          if rawconfig && rawconfig !~ /\A\s*\z/ then
             config = YAML.load(rawconfig)
             config = config[:tddium] || config['tddium'] || Hash.new
           end

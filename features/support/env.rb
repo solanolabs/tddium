@@ -4,7 +4,12 @@ require 'rubygems'
 require 'aruba/cucumber'
 require 'pickle/parser'
 
-ENV['PATH'] = "#{File.expand_path(File.dirname(__FILE__) + '/../../bin')}#{File::PATH_SEPARATOR}#{ENV['PATH']}"
+def prepend_path(path)
+  path = File.expand_path(File.dirname(__FILE__) + "/../../#{path}")
+  ENV['PATH'] = "#{path}#{File::PATH_SEPARATOR}#{ENV['PATH']}"
+end
+
+prepend_path('bin')
 #ENV['COVERAGE'] = "true"
 ENV['COVERAGE_ROOT'] = "#{File.expand_path(File.dirname(__FILE__) + '/../../')}"
 

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ "$TDDIUM_HEROKU_STUB_RESULT" != "0" ]; then
+  exit 1
+fi
+
+echo "TDDIUM_API_KEY=$TDDIUM_HEROKU_STUB_API_KEY"
+echo "TDDIUM_USER_NAME=foobar"
+
+exit "$TDDIUM_HEROKU_STUB_RESULT"

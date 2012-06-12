@@ -84,7 +84,7 @@ Feature: Account command
     When I successfully run `tddium account:remove member@example.com`
     Then the output should contain "Removed member@example.com"
 
-  Scenario: Remove member to account unsuccessfully
+  Scenario: Remove member from account unsuccessfully
     Given the user is logged in
     And removing "member@example.com" from the account will fail with error "remove member error"
     When I run `tddium account:remove member@example.com`

@@ -8,7 +8,7 @@ module Tddium
     method_option :ssh_key_file, :type => :string, :default => nil
     method_option :app, :type => :string, :default => nil
     def heroku
-      user_details = tddium_setup
+      user_details = tddium_setup(:login=>false)
 
       if user_details then
         # User is already logged in, so just display the info
@@ -39,7 +39,9 @@ module Tddium
 
       def handle_heroku_user(options, heroku_config)
         api_key = heroku_config['TDDIUM_API_KEY']
+        puts api_key
         user = @tddium_api.get_user(api_key)
+        puts user
         exit_failure Text::Error::HEROKU_MISCONFIGURED % "Unrecognized user" unless user
         say Text::Process::HEROKU_WELCOME % user["email"]
 
@@ -61,7 +63,7 @@ module Tddium
 
           begin
             user_id = user["id"]
-            result = @tddium_api.update_user(user_id, {:user=>params, :heroku_activation=>true}, api_key)
+            result = @tddium_api.update_user(user_id, {:user=>params, :heroku_activation=>true})
           rescue TddiumClient::Error::API => e
             exit_failure Text::Error::HEROKU_MISCONFIGURED % e
           rescue TddiumClient::Error::Base => e

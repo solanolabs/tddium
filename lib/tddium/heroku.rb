@@ -15,7 +15,8 @@ module Tddium
     def self.read_config(app=nil)
       config = {}
 
-      command = "heroku config -s"
+      command = base_command = ENV['TDDIUM_HEROKU_COMMAND'] || 'heroku'
+      command += " config -s"
       command += " --app #{app}" if app
 
       begin
@@ -23,7 +24,7 @@ module Tddium
       rescue Errno::ENOENT
         raise HerokuNotFound
       end
-      raise HerokuNotFound if output =~ /heroku: not found/
+      raise HerokuNotFound if output =~ /#{base_command}: not found/
       raise AppNotFound if output =~ /App not found/
       raise InvalidFormat if output.length == 0
       raise NotLoggedIn if output =~ /Heroku credentials/

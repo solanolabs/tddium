@@ -10,7 +10,7 @@ module Tddium
     end
 
     def call_api(method, api_path, params = {}, api_key = nil, show_error = true)
-      api_key = @api_config.get_api_key unless api_key == false
+      api_key ||= @api_config.get_api_key unless api_key == false
 
       begin
         result = @tddium_client.call_api(method, api_path, params, api_key)
@@ -99,7 +99,7 @@ module Tddium
         user = options[:params]
         login_result = call_api(:post, Api::Path::SIGN_IN, {:user => user}, false, options[:show_error])
         @api_config.set_api_key(login_result["api_key"], user[:email])
-      rescue TddiumClient::Error::Base
+      rescue TddiumClient::Error::Base => e
       end
       login_result
     end

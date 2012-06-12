@@ -66,9 +66,9 @@ SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
     "created_at" => SAMPLE_DATE_TIME, 
     "account" => SAMPLE_ACCOUNT_NAME,
     "account_role" => SAMPLE_ROLE}}
-SAMPLE_HEROKU_USER_RESPONSE = {"user"=>
+SAMPLE_HEROKU_USER_RESPONSE = {"status"=>0, "user"=>
   { "id"=>SAMPLE_USER_ID, 
-    "api_key" => SAMPLE_API_KEY, 
+    "api_key" => "apikey", 
     "email" => SAMPLE_EMAIL, 
     "created_at" => SAMPLE_DATE_TIME, 
     "heroku_needs_activation" => true,
