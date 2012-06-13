@@ -6,24 +6,41 @@ class Aruba::Process
     @process.stop
   end
 
-  def expect(str, resp)
+  def find_in_output(str, chan=:all)
     total_wait = 0.0
     sleep_time = 0.2
 
-    resp = resp.chomp << "\n"
-
+    out = ''
     while total_wait < @io_wait
       @out.rewind
       @err.rewind
 
-      out = filter_ansi(@out.read + @err.read, false)
-      if out =~ /#{str}/
-        stdin.write(resp)
-        break
+      check = case chan
+              when :all
+                @out.read + @err.read
+              when :out
+                @out.read
+              when :err
+                @err.read
+              end
+
+      out = filter_ansi(check, false)
+      if out.include?(str)
+        return [true, nil]
       end
 
       total_wait += sleep_time
       sleep sleep_time
+    end
+    return [false, out]
+  end
+
+  def expect(str, resp)
+    resp = resp.chomp << "\n"
+    if find_in_output(str)
+      stdin.write(resp)
+    else
+      raise "couldn't find #{str}"
     end
   end
 end

@@ -27,12 +27,12 @@ Feature: suite command
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
     When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
+    Then "tddium suite" output should contain "Looks like"
     And I respond to "repo name" with "beta"
-    Then the stderr from "tddium suite" should not contain "WARNING: Unable to parse"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
+    Then "tddium suite" output should contain "Detected branch test/foobar"
+    Then "tddium suite" stderr should not contain "WARNING: Unable to parse"
     When I choose defaults for test pattern, CI settings
-    Then the output from "tddium suite" should contain "Created suite..."
+    Then "tddium suite" output should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
 

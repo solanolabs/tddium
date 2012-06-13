@@ -1,11 +1,7 @@
 
 Given /^the destination repo exists$/ do
-  steps %Q{
-    Given a directory named "repo"
-    And I cd to "repo"
-    And I successfully run `git init --bare .`
-    And I cd to ".."
-  }
+  result = system("mkdir -p #{current_dir} && cd #{current_dir} && mkdir -p repo && cd repo && git init --bare")
+  result.should be_true
 end
 
 Given /^an old version of git is installed$/ do
@@ -17,26 +13,25 @@ Given "the git ready timeout is 0" do
 end
 
 Given /^a git repo is initialized(?: on branch "([^"]*)")?$/ do |branch|
-  steps %Q{
-    Given a directory named "work"
-    And I cd to "work"
-    And I successfully run `rm -f .gitignore`
-    And I successfully run `git init .`
-    And a file named "testfile" with:
-    """
-    some data
-    """
-    And I successfully run `git config user.email "a@b.com"`
-    And I successfully run `git config user.name "A User"`
-    And I run `git ls-files --exclude-standard -d -m -t`
-    And I successfully run `git add .`
-    And I successfully run `git commit -am 'testfile'`
-  }
+  cmd = [
+    "mkdir -p #{current_dir}",
+    "cd #{current_dir}",
+    "mkdir -p work",
+    "cd work",
+    "rm -rf .gitignore",
+    "git init .",
+    "echo 'some data' >> testfile",
+    "git config user.email 'a@b.com'",
+    "git config user.name 'A User'",
+    "git ls-files --exclude-standard -d -m -t",
+    "git add .",
+    "git commit -am 'testfile'"
+  ]
   if branch && branch != 'master'
-    steps %Q{
-    And I successfully run `git checkout -b #{branch}`
-    }
+    cmd << "git checkout -b #{branch}"
   end
+  system(cmd.join(" && ")).should be_true
+  step %{I cd to "work"}
 end
 
 Given "a .gitignore file exists in git" do

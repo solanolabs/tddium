@@ -9,6 +9,33 @@ When /^the console session is killed$/ do
   @last_exit_status = -1
 end
 
-Then /^the output from "([^"]*)" should contain:$/ do |cmd, expected|
-  assert_partial_output(expected, output_from(cmd))
+def get_chan(raw)
+  case raw
+  when 'output'
+    :all
+  when 'stderr'
+    :err
+  when 'stdout'
+    :out
+  end
 end
+
+def check_contains(cmd, chan, pol, expected)
+  res = get_process(cmd).find_in_output(expected, get_chan(chan))
+  if !res[0]
+    if pol == 'should'
+      res[1].should include(expected)
+    else
+      res[1].should_not include(expected)
+    end
+  end
+end
+
+Then /^"([^"]*)" (output|stderr) (should|should not) contain:$/ do |cmd, chan, pol, expected|
+  check_contains(cmd, chan, pol, expected)
+end
+
+Then /^"([^"]*)" (output|stderr) (should|should not) contain "([^"]*)"$/ do |cmd, chan, pol, expected|
+  check_contains(cmd, chan, pol, expected)
+end
+

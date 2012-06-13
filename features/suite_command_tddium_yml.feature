@@ -63,13 +63,13 @@ Feature: suite command
         + 
     """
     When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Unable to parse"
-    Then the output from "tddium suite" should contain "Looks like"
+    Then "tddium suite" output should contain "Unable to parse"
+    Then "tddium suite" output should contain "Looks like"
     And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
-    Then the output from "tddium suite" should contain "Detected ruby"
+    Then "tddium suite" output should not contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.yml"
+    Then "tddium suite" output should contain "Detected ruby"
     When I choose defaults for test pattern, CI settings
-    Then the output from "tddium suite" should contain "Created suite..."
+    Then "tddium suite" output should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
 
@@ -85,19 +85,19 @@ Feature: suite command
         - test/unit/**_test.rb
     """
     When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
+    Then "tddium suite" output should contain "Looks like"
     And I respond to "repo name" with "beta"
-    Then the output from "tddium suite" should contain "Detected branch test/foobar"
-    And the output from "tddium suite" should contain "Detected ruby"
-    And the output from "tddium suite" should contain "Configured test pattern from config/tddium.yml:"
-    And the output from "tddium suite" should contain:
+    Then "tddium suite" output should contain "Detected branch test/foobar"
+    And "tddium suite" output should contain "Detected ruby"
+    And "tddium suite" output should contain "Configured test pattern from config/tddium.yml:"
+    And "tddium suite" output should contain:
     """
      - spec/controllers/**_spec.rb
      - features/api/**.feature
      - test/unit/**_test.rb
     """
     When I choose defaults for CI settings
-    Then the output from "tddium suite" should contain "Created suite..."
+    Then "tddium suite" output should contain "Created suite..."
     When the console session ends
     Then the exit status should be 0
 
@@ -112,8 +112,8 @@ Feature: suite command
         :not: a list
     """
     When I run `tddium suite` interactively
-    Then the output from "tddium suite" should contain "Looks like"
+    Then "tddium suite" output should contain "Looks like"
     And I respond to "repo name" with "beta"
-    And the output from "tddium suite" should contain "not properly formatted"
+    And "tddium suite" output should contain "not properly formatted"
     When the console session ends
     Then the exit status should not be 0

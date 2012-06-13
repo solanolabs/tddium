@@ -27,7 +27,7 @@ Feature: Activate command
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "I AGREE"
-    Then the output from "tddium activate" should contain "Creating account"
+    Then "tddium activate" output should contain "Creating account"
     When the console session ends
     Then the exit status should be 0
 
@@ -38,9 +38,9 @@ Feature: Activate command
     And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
-    Then the output from "tddium activate" should contain "not accessible"
-     And the output from "tddium activate" should not contain "accept the Terms"
-     And the output from "tddium activate" should not contain "Creating account"
+    Then "tddium activate" output should contain "not accessible"
+     And "tddium activate" output should not contain "accept the Terms"
+     And "tddium activate" output should not contain "Creating account"
     When the console session ends
     Then the exit status should not be 0
 
@@ -56,8 +56,8 @@ Feature: Activate command
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "I AGREE"
-    Then the output from "tddium activate" should contain "Creating account"
-     And the output from "tddium activate" should contain "409"
+    Then "tddium activate" output should contain "Creating account"
+     And "tddium activate" output should contain "409"
     When the console session ends
     Then the exit status should not be 0
 
@@ -73,7 +73,7 @@ Feature: Activate command
     And I respond to "Confirm your password" with "password"
     And I respond to "Enter your ssh key" with "ssh_public_key"
     And I respond to "accept the Terms" with "NO WAY"
-    Then the output from "tddium activate" should not contain "Creating account"
+    Then "tddium activate" output should not contain "Creating account"
     When the console session ends
     Then the exit status should not be 0
 
@@ -87,7 +87,7 @@ Feature: Activate command
     And I respond to "token" with "abcdef"
     And I respond to "Enter a new password" with "password"
     And I respond to "Confirm your password" with "wordpass"
-    Then the output from "tddium activate" should contain "confirmation incorrect"
-     And the output from "tddium activate" should not contain "Creating account"
+    Then "tddium activate" output should contain "confirmation incorrect"
+     And "tddium activate" output should not contain "Creating account"
     When the console session ends
     Then the exit status should not be 0
