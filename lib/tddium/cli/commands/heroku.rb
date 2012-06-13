@@ -61,7 +61,7 @@ module Tddium
 
           begin
             user_id = user["id"]
-            result = @tddium_api.update_user(user_id, {:user=>params, :heroku_activation=>true})
+            result = @tddium_api.update_user(user_id, {:user=>params, :heroku_activation=>true}, api_key)
           rescue TddiumClient::Error::API => e
             exit_failure Text::Error::HEROKU_MISCONFIGURED % e
           rescue TddiumClient::Error::Base => e

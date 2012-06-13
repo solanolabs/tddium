@@ -73,8 +73,8 @@ module Tddium
       return new_user
     end
 
-    def update_user(user_id, params)
-      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, nil, false)
+    def update_user(user_id, params, api_key=nil)
+      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, api_key, false)
       return result
     end
 
