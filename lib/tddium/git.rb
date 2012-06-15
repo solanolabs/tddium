@@ -37,7 +37,7 @@ module Tddium
         rescue Exception
         end
         if version.nil? || version.empty? then
-          exit_failure(Text::Error::GIT_NOT_FOUND)
+          abort Text::Error::GIT_NOT_FOUND
         end
         version_parts = version.split(".")
         if version_parts[0].to_i < 1 ||
