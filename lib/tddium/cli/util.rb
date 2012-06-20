@@ -57,12 +57,14 @@ module Tddium
       ruby_version = @repo_config[:ruby_version]
       return ruby_version unless ruby_version.nil? || ruby_version.empty?
 
-      git_root = Git.git_root
-      if git_root then
-        rvmrc = File.join(git_root, '.rvmrc')
-        if File.exists?(rvmrc) then
-          ruby_version = sniff_ruby_version_rvmrc(rvmrc)
-          warn("Detected ruby #{ruby_version} in .rvmrc; make sure patch level is correct")
+      if !options[:machine] then
+        git_root = Git.git_root
+        if git_root then
+          rvmrc = File.join(git_root, '.rvmrc')
+          if File.exists?(rvmrc) then
+            ruby_version = sniff_ruby_version_rvmrc(rvmrc)
+            warn("Detected ruby #{ruby_version} in .rvmrc; make sure patch level is correct")
+          end
         end
       end
       return ruby_version
