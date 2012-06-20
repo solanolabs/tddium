@@ -9,7 +9,7 @@ module Tddium
   class BuildAgent
     MAXIMUM_ATTACHMENT_SIZE = 16*1024*1024
 
-    def initiallize
+    def initialize
     end
 
     # @return Boolean indicating whether or not we are running inside Tddium
