@@ -53,8 +53,12 @@ module Tddium
     end
 
     def suite_auto_configure
+      # Did the user set a configuration option on the command line?
+      # If so, auto-configure a new suite and re-configure an existing one
+      user_config = options.member?(:tool)
+
       current_suite_id = @tddium_api.current_suite_id
-      if current_suite_id then
+      if current_suite_id && !user_config then
         current_suite = @tddium_api.get_suite_by_id(current_suite_id)
       else
         default_suite_name = Tddium::Git.git_repo_name
@@ -66,11 +70,10 @@ module Tddium
         current_suites = @tddium_api.get_suites(params)
         existing_suite = current_suites.first
 
-        if existing_suite then
+        if existing_suite && !user_config then
           current_suite = existing_suite
           say Text::Process::USING_EXISTING_SUITE % [params[:repo_name], params[:branch]]
         else
-          #
           tool_cli_populate(options, params)
           prompt_suite_params(options.merge({:non_interactive => true}), params)
 
