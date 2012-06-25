@@ -63,6 +63,13 @@ Given /^the user can log in and gets API key "([^"]*)"$/ do |apikey|
   Antilles.install(:post, "/1/users/sign_in", {:status=>0, :api_key=>apikey})
 end
 
+Given /^the user can log in with token "([^"]*)" and gets API key "([^"]*)"$/ do |token, apikey|
+  options = {
+    'params' => {'user'=>{'cli_token'=>token}}
+  }
+  Antilles.install(:post, "/1/users/sign_in", {:status=>0, :api_key=>apikey}, options)
+end
+
 Given /^the user cannot log in$/ do
   Antilles.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
 end

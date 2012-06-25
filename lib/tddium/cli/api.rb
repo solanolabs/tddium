@@ -81,8 +81,10 @@ module Tddium
     def get_user_credentials(options = {})
       params = {}
 
-      # prompt for email/invitation and password
-      if options[:invited]
+      if options[:cli_token]
+        params[:cli_token] = options[:cli_token]
+      elsif options[:invited]
+        # prompt for email/invitation and password
         token = options[:invitation_token] || ask(Text::Prompt::INVITATION_TOKEN)
         params[:invitation_token] = token.strip
         params[:password] = options[:password] || HighLine.ask(Text::Prompt::NEW_PASSWORD) { |q| q.echo = "*" }

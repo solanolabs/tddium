@@ -100,6 +100,37 @@ Feature: Login command
     Then the output should contain "already"
     And the exit status should be 0
 
+  Scenario: Non-interactively log in with token successfully
+    Given the user can log in with token "foobar" and gets API key "apikey"
+    And the user has the following keys:
+      | name      |
+      | default   |
+    And the user has no suites
+    And a git repo is initialized
+    When I run `tddium login foobar`
+    Then the output should contain:
+    """
+    Logged in successfully
+    """
+    And the exit status should be 0
+    And dotfiles should be updated
+
+  Scenario: Non-interactively log in with token unsuccessfully
+    Given the user cannot log in
+    And the user has the following keys:
+      | name      |
+      | default   |
+    And the user has no suites
+    And a git repo is initialized
+    When I run `tddium login foobar`
+    Then the output should contain:
+    """
+    Access Denied
+    """
+    And the exit status should be 1
+    And the file ".tddium.mimic" should not exist
+    And the file ".gitignore" should not exist
+
   Scenario: Non-interactively log in successfully
     Given the user can log in and gets API key "apikey"
     And the user has the following keys:

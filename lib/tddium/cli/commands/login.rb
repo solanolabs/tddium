@@ -2,7 +2,7 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "login", "Log in to tddium using your email address and password"
+    desc "login [[TOKEN]]", "Log in to tddium using your email address and password"
     method_option :email, :type => :string, :default => nil
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
@@ -10,7 +10,13 @@ module Tddium
       user_details = tddium_setup({:login => false, :git => false})
 
       login_options = options.dup
-      login_options[:email] ||= args.first if args.first
+
+      if args.first && args.first =~ /@/
+        login_options[:email] ||= args.first 
+      elsif args.first
+        # assume cli token
+        login_options[:cli_token] = args.first
+      end
 
       if user_details then
         say Text::Process::ALREADY_LOGGED_IN
