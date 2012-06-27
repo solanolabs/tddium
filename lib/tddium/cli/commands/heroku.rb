@@ -71,7 +71,7 @@ module Tddium
 
         @api_config.set_api_key(user["api_key"], user["email"])
         @api_config.write_config
-        say Text::Status::HEROKU_CONFIG 
+        say Text::Status::HEROKU_CONFIG
       end
   end
 end

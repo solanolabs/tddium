@@ -8,8 +8,8 @@ module Tddium
       super(*args)
 
       tddium_client = TddiumClient::Client.new.tap do |c|
-                           c.caller_version = "tddium-#{TddiumVersion::VERSION}"
-                         end
+        c.caller_version = "tddium-#{TddiumVersion::VERSION}"
+      end
 
       @tddium_client = tddium_client
 

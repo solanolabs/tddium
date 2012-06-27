@@ -32,6 +32,7 @@ module Tddium
       output.lines.each do |line|
         line.chomp!
         k, v = line.split('=')
+        v = v.chomp('"').reverse.chomp('"').reverse
         if k =~ /^TDDIUM_/ && v.length > 0
           k.sub!("TDDIUM_STAGE", "TDDIUM")
           config[k] = v
