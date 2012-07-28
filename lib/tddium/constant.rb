@@ -275,13 +275,22 @@ EOF
 <% if user["account_url"] %>  Account Management URL: <%=user["account_url"]%><% end %>
 <% if user["heroku"] %>  Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
 <% if user["third_party_pubkey"] %>
->>> Authorize the following SSH public key to allow Tddium's test workers to install gems
-    from private git repos or communicate via SSH to your servers:
+>>> Authorize the following SSH public key to allow Tddium's test workers to
+install gems from private git repos or communicate via SSH to your servers:
 
     <%= user["third_party_pubkey"] %>
 
 <%end%>
 EOF
+      USER_THIRD_PARTY_KEY_DETAILS =<<EOF;
+<% if user["third_party_pubkey"] %>
+>>> Authorize the following SSH public key to allow Tddium's test workers to
+install gems from private git repos or communicate via SSH to your servers:
+
+    <%= user["third_party_pubkey"] %>
+<%end%>
+EOF
+
       HEROKU_CONFIG = "
 Tddium is configured to work with your Heroku app.
 

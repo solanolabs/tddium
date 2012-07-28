@@ -4,9 +4,13 @@ module Tddium
   class TddiumCli < Thor
     desc "keys", "List SSH keys authorized for Tddium"
     def keys
-      tddium_setup({:git => false})
+      user_details = tddium_setup({:git => false})
 
       begin
+        if user_details then
+          show_third_party_keys_details(user_details)
+        end
+
         keys_details = @tddium_api.get_keys
         show_keys_details(keys_details)
       rescue TddiumClient::Error::API => e

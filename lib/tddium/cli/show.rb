@@ -31,19 +31,7 @@ module Tddium
           if k["fingerprint"]
             say((" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip)
           elsif k["pub"]
-            tmp = Tempfile.new('ssh-pub')
-            tmp.write(k["pub"])
-            tmp.close
-            fingerprint = nil
-            IO.popen("ssh-keygen -lf #{tmp.path}") do |io|
-              fingerprint = io.read
-              # Keep just bits and fingerprint
-              if fingerperint then
-                fingerprint.chomp!
-                fingerprint = fingerprint.split(/\s+/)[0..1].join(' ')
-              end
-            end
-            tmp.unlink
+            fingerprint = ssh_key_fingerprint(k["pub"])
             if fingerprint then
               say((" %-18.18s %s" % [k["name"], fingerprint]).rstrip)
             else
@@ -55,6 +43,10 @@ module Tddium
         end
       end
       say Text::Process::KEYS_EDIT_COMMANDS
+    end
+
+    def show_third_party_keys_details(user)
+      say ERB.new(Text::Status::USER_THIRD_PARTY_KEY_DETAILS).result(binding)
     end
 
     def show_ssh_config(dir=nil)

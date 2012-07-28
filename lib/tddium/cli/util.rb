@@ -69,6 +69,24 @@ module Tddium
       end
       return ruby_version
     end
+
+    def ssh_key_fingerprint(pubkey)
+      tmp = Tempfile.new('ssh-pub')
+      tmp.write(pubkey)
+      tmp.close
+      fingerprint = nil
+      IO.popen("ssh-keygen -lf #{tmp.path}") do |io|
+        fingerprint = io.read
+        # Keep just bits and fingerprint
+        if fingerprint then
+          fingerprint.chomp!
+          fingerprint = fingerprint.split(/\s+/)[0..1].join(' ')
+        end
+      end
+      tmp.unlink
+
+      return fingerprint
+    end
    
     def warn(msg='')
       STDERR.puts("WARNING: #{msg}")
