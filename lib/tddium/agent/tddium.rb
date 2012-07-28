@@ -86,7 +86,7 @@ module Tddium
     # @param [Hash] metadata hash of metadata options
     # @option metadata [String] :name Override name of attachment
     # @option metadata [String] :exec_id Attach to named test execution
-    def attach_file(path, metadata)
+    def attach_file(path, metadata={})
       if !File.exists?(path) then
         raise Errno::ENOENT.new(path)
       end
