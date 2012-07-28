@@ -30,6 +30,25 @@ module Tddium
         keys.each do |k| 
           if k["fingerprint"]
             say((" %-18.18s %s" % [k["name"], k["fingerprint"]]).rstrip)
+          elsif k["pub"]
+            tmp = Tempfile.new('ssh-pub')
+            tmp.write(k["pub"])
+            tmp.close
+            fingerprint = nil
+            IO.popen("ssh-keygen -lf #{tmp.path}") do |io|
+              fingerprint = io.read
+              # Keep just bits and fingerprint
+              if fingerperint then
+                fingerprint.chomp!
+                fingerprint = fingerprint.split(/\s+/)[0..1].join(' ')
+              end
+            end
+            tmp.unlink
+            if fingerprint then
+              say((" %-18.18s %s" % [k["name"], fingerprint]).rstrip)
+            else
+              say((" %-18.18s" % k["name"]).rstrip)
+            end
           else
             say((" %-18.18s" % k["name"]).rstrip)
           end
