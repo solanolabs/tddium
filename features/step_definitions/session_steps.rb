@@ -26,3 +26,7 @@ end
 Given /^the test all pass with messages$/ do
   Antilles.install(:get, "/1/sessions/#{SAMPLE_SESSION_ID}/test_executions", SAMPLE_TEST_EXECUTIONS_MESSAGE_RESPONSE)
 end
+
+Given /^the test all pass with a warning message$/ do
+  Antilles.install(:get, "/1/sessions/#{SAMPLE_SESSION_ID}/test_executions", SAMPLE_TEST_EXECUTIONS_WARNING_RESPONSE)
+end

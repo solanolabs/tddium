@@ -99,6 +99,7 @@ module Tddium
       latest_message = -1
       test_statuses = Hash.new(0)
       messages = nil
+      poll_messages = !options[:machine]
 
       report = start_test_executions["report"]
       say ""
@@ -115,17 +116,13 @@ module Tddium
 
       while tests_not_finished_yet do
         # Poll the API to check the status
-        current_test_executions = @tddium_api.poll_session(session_id)
+        current_test_executions = @tddium_api.poll_session(session_id, :messages=>poll_messages)
 
-        messages = current_test_executions["messages"]
-        if !options[:machine] && finished_tests.size == 0 && messages 
-          messages.each do |m|
-            seqno = m["seqno"].to_i
-            if seqno > latest_message
-              display_message(m)
-              latest_message = seqno
-            end
-          end
+        if poll_messages
+          messages, latest_message = update_messages(latest_message, 
+                                                     finished_tests, 
+                                                     messages,
+                                                     current_test_executions["messages"])
         end
 
         # Print out the progress of running tests
@@ -160,12 +157,22 @@ module Tddium
         end
       end
 
+      # If we haven't been polling messages, get them all at the end.
+      if !poll_messages
+        current_test_executions = @tddium_api.poll_session(session_id, :messages=>true)
+        messages, latest_message = update_messages(latest_message, 
+                                                     finished_tests, 
+                                                     messages,
+                                                     current_test_executions["messages"],
+                                                    false)
+      end
+
       display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)
       display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
       # Print out the result
-      say ""
-      say Text::Process::RUN_TDDIUM_WEB
+      say "" if !options[:machine]
+      say Text::Process::RUN_TDDIUM_WEB if !options[:machine]
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
@@ -189,5 +196,22 @@ module Tddium
         say "%%%% TDDIUM CI DATA END %%%%"
       end
     end
+
+    private
+
+    def update_messages(latest_message, finished_tests, messages, current, display=true)
+      messages = current
+      if !options[:machine] && finished_tests.size == 0 && messages 
+        messages.each do |m|
+          seqno = m["seqno"].to_i
+          if seqno > latest_message
+            display_message(m)
+            latest_message = seqno
+          end
+        end
+      end
+      [messages, latest_message]
+    end
+
   end
 end

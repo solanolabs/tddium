@@ -170,6 +170,23 @@ Feature: spec command
       %%%% TDDIUM CI DATA END %%%%
       """
 
+  Scenario: Output trailing warnings with --machine
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And the user can create a session
+    And the user successfully registers tests for the suite
+    And the tests start successfully
+    And the test all pass with a warning message
+    When I run `tddium spec --machine`
+    Then the exit status should be 0
+    And the output should not contain "Ctrl-C"
+    And the output should not contain "--->"
+    And the output should contain:
+      """
+      Warnings:
+      """
+
   Scenario: Output messages in normal mode
     Given the destination repo exists
     And a git repo is initialized
