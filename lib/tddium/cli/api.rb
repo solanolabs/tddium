@@ -218,5 +218,10 @@ module Tddium
       result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
       return result
     end
+
+    def check_session_done(session_id)
+      result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/check_done")
+      return result
+    end
   end
 end

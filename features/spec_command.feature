@@ -138,6 +138,7 @@ Feature: spec command
     And the user successfully registers tests for the suite
     And the tests start successfully
     And the test all pass
+    And the session completes
     When I run `tddium spec --machine`
     Then the exit status should be 0
     And the output should not contain "Ctrl-C"
@@ -158,6 +159,7 @@ Feature: spec command
     And the user successfully registers tests for the suite
     And the tests start successfully
     And the test all pass with messages
+    And the session completes
     When I run `tddium spec --machine`
     Then the exit status should be 0
     And the output should not contain "Ctrl-C"
@@ -178,6 +180,7 @@ Feature: spec command
     And the user successfully registers tests for the suite
     And the tests start successfully
     And the test all pass with a warning message
+    And the session completes
     When I run `tddium spec --machine`
     Then the exit status should be 0
     And the output should not contain "Ctrl-C"

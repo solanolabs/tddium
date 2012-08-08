@@ -13,11 +13,11 @@ module Mimic
 
       def matches?(request)
         if @params.any?
+          req_params = {}
           if request.env["CONTENT_TYPE"] == 'application/json'
             req_params = JSON.parse(request.body.read)
-          else
-            req_params = request.params
           end
+          req_params.merge!(request.params)
           puts "checking params... got: #{req_params.inspect}, expected: #{@params.inspect}"
           @params.all? do |k,v|
             req_params[k] == v

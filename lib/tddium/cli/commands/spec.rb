@@ -94,12 +94,11 @@ module Tddium
 
       say Text::Process::STARTING_TEST % num_tests_started.to_s
 
-      tests_not_finished_yet = true
+      tests_finished = false
       finished_tests = {}
       latest_message = -1
       test_statuses = Hash.new(0)
       messages = nil
-      poll_messages = !options[:machine]
 
       report = start_test_executions["report"]
       say ""
@@ -111,60 +110,68 @@ module Tddium
       Signal.trap(:INT) do
         say Text::Process::INTERRUPT
         say Text::Process::CHECK_TEST_STATUS
-        tests_not_finished_yet = false
+        tests_finished = true
       end
 
-      while tests_not_finished_yet do
+      while !tests_finished do
         # Poll the API to check the status
-        current_test_executions = @tddium_api.poll_session(session_id, :messages=>poll_messages)
+        if options[:machine]
+          result = @tddium_api.check_session_done(session_id)
+          tests_finished = result["done"]
+        else
+          current_test_executions = @tddium_api.poll_session(session_id)
 
-        if poll_messages
           messages, latest_message = update_messages(latest_message, 
                                                      finished_tests, 
                                                      messages,
                                                      current_test_executions["messages"])
+
+          # Print out the progress of running tests
+          current_test_executions["tests"].each do |test_name, result_params|
+            if finished_tests.size == 0 && result_params["finished"] then
+              say ""
+              say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
+              say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+              say ""
+            end
+            if result_params["finished"] && !finished_tests[test_name]
+              test_status = result_params["status"]
+              message = case test_status
+                          when "passed" then [".", :green, false]
+                          when "failed" then ["F", :red, false]
+                          when "error" then ["E", nil, false]
+                          when "pending" then ["*", :yellow, false]
+                          when "skipped" then [".", :yellow, false]
+                          else [".", nil, false]
+                        end
+              finished_tests[test_name] = test_status
+              test_statuses[test_status] += 1
+              say *message
+            end
+          end
+
+          # If all tests finished, exit the loop else sleep
+          if finished_tests.size >= num_tests_started
+            tests_finished = true
+          end
         end
 
-        # Print out the progress of running tests
-        current_test_executions["tests"].each do |test_name, result_params|
-          if finished_tests.size == 0 && result_params["finished"] then
-            say ""
-            say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
-            say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
-            say ""
-          end
-          if result_params["finished"] && !finished_tests[test_name]
-            test_status = result_params["status"]
-            message = case test_status
-                        when "passed" then [".", :green, false]
-                        when "failed" then ["F", :red, false]
-                        when "error" then ["E", nil, false]
-                        when "pending" then ["*", :yellow, false]
-                        when "skipped" then [".", :yellow, false]
-                        else [".", nil, false]
-                      end
-            finished_tests[test_name] = test_status
-            test_statuses[test_status] += 1
-            say *message
-          end
-        end
-
-        # If all tests finished, exit the loop else sleep
-        if finished_tests.size >= num_tests_started
-          tests_not_finished_yet = false
-        else
-          sleep(Default::SLEEP_TIME_BETWEEN_POLLS)
-        end
+        sleep(Default::SLEEP_TIME_BETWEEN_POLLS) if !tests_finished
       end
 
       # If we haven't been polling messages, get them all at the end.
-      if !poll_messages
-        current_test_executions = @tddium_api.poll_session(session_id, :messages=>true)
+      if options[:machine]
+        current_test_executions = @tddium_api.poll_session(session_id)
         messages, latest_message = update_messages(latest_message, 
-                                                     finished_tests, 
-                                                     messages,
-                                                     current_test_executions["messages"],
-                                                    false)
+                                                   finished_tests, 
+                                                   messages,
+                                                   current_test_executions["messages"],
+                                                   false)
+        current_test_executions["tests"].each do |test_name, result_params|
+          test_status = result_params["status"]
+          finished_tests[test_name] = test_status
+          test_statuses[test_status] += 1
+        end
       end
 
       display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)

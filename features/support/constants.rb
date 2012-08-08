@@ -76,6 +76,7 @@ SAMPLE_HEROKU_USER_RESPONSE = {"status"=>0, "user"=>
 PASSWORD_ERROR_EXPLANATION = "bad confirmation"
 PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
 SAMPLE_ACCOUNT_USAGE = {"status"=>0, "usage"=>"Usage: something"}
+SAMPLE_CHECK_DONE_RESPONSE = {"status"=>0, "done"=>true}
 SAMPLE_MESSAGE_ENTRY = {"level"=>"notice", "text"=>"abcdef    ", "seqno"=>1}
 SAMPLE_WARNING_MESSAGE_ENTRY = {"level"=>"warn", "text"=>"abcdef    ", "seqno"=>1}
 SAMPLE_START_TEST_EXECUTIONS_RESPONSE = {"status"=>0, "started"=>4, "report"=>SAMPLE_REPORT_URL}
@@ -98,6 +99,13 @@ SAMPLE_TEST_EXECUTIONS_WARNING_RESPONSE = {
   "status"=>0,
   "report"=>SAMPLE_REPORT_URL,
   "messages"=>[SAMPLE_WARNING_MESSAGE_ENTRY, SAMPLE_WARNING_MESSAGE_ENTRY],
+  "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"passed"},
+            "spec/pig_spec.rb"=>{"finished" => true, "status"=>"passed"},
+            "spec/dog_spec.rb"=>{"finished" => true, "status"=>"passed"},
+            "spec/cat_spec.rb"=>{"finished" => true, "status"=>"passed"}}}
+SAMPLE_TEST_EXECUTIONS_NOMSG_RESPONSE = {
+  "status"=>0,
+  "report"=>SAMPLE_REPORT_URL,
   "tests"=>{"spec/mouse_spec.rb"=>{"finished" => true, "status"=>"passed"},
             "spec/pig_spec.rb"=>{"finished" => true, "status"=>"passed"},
             "spec/dog_spec.rb"=>{"finished" => true, "status"=>"passed"},
