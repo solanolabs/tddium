@@ -47,7 +47,7 @@ module Tddium
     end
 
     def logout
-      @config.delete('api_key')
+      remove_tddium_files
     end
 
     def get_branch(branch, var)
@@ -182,6 +182,14 @@ module Tddium
         args.shift
       end
       return h
+    end
+
+    private
+
+    def remove_tddium_files
+      [tddium_file_name, tddium_file_name(:global)].each do |tddium_file_path|
+        File.delete(tddium_file_path) if File.exists?(tddium_file_path)
+      end
     end
   end
 end

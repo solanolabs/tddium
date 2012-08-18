@@ -7,7 +7,6 @@ module Tddium
       tddium_setup({:login => false, :git => false})
 
       @api_config.logout
-      @api_config.write_config
 
       say Text::Process::LOGGED_OUT_SUCCESSFULLY
     end

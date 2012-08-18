@@ -15,4 +15,4 @@ Feature: Logout Command
     Logged out successfully
     """
     And the exit status should be 0
-#    And the file ".tddium.mimic" should not exist
+    And the file ".tddium.mimic" should not exist
