@@ -136,6 +136,10 @@ module Tddium
         if update_params[:ruby_version]
           say Text::Process::UPDATED_RUBY_VERSION % ruby_version
         end
+        if update_params[:test_configs]
+          say Text::Process::UPDATED_TEST_CONFIGS % YAML.dump(test_configs)
+          say "(was:\n#{YAML.dump(current_suite['test_configs'])})\n"
+        end
       end
     end
 
