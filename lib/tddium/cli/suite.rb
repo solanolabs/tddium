@@ -114,7 +114,6 @@ module Tddium
       if pattern.is_a?(Array)
         pattern = pattern.join(",")
       end
-
       if pattern && current_suite["test_pattern"] != pattern then
         update_params[:test_pattern] = pattern
       end
@@ -122,6 +121,11 @@ module Tddium
       ruby_version = sniff_ruby_version
       if ruby_version && ruby_version != current_suite["ruby_version"] then
         update_params[:ruby_version] = ruby_version
+      end
+
+      test_configs = @repo_config[:tests] || []
+      if test_configs != (current_suite['test_configs'] || []) then
+        update_params[:test_configs] = test_configs
       end
 
       if !update_params.empty? then
