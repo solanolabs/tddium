@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (1.5.3)
+    tddium (1.5.4)
       highline
       json
       launchy
