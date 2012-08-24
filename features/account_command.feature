@@ -56,6 +56,16 @@ Feature: Account command
     When I run `tddium account`
     Then it should fail with a login hint
 
+  Scenario: Fail if the user is logged into multiple accounts
+    Given the user is logged in to multple accounts
+    When I run `tddium account`
+    Then it should fail with "Your .tddium file has an invalid API key."
+
+  Scenario: Display account info if the .tddium files match
+    Given the user is logged in to a single account
+    When I run `tddium account`
+    Then the output should contain "someone@example.com"
+
   Scenario: Add member to account successfully
     Given the user is logged in
     And adding a member to the account will succeed

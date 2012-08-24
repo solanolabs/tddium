@@ -63,8 +63,8 @@ module Tddium
       return fetch('branches', branch, var)
     end
 
-    def get_api_key(user=nil)
-      return @config['api_key']
+    def get_api_key(options = {})
+      options.any? ? load_config(options) : @config['api_key']
     end
 
     def set_api_key(api_key, user)
@@ -87,28 +87,14 @@ module Tddium
       @config.merge!({"branches" => branches})
     end
 
-    def load_config(options={})
-      @config = Hash.new
+    def load_config(options = {})
+      global_config = load_config_from_file(:global)
+      return global_config if options[:global]
 
-      path = tddium_file_name(:global)
-      if File.exists?(path) then
-        data = File.read(path)
-        config = JSON.parse(data) rescue Hash.new
-        @config['api_key'] = config['api_key']
-      end
+      repo_config = load_config_from_file
+      return repo_config if options[:repo]
 
-      path = tddium_file_name(:repo)
-      if File.exists?(path) then
-        data = File.read(path)
-        config = JSON.parse(data) rescue Hash.new
-
-        if config.is_a?(Hash) then
-          @config.merge!(config)
-        else
-          say(Text::Error::INVALID_TDDIUM_FILE % environment)
-        end
-      end
-      return @config
+      @config = global_config.merge(repo_config)
     end
 
     def write_config
@@ -190,6 +176,11 @@ module Tddium
       [tddium_file_name, tddium_file_name(:global)].each do |tddium_file_path|
         File.delete(tddium_file_path) if File.exists?(tddium_file_path)
       end
+    end
+
+    def load_config_from_file(tddium_file_type = :repo)
+      path = tddium_file_name(tddium_file_type)
+      File.exists?(path) ? (JSON.parse(File.read(path)) rescue {}) : {}
     end
   end
 end

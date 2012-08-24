@@ -12,6 +12,36 @@ Given /^the user is logged in$/ do
   }
 end
 
+Given /^the user is logged in to multple accounts$/ do
+  Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
+  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  steps %Q{
+    Given a file named ".tddium.mimic" with:
+    """
+    {"api_key":"abcdef"}
+    """
+    And a tddium global config file exists with:
+    """
+    {"api_key":"hijklm"}
+    """
+  }
+end
+
+Given /^the user is logged in to a single account$/ do
+  Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
+  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  steps %Q{
+    Given a file named ".tddium.mimic" with:
+    """
+    {"api_key":"abcdef"}
+    """
+    And a tddium global config file exists with:
+    """
+    {"api_key":"abcdef"}
+    """
+  }
+end
+
 Given /^the user is logged in with a third-party key$/ do
   @api_key = "abcdef"
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
@@ -74,12 +104,13 @@ Given /^the user cannot log in$/ do
   Antilles.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
 end
 
-Given /^a tddium global config file exists$/ do
-  FileUtils.touch "#{ENV['HOME']}/.tddium.mimic"
+Given /^a tddium global config file exists(?: with:)$/ do |content|
+  file_to_write = tddium_global_config_file_path
+  content ? File.open(file_to_write, 'w') {|f| f.write(content) } : FileUtils.touch(file_to_write)
 end
 
 Then /^the tddium global config file should not exist$/ do
-  File.should_not exist("#{ENV['HOME']}/.tddium.mimic")
+  File.should_not exist(tddium_global_config_file_path)
 end
 
 Then /^dotfiles should be updated$/ do
