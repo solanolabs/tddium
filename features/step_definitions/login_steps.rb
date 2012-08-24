@@ -74,6 +74,14 @@ Given /^the user cannot log in$/ do
   Antilles.install(:post, "/1/users/sign_in", {:status=>1, :explanation=>"Access Denied."}, :code=>403)
 end
 
+Given /^a tddium global config file exists$/ do
+  FileUtils.touch "#{ENV['HOME']}/.tddium.mimic"
+end
+
+Then /^the tddium global config file should not exist$/ do
+  File.should_not exist("#{ENV['HOME']}/.tddium.mimic")
+end
+
 Then /^dotfiles should be updated$/ do
   steps %Q{
     And the file ".tddium.mimic" should contain "apikey"

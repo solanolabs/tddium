@@ -8,6 +8,7 @@ Feature: Logout Command
     """
     {'api_key':'abcdef'}
     """
+    And a tddium global config file exists
     When I run `tddium logout --environment=mimic` interactively
     And the console session ends
     Then the output should contain:
@@ -16,3 +17,4 @@ Feature: Logout Command
     """
     And the exit status should be 0
     And the file ".tddium.mimic" should not exist
+    And the tddium global config file should not exist
