@@ -64,7 +64,7 @@ module Tddium
     end
 
     def get_api_key(options = {})
-      options.any? ? load_config(options) : @config['api_key']
+      options.any? ? load_config(options)['api_key'] : @config['api_key']
     end
 
     def set_api_key(api_key, user)
