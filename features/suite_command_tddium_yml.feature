@@ -24,6 +24,21 @@ Feature: suite command
     Then the output should contain "Created suite..."
     Then the exit status should be 0
 
+  Scenario: Configure new suite with ruby from tddium.cfg
+    Given the user is logged in, and can successfully create a new suite in a git repo
+    And a file named "config/tddium.cfg" with:
+    """
+    ---
+    :tddium:
+       :ruby_version:  ruby-1.9.2-p290-psych
+    """
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/*`
+    Then the output should contain "Looks like"
+    Then the output should contain "Detected branch test/foobar"
+    Then the output should contain "Configured ruby ruby-1.9.2-p290-psych from config/tddium.cfg"
+    Then the output should contain "Created suite..."
+    Then the exit status should be 0
+
   Scenario: Configure new suite with tddium.yml without matching key
     Given the user is logged in, and can successfully create a new suite in a git repo
     And a file named "config/tddium.yml" with:

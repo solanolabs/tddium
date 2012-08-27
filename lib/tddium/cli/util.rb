@@ -23,7 +23,7 @@ module Tddium
       result = @repo_config[key]
 
       if result
-        say Text::Process::CONFIGURED_VERSION % [tool, result]
+        say Text::Process::CONFIGURED_VERSION % [tool, result, @repo_config.config_filename]
         return result
       end
 

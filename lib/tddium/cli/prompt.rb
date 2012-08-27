@@ -41,12 +41,13 @@ module Tddium
       end
 
       pattern = configured_test_pattern
+      cfn = @repo_config.config_filename
 
       if pattern.is_a?(Array)
-        say Text::Process::CONFIGURED_PATTERN % pattern.map{|p| " - #{p}"}.join("\n")
+        say Text::Process::CONFIGURED_PATTERN % [cfn, pattern.map{|p| " - #{p}"}.join("\n"), cfn]
         params[:test_pattern] = pattern.join(",")
       elsif pattern
-        exit_failure Text::Error::INVALID_CONFIGURED_PATTERN % pattern.inspect
+        exit_failure Text::Error::INVALID_CONFIGURED_PATTERN % [cfn, cfn, pattern.inspect, cfn]
       else
         say Text::Process::TEST_PATTERN_INSTRUCTIONS unless options[:non_interactive]
         ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
