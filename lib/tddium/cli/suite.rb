@@ -128,6 +128,12 @@ module Tddium
         update_params[:test_configs] = test_configs
       end
 
+      python_config = @repo_config[:python] || {}
+      current_python_config = current_suite['python_config'] || {}
+      if python_config != (current_suite['python_config'] || []) then
+        update_params[:python] = python_config
+      end
+
       if !update_params.empty? then
         @tddium_api.update_suite(@tddium_api.current_suite_id, update_params)
         if update_params[:test_pattern]
@@ -139,6 +145,9 @@ module Tddium
         if update_params[:test_configs]
           say Text::Process::UPDATED_TEST_CONFIGS % YAML.dump(test_configs)
           say "(was:\n#{YAML.dump(current_suite['test_configs'])})\n"
+        end
+        if update_params[:python_config]
+          say Text::Process::UPDATED_PYTHON_CONFIG % YAML.dump(python_config)
         end
       end
     end
