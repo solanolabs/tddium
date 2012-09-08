@@ -23,8 +23,10 @@ module TddiumConstant
   module Config
     REMOTE_NAME = "tddium"
     GIT_IGNORE = ".gitignore"
-    CONFIG_PATH = "config/tddium.yml"
-    CONFIG_PATH_ALT = "config/tddium.cfg"
+    CONFIG_PATHS = ["tddium.yml",
+                    "config/tddium.yml",
+                    "config/tddium.cfg",
+                    ]
   end
 
   module Api

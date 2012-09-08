@@ -19,7 +19,7 @@ module Tddium
     def load_config
       config = nil
 
-      cfgfile = [Config::CONFIG_PATH, Config::CONFIG_PATH_ALT].select{|fn| File.exists?(fn) }.first
+      cfgfile = Config::CONFIG_PATHS.select{|fn| File.exists?(fn) }.first
 
       if cfgfile
         @config_filename = cfgfile
