@@ -12,18 +12,25 @@ module Tddium
       return @config[key.to_sym] || @config[key.to_s]
     end
 
+    def config_filename
+      @config_filename
+    end
+
     def load_config
       config = nil
 
-      if File.exists?(Config::CONFIG_PATH) then
+      cfgfile = Config::CONFIG_PATHS.select{|fn| File.exists?(fn) }.first
+
+      if cfgfile
+        @config_filename = cfgfile
         begin
-          rawconfig = File.read(Config::CONFIG_PATH)
+          rawconfig = File.read(cfgfile)
           if rawconfig && rawconfig !~ /\A\s*\z/ then
             config = YAML.load(rawconfig)
             config = config[:tddium] || config['tddium'] || Hash.new
           end
         rescue Exception => e
-          warn(Text::Warning::YAML_PARSE_FAILED % Config::CONFIG_PATH)
+          warn(Text::Warning::YAML_PARSE_FAILED % cfgfile)
         end
       end
 

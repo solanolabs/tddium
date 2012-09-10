@@ -23,7 +23,10 @@ module TddiumConstant
   module Config
     REMOTE_NAME = "tddium"
     GIT_IGNORE = ".gitignore"
-    CONFIG_PATH = "config/tddium.yml"
+    CONFIG_PATHS = ["tddium.yml",
+                    "config/tddium.yml",
+                    "config/tddium.cfg",
+                    ]
   end
 
   module Api
@@ -220,16 +223,17 @@ with Tddium.
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
       UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
+      UPDATED_PYTHON_CONFIG = "Updated Python configuration:\n%s"
       UPDATED_TEST_CONFIGS = "Updated test configurations:\n%s"
       DEPENDENCY_VERSION = "... Detected %s %s"
-      CONFIGURED_VERSION = "Configured %s %s from config/tddium.yml"
+      CONFIGURED_VERSION = "Configured %s %s from %s"
       CONFIGURED_PATTERN =<<EOF;
-... Configured test pattern from config/tddium.yml:
+... Configured test pattern from %s:
 
 %s
 
 >>> To change the pattern:
-    1. Edit config/tddium.yml
+    1. Edit %s
     2. Run `tddium suite --edit` again.
 EOF
       DETECTED_BRANCH = "... Detected branch %s"
@@ -381,15 +385,15 @@ EOF
       REMOVE_CONFIG_ERROR = "Error removing configuration variable"
       GIT_NOT_A_REPOSITORY = "Current working directory is not a git repository"
       INVALID_CONFIGURED_PATTERN =<<EOF;
-Configuring test pattern from config/tddium.yml...
+Configuring test pattern from %s...
 
->>> The test_pattern in config/tddium.yml is not properly formatted.  It must be a YAML list.
+>>> The test_pattern in %s is not properly formatted.  It must be a YAML list.
 
 You entered:
 
 %s
 
->>> Edit config/tddium.yml and rerun `tddium suite --edit`
+>>> Edit %s and rerun `tddium suite --edit`
 
 EOF
       GIT_REPO_NOT_READY = "Your git repository is being prepped.  Try again in a minute."
