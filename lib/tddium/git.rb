@@ -56,7 +56,11 @@ module Tddium
       end
   
       def git_repo?
-        ok = system("test -d .git || git status > /dev/null 2>&1")
+        if File.directory?('.git') then
+          return true
+        end
+        ignore = `git status`
+        ok = $?.success?
         return ok
       end
   
