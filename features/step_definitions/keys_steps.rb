@@ -1,4 +1,4 @@
-# Copyright (c) 2011 Solano Labs Inc, All Rights Reserved
+# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 Given /^`tddium keys` will write into tmp storage$/ do
   ENV['TDDIUM_GEM_KEY_DIR'] = current_dir

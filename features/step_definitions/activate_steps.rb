@@ -1,4 +1,4 @@
-# Copyright (c) 2011 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 Given /^"([^"]*)" is a valid invitation token$/ do |arg1|
   Antilles.install(:post, "/1/users", SAMPLE_USER_RESPONSE, :code=>201)

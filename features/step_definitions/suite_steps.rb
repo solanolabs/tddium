@@ -1,4 +1,4 @@
-# Copyright (c) 2011 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 def make_suite_response(name, branch)
   suite = SAMPLE_SUITE_RESPONSE
