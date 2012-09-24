@@ -81,6 +81,7 @@ module TddiumConstant
     end
 
     module Warning
+      USE_PASSWORD_TOKEN = "If you signed up with Github, use token from web dashboard as password"
       GIT_VERSION = "Unsupported git version: %s"
       GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
