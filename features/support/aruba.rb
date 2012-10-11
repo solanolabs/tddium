@@ -50,5 +50,6 @@ Before do
   @aruba_io_wait_seconds = 5
   @dirs = [Dir.tmpdir, "tddium-aruba"]
   FileUtils.rm_rf(current_dir)
+  ENV['HOME'] = current_dir
   FileUtils.rm_f(File.join(ENV['HOME'], '.tddium.mimic'))
 end
