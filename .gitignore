@@ -24,6 +24,7 @@ nbproject
 .tddium-deploy-key
 .tddium-deploy-key.*
 .DS_Store
+vendor/ruby
 
 # Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
 #
