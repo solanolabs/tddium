@@ -108,15 +108,15 @@ module Tddium
     end
 
     def user_logged_in?(active = true, message = false)
-      result = @api_config.get_api_key
-
       global_api_key = @api_config.get_api_key(:global => true)
       repo_api_key = @api_config.get_api_key(:repo => true)
 
-      if (global_api_key && global_api_key != repo_api_key && message)
-        say Text::Error::INVALID_CREDENTIALS
+      if (global_api_key && repo_api_key && global_api_key != repo_api_key)
+        say Text::Error::INVALID_CREDENTIALS if message
         return
       end
+
+      result = repo_api_key || global_api_key
 
       if message && result.nil? then
         say Text::Error::NOT_INITIALIZED
