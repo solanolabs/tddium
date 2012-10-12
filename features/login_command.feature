@@ -47,6 +47,36 @@ Feature: Login command
     And the exit status should be 0
     And dotfiles should be updated
 
+  Scenario: User logs in with multiple suites
+    Given the user can log in and gets API key "apikey"
+    And the user has the following keys:
+      | name      |
+      | default   |
+    And the user has the following suites for the repo named "repo":
+      | id | branch  |
+      | 1  | branch1 |
+      | 2  | branch2 |
+      | 3  | branch3 |
+    And a git repo is initialized
+    When I run `tddium login foo@example.com` interactively
+    And I type "barbarbar"
+    And the console session ends
+    Then the output should contain:
+    """
+    Logged in successfully
+    """
+    And the file ".tddium.mimic" should contain "branch1"
+    And the output should not contain "tddium suite"
+    And the output should not contain "tddium spec"
+    And the output should not contain "tddium run"
+    And the exit status should be 0
+    And dotfiles should be updated
+    And the file ".tddium.mimic" should contain the following branches:
+      | id | branch  |
+      | 1  | branch1 |
+      | 2  | branch2 |
+      | 3  | branch3 |
+
   Scenario: Interactive log in successfully without a git repository
     Given the user can log in and gets API key "apikey"
     And the user has the following keys:

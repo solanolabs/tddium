@@ -1,13 +1,23 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
-def make_suite_response(name, branch)
-  suite = SAMPLE_SUITE_RESPONSE
+def make_suite_response(name, branch, options = {})
+  suite = SAMPLE_SUITE_RESPONSE.dup
+  suite["id"] = options[:id] if options[:id]
   suite["repo_name"] = name
   suite["branch"] = branch
   suite["git_repo_uri"] = "file:///#{Dir.tmpdir}/tddium-aruba/repo"
   suite["repoman_current"] = true
   suite["ci_ssh_pubkey"] = "ssh-rsa ABCDEFGG"
   suite
+end
+
+Given /^the user has the following suites for the repo named "([^"]*)":$/ do |repo_name, table|
+  suite_data = table.hashes
+  suite_response = []
+  suite_data.each do |suite|
+    suite_response << make_suite_response(repo_name, suite["branch"], :id => suite["id"])
+  end
+  Antilles.install(:get, "/1/suites", {:status=>0, :suites => suite_response})
 end
 
 Given /^the user has a suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
@@ -78,4 +88,15 @@ Given /^the user is logged in, and can successfully create a new suite in a git 
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
   }
+end
+
+Then /^the file "([^"]*)" should contain the following branches:$/ do |file, table|
+  prep_for_fs_check do
+    content = JSON.parse(IO.read(file))
+    suite_data = table.hashes
+    suite_data.each do |suite|
+      branch = suite["branch"]
+      content["branches"][branch]["id"].should == suite["id"]
+    end
+  end
 end
