@@ -39,3 +39,12 @@ Then /^"([^"]*)" (output|stderr) (should|should not) contain "([^"]*)"$/ do |cmd
   check_contains(cmd, chan, pol, expected)
 end
 
+Then /^show me the file "([^"]*)"$/ do |file|
+  prep_for_fs_check do
+    puts IO.read(file)
+  end
+end
+
+Then /^show me the output$/ do
+  puts all_output
+end
