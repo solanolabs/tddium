@@ -45,8 +45,8 @@ module Tddium
         params[key] = prompt(text, options[key], suite.fetch(key.to_s, default), options[:non_interactive])
       end
 
-      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, '') 
-      ask_or_update.call(:hipchat_room, Text::Prompt::HIPCHAT_ROOM, '') 
+      ask_or_update.call(:campfire_room, Text::Prompt::CAMPFIRE_ROOM, '')
+      ask_or_update.call(:hipchat_room, Text::Prompt::HIPCHAT_ROOM, '')
 
       @tddium_api.update_suite(suite['id'], params)
       say Text::Process::UPDATED_SUITE
@@ -130,7 +130,7 @@ module Tddium
 
       python_config = @repo_config[:python] || {}
       current_python_config = current_suite['python_config'] || {}
-      if python_config != (current_suite['python_config'] || []) then
+      if python_config != (current_suite['python_config'] || {}) then
         update_params[:python] = python_config
       end
 
