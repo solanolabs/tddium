@@ -169,15 +169,13 @@ module Tddium
     end
 
     def current_suite_id
-      branch = Tddium::Git.git_current_branch
-      id = @api_config.get_branch(branch, 'id')
-      return id
+      @branch ||= Tddium::Git.git_current_branch
+      @api_config.get_branch(@branch, 'id')
     end
 
     def current_suite_options
-      branch = Tddium::Git.git_current_branch
-      options = @api_config.get_branch(branch, 'options')
-      return options
+      @branch ||= Tddium::Git.git_current_branch
+      @api_config.get_branch(@branch, 'options')
     end
 
     def get_suites(params={})
