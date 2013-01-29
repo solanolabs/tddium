@@ -1,18 +1,22 @@
 = tddium
 
-tddium takes the pain out of Ruby TDD.
+Tddium is a hosted continuous deployment platform that runs your build and test
+suites in the cloud, in parallel.  Your tests run isolated in freshly prepared
+workers that are automatically configured with real database and search engine
+instances to match your development and production environments.
 
-It automatically starts private Amazon EC2 Instances, runs your tests, collects
-results, and cleans up the EC2 resources it used so you only pay for what you
-use.
+Tddium also supports parallel test running in our cloud even before you push to
+a shared branch.
 
-{<img src="https://api.tddium.com/jaysolano/tddium/badges/66.png"/>}[http://api.tddium.com/jaysolano/tddium/suites/66]
+The `tddium` gem implements a command line interface for you to start a
+parallel run from your local git workspace, along with ways to edit
+configuration and retrieve your account status all from within your terminal.
 
 == Getting Started
 
-See http://www.tddium.com/support for more information.
+See http://docs.tddium.com/ for more information.
 
 == Copyright
 
-Copyright (c) 2011, 2012 Solano Labs All Rights Reserved. See LICENSE.txt for
-further details.
+Copyright (c) 2011-2013 Solano Labs, Inc. All Rights Reserved. See LICENSE.txt
+for further details.
