@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Solano Labs"]
   s.email       = ["info@tddium.com"]
-  s.homepage    = "http://www.tddium.com/"
+  s.homepage    = "https://github.com/solanolabs/tddium.git"
   s.summary     = %q{tddium Hosted Test Environment}
   s.description = <<-EOF
 tddium runs your test suite simply and quickly in our managed
