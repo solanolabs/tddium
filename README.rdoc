@@ -14,7 +14,7 @@ configuration and retrieve your account status all from within your terminal.
 
 == Getting Started
 
-See http://docs.tddium.com/ for more information.
+See http://docs.tddium.com for more information.
 
 == Copyright
 
