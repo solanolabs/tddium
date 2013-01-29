@@ -1,0 +1,18 @@
+= tddium
+
+tddium takes the pain out of Ruby TDD.
+
+It automatically starts private Amazon EC2 Instances, runs your tests, collects
+results, and cleans up the EC2 resources it used so you only pay for what you
+use.
+
+{<img src="https://api.tddium.com/jaysolano/tddium/badges/66.png"/>}[http://api.tddium.com/jaysolano/tddium/suites/66]
+
+== Getting Started
+
+See http://www.tddium.com/support for more information.
+
+== Copyright
+
+Copyright (c) 2011, 2012 Solano Labs All Rights Reserved. See LICENSE.txt for
+further details.
