@@ -42,13 +42,13 @@ module Tddium
     map "-v" => :version
     desc "version", "Print the tddium gem version"
     def version
-      say TddiumVersion::VERSION
+      say VERSION
     end
 
     protected
 
     def caller_version
-      "tddium-#{TddiumVersion::VERSION}"
+      "tddium-#{VERSION}"
     end
 
     def configured_test_pattern
