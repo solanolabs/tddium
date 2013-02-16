@@ -36,8 +36,8 @@ module Tddium
         keydata = Tddium::Ssh.load_ssh_key(path, name)
         result = @tddium_api.set_keys({:keys => [keydata]})
 
-        priv_name = name.sub(/[.]pub$/, '')
-        say Text::Process::ADD_KEYS_ADD_DONE % [priv_name, result["git_server"] || Default::GIT_SERVER, path]
+        priv_path = path.sub(/[.]pub$/, '')
+        say Text::Process::ADD_KEYS_ADD_DONE % [name, priv_path, result["git_server"] || Default::GIT_SERVER, priv_path]
 
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_KEYS_ERROR % name
@@ -66,8 +66,7 @@ module Tddium
         
         result = @tddium_api.set_keys({:keys => [keydata]})
         outfile = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
-        priv_name = name.sub(/[.]pub$/, '')
-        say Text::Process::ADD_KEYS_GENERATE_DONE % [priv_name, result["git_server"] || Default::GIT_SERVER, outfile]
+        say Text::Process::ADD_KEYS_GENERATE_DONE % [name, result["git_server"] || Default::GIT_SERVER, outfile]
 
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_KEYS_ERROR % name

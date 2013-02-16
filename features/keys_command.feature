@@ -65,6 +65,7 @@ Feature: Keys command
     And the output should contain "Host git.tddium.com"
     And the output should contain "IdentityFile"
     And the output should contain "identity.tddium.third"
+    And the output should not contain "identity.tddium.third.pub"
 
   Scenario: Fail to add key if the user isn't logged in
     When I run `tddium keys:add identitiy.tddium.third third`
@@ -91,8 +92,8 @@ Feature: Keys command
       | name      |
       | default   |
       | another   |
-    And the key file named "another" exists
-    When I run `tddium keys:add another identity.tddium.another`
+    And the public key file named "another" exists
+    When I run `tddium keys:add another identity.tddium.another.pub`
     Then the exit status should not be 0
     And the output should contain "already have"
 
@@ -103,7 +104,7 @@ Feature: Keys command
       | default   |
       | another   |
     And adding the key "third" will succeed
-    But the key file named "third" exists
+    But the private key file named "third" exists
     When I run `tddium keys:gen third`
     Then the exit status should not be 0
     And the output should contain "already exists"
@@ -115,11 +116,14 @@ Feature: Keys command
       | default   |
       | another   |
     And adding the key "third" will succeed
-    And the key file named "third" exists
-    When I run `tddium keys:add third identity.tddium.third`
+    And the public key file named "third" exists
+    When I run `tddium keys:add third identity.tddium.third.pub`
     Then the exit status should be 0
     And the output should contain "Adding"
     And the output should contain "Authorized"
+    And the output should contain "IdentityFile"
+    And the output should contain "identity.tddium.third"
+    And the output should not contain "identity.tddium.third.pub"
     And the output should contain "Host"
 
   Scenario: Fail to add key that does not exist in the filesystem
@@ -149,9 +153,9 @@ Feature: Keys command
       | name      |
       | default   |
       | another   |
-    And the key file named "third" exists
+    And the public key file named "third" exists
     But adding the key "third" will fail
-    When I run `tddium keys:add third identity.tddium.third`
+    When I run `tddium keys:add third identity.tddium.third.pub`
     Then the exit status should not be 0
     And the output should contain "API Error"
 

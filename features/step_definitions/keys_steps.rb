@@ -40,11 +40,22 @@ Then /^the key file named "([^"]*)" should not exist$/ do |arg1|
   } 
 end
 
-Given /^the key file named "([^"]*)" exists$/ do |arg1|
+Given /^the public key file named "([^"]*)" exists$/ do |arg1|
+  steps %Q{
+    Given a file named "identity.tddium.#{arg1}.pub" with:
+    """
+    ssh-rsa SOME DATA
+    """
+  } 
+end
+
+Given /^the private key file named "([^"]*)" exists$/ do |arg1|
   steps %Q{
     Given a file named "identity.tddium.#{arg1}" with:
     """
-    ssh-rsa SOME DATA
+    -----BEGIN RSA PRIVATE KEY-----
+    ABCDEF
+    -----END RSA PRIVATE KEY-----
     """
   } 
 end

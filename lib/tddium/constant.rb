@@ -105,7 +105,8 @@ EOF
       ADD_KEYS_ADD_DONE =<<EOF
 Authorized key '%s'.
 
-Append the following to ~/.ssh/config to use this new key with Tddium:
+Assuming your private key is in %s, you can just add the following 
+to ~/.ssh/config to use this new key with Tddium:
 
 # Tddium SSH Config
 Host %s
