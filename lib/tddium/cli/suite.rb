@@ -102,6 +102,11 @@ module Tddium
         update_params[:ruby_version] = ruby_version
       end
 
+      bundler_version = sniff_bundler_version
+      if bundler_version && bundler_version != current_suite["bundler_version"] then
+        update_params[:bundler_version] = bundler_version
+      end
+
       test_configs = @repo_config[:tests] || []
       if test_configs != (current_suite['test_configs'] || []) then
         update_params[:test_configs] = test_configs
@@ -120,6 +125,9 @@ module Tddium
         end
         if update_params[:ruby_version]
           say Text::Process::UPDATED_RUBY_VERSION % ruby_version
+        end
+        if update_params[:bundler_version]
+          say Text::Process::UPDATED_BUNDLER_VERSION % bundler_version
         end
         if update_params[:test_configs]
           say Text::Process::UPDATED_TEST_CONFIGS % YAML.dump(test_configs)
