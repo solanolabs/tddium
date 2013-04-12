@@ -70,6 +70,17 @@ module Tddium
       return ruby_version
     end
 
+    def sniff_bundler_version
+      bundler = @repo_config[:bundler_version]
+      bundler = tool_version(:bundle)
+      if !bundler.nil? then
+        bundler.chomp!
+        bundler =~ /Bundler version (.*)\z/
+        bundler = $1
+      end
+      return bundler
+    end
+
     def ssh_key_fingerprint(pubkey)
       tmp = Tempfile.new('ssh-pub')
       tmp.write(pubkey)

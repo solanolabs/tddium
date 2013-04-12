@@ -229,6 +229,7 @@ with Tddium.
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
       UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
+      UPDATED_BUNDLER_VERSION = "Updated bundler version to '%s'"
       UPDATED_PYTHON_CONFIG = "Updated Python configuration:\n%s"
       UPDATED_TEST_CONFIGS = "Updated test configurations:\n%s"
       DEPENDENCY_VERSION = "... Detected %s %s"
