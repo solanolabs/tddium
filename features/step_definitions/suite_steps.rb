@@ -68,7 +68,7 @@ end
 Given /^the user can create a ci\-disabled suite named "(.*?)" on branch "(.*?)"$/ do |name, branch|
   resp = make_suite_response(name, branch)
   options = {:code=>201}
-  options["params"] = {"suite"=>{"branch"=>"foobar", "repo_url"=>"g@example.com:foo.git", "repo_name"=>"work", "ruby_version"=>"ruby 1.9.2p290 (2011-07-09 revision 32553) [x86_64-linux]", "bundler_version"=>Bundler::VERSION, "rubygems_version"=>"1.8.24", "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=>"", "ci_push_url"=>""}}
+  options["params"] = {"suite"=>{"branch"=>"foobar", "repo_url"=>"g@example.com:foo.git", "repo_name"=>"work", "ruby_version"=>"ruby 1.9.2p290 (2011-07-09 revision 32553) [x86_64-linux]", "bundler_version"=>Bundler::VERSION, "rubygems_version"=>Gem::VERSION, "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=>"", "ci_push_url"=>""}}
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>resp}, options)
 end
 
