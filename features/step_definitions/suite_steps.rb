@@ -1,4 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+#
+
+require 'bundler'
 
 def make_suite_response(name, branch, options = {})
   suite = SAMPLE_SUITE_RESPONSE.dup
@@ -56,10 +59,16 @@ Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)"$/ do |na
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>make_suite_response(name, branch)}, :code=>201)
 end
 
+Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)" with bundler "(.*?)"$/ do |name, branch, bundler|
+  resp = make_suite_response(name, branch)
+  resp["bundler"] = bundler
+  Antilles.install(:post, "/1/suites", {:status=>0, :suite=>resp}, :code=>201)
+end
+
 Given /^the user can create a ci\-disabled suite named "(.*?)" on branch "(.*?)"$/ do |name, branch|
   resp = make_suite_response(name, branch)
   options = {:code=>201}
-  options["params"] = {"suite"=>{"branch"=>"foobar", "repo_url"=>"g@example.com:foo.git", "repo_name"=>"work", "ruby_version"=>"ruby 1.9.2p290 (2011-07-09 revision 32553) [x86_64-linux]", "bundler_version"=>"Bundler version 1.2.1", "rubygems_version"=>"1.8.24", "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=>"", "ci_push_url"=>""}}
+  options["params"] = {"suite"=>{"branch"=>"foobar", "repo_url"=>"g@example.com:foo.git", "repo_name"=>"work", "ruby_version"=>"ruby 1.9.2p290 (2011-07-09 revision 32553) [x86_64-linux]", "bundler_version"=>Bundler::VERSION, "rubygems_version"=>"1.8.24", "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=>"", "ci_push_url"=>""}}
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>resp}, options)
 end
 
@@ -95,6 +104,16 @@ Given /^the user is logged in, and can successfully create a new suite in a git 
     And the user is logged in
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
+  }
+end
+
+Given /^the user is logged in, and can successfully create a new suite in a git repo with bundler "([^"]*)"$/ do |bundler|
+  steps %Q{
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar" with "#{bundler}"
   }
 end
 

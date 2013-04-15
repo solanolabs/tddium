@@ -24,6 +24,21 @@ Feature: suite command
     Then the output should contain "Created suite..."
     Then the exit status should be 0
 
+  Scenario: Configure new suite with bundler from tddium.yml
+    Given the user is logged in, and can successfully create a new suite in a git repo with bundler '1.3.5'
+    And a file named "config/tddium.yml" with:
+    """
+    ---
+    :tddium:
+      :bundler_version:  '1.3.5'
+    """
+    When I run `tddium suite --name=beta --ci-pull-url=disable --ci-push-url=disable --test-pattern=spec/*`
+    Then the output should contain "Looks like"
+    Then the output should contain "Detected branch test/foobar"
+    Then the output should contain "Configured bundler version 1.3.5 from config/tddium.yml"
+    Then the output should contain "Created suite..."
+    Then the exit status should be 0
+
   Scenario: Configure new suite with ruby from tddium.cfg
     Given the user is logged in, and can successfully create a new suite in a git repo
     And a file named "config/tddium.cfg" with:

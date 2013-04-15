@@ -61,13 +61,26 @@ module Tddium
         git_root = Git.git_root
         if git_root then
           rvmrc = File.join(git_root, '.rvmrc')
-          if File.exists?(rvmrc) then
+          ruby_version_path = File.join(git_root, '.ruby_version')
+          if File.exists?(ruby_version_path) then
+            ruby_version = sniff_ruby_version_rvmrc(ruby_version)
+          elsif File.exists?(rvmrc) then
             ruby_version = sniff_ruby_version_rvmrc(rvmrc)
             warn("Detected ruby #{ruby_version} in .rvmrc; make sure patch level is correct")
           end
         end
       end
       return ruby_version
+    end
+
+    def sniff_bundler_version(bundler_version=nil)
+      bundler_version ||= @repo_config[:bundler_version]
+      if !bundler_version.nil? then
+        bundler_version.chomp!
+        bundler_version =~ /Bundler version (.*)\z/
+        bundler_version = $1
+      end
+      return bundler_version
     end
 
     def ssh_key_fingerprint(pubkey)
