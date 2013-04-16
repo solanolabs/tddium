@@ -102,7 +102,7 @@ module Tddium
         update_params[:ruby_version] = ruby_version
       end
 
-      bundler_version = sniff_bundler_version
+      bundler_version = @repo_config[:bundler_version]
       if bundler_version && bundler_version != current_suite["bundler_version"] then
         update_params[:bundler_version] = bundler_version
       end

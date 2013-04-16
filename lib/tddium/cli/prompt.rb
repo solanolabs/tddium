@@ -33,7 +33,7 @@ module Tddium
     def prompt_suite_params(options, params, current={})
       say Text::Process::DETECTED_BRANCH % params[:branch] if params[:branch]
       params[:ruby_version] ||= tool_version(:ruby)
-      params[:bundler_version] ||= sniff_bundler_version(tool_version(:bundle))
+      params[:bundler_version] ||= normalize_bundler_version(tool_version(:bundle))
       params[:rubygems_version] ||= tool_version(:gem)
 
       ask_or_update = lambda do |key, text, default|

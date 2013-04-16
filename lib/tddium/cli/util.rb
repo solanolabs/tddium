@@ -73,8 +73,7 @@ module Tddium
       return ruby_version
     end
 
-    def sniff_bundler_version(bundler_version=nil)
-      bundler_version ||= @repo_config[:bundler_version]
+    def normalize_bundler_version(bundler_version)
       if !bundler_version.nil? then
         bundler_version.chomp!
         bundler_version =~ /Bundler version (.*)\z/
