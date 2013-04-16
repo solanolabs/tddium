@@ -1,4 +1,5 @@
 :tddium:
+  :ruby_version: 'ruby-1.9.2-p290'
   :bundler_version: 1.3.5
   :test_pattern:
     - features/*.feature
