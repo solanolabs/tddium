@@ -1,4 +1,5 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+require 'tddium/commit_log_parser'
 
 module Tddium
   class TddiumCli < Thor
@@ -79,11 +80,13 @@ module Tddium
       # Push the latest code to git
       git_repo_uri = suite_details["git_repo_uri"]
       if !Tddium::Git.update_git_remote_and_push(git_repo_uri) then
-        exit_failure Text::Error::GIT_PUSH_FAILED 
+        exit_failure Text::Error::GIT_PUSH_FAILED
       end
 
+      commits = CommitLogParser.new(Tddium::Git.latest_commit).commits
+
       # Create a session
-      new_session = @tddium_api.create_session(@tddium_api.current_suite_id)
+      new_session = @tddium_api.create_session(@tddium_api.current_suite_id, :commits => commits)
       machine_data[:session_id] = session_id = new_session["id"]
 
       # Register the tests
@@ -127,8 +130,8 @@ module Tddium
           current_test_executions = @tddium_api.poll_session(session_id)
           session_status = current_test_executions['session_status']
 
-          messages, latest_message = update_messages(latest_message, 
-                                                     finished_tests, 
+          messages, latest_message = update_messages(latest_message,
+                                                     finished_tests,
                                                      messages,
                                                      current_test_executions["messages"])
 
@@ -158,7 +161,7 @@ module Tddium
           end
 
            # XXX time out if all tests are done and the session isn't done.
-          if current_test_executions['session_done'] || 
+          if current_test_executions['session_done'] ||
              (finished_tests.size >= num_tests_started && (Time.now - last_finish_timestamp) > Default::TEST_FINISH_TIMEOUT)
             tests_finished = true
           end
@@ -170,8 +173,8 @@ module Tddium
       # If we haven't been polling messages, get them all at the end.
       if options[:machine]
         current_test_executions = @tddium_api.poll_session(session_id)
-        messages, latest_message = update_messages(latest_message, 
-                                                   finished_tests, 
+        messages, latest_message = update_messages(latest_message,
+                                                   finished_tests,
                                                    messages,
                                                    current_test_executions["messages"],
                                                    false)
@@ -228,7 +231,7 @@ module Tddium
 
     def update_messages(latest_message, finished_tests, messages, current, display=true)
       messages = current
-      if !options[:machine] && finished_tests.size == 0 && messages 
+      if !options[:machine] && finished_tests.size == 0 && messages
         messages.each do |m|
           seqno = m["seqno"].to_i
           if seqno > latest_message
@@ -239,6 +242,5 @@ module Tddium
       end
       [messages, latest_message]
     end
-
   end
 end

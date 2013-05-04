@@ -42,6 +42,18 @@ describe Tddium::TddiumAPI do
     end
   end
 
+  describe "#create_session(suite_id, params = {})" do
+    before do
+      api_config.stub(:get_api_key)
+      tddium_client.stub(:call_api).and_return({"session" => "session_json"})
+    end
+
+    it "should post to /sessions" do
+      tddium_client.should_receive(:call_api).with(:post, "sessions", {:suite_id => 1, :commits => ["foo"]}, nil)
+      subject.create_session(1, :commits => ["foo"]).should == "session_json"
+    end
+  end
+
   describe "#user_logged_in?" do
     before do
       api_config.stub(:get_api_key)

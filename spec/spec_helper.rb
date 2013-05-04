@@ -7,7 +7,6 @@ require 'tddium'
 
 require 'rspec'
 require 'fakefs/spec_helpers'
-require 'tddium_client/tddium_spec_helpers'
 
 require 'ostruct'
 require 'stringio'

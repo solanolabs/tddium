@@ -216,9 +216,9 @@ module Tddium
       return current_sessions['sessions']
     end
 
-    def create_session(suite_id)
-      new_session = call_api(:post, Api::Path::SESSIONS, :suite_id=>suite_id)
-      return new_session['session']
+    def create_session(suite_id, params = {})
+      new_session = call_api(:post, Api::Path::SESSIONS, params.merge(:suite_id=>suite_id))
+      new_session['session']
     end
 
     def register_session(session_id, suite_id, test_pattern)
