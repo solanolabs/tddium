@@ -215,17 +215,6 @@ $ tddium run
                            :user_data_file => "Sending user data from %s",
                            :test_pattern => "Selecting tests that match '%s'"}
       REMEMBERED = " (Remembered value)"
-      HEROKU_WELCOME = "
-Thanks for installing the Tddium Heroku Add-On!
-
-Your tddium username is: %s
-
-"
-      HEROKU_ACTIVATE = "
-Next, set a password and provide an SSH key to authenticate your communication
-with Tddium.
-
-"
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
       UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
@@ -303,14 +292,6 @@ install gems from private git repos or communicate via SSH to your servers:
 <%end%>
 EOF
 
-      HEROKU_CONFIG = "
-Tddium is configured to work with your Heroku app.
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-"
       SUITE_DETAILS =<<EOF;
   Repo:                 <%=suite["repo_url"]%>
   Branch:               <%=suite["branch"]%>
@@ -426,7 +407,7 @@ Commit changes before running 'tddium spec'.
 
 Use 'tddium spec --force' to test with only already-committed changes.
 EOF
-      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login' or 'tddium heroku'"
+      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;
@@ -458,22 +439,6 @@ http://www.tddium.com/
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
-      HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium: %s"
-      module Heroku
-        NOT_FOUND = "heroku command not found.  Make sure the latest heroku gem is installed.\nOutput of `gem list heroku`:\n%s"
-        NOT_ADDED =<<EOF;
-It looks like you haven't enabled the tddium add-on for the default app.
-Add it using 'heroku addons:add tddium'
-
-If you've already enabled the addon for a specific app, try running:
-
-   $ tddium heroku --app <your app name>'
-
-EOF
-        INVALID_FORMAT = "The 'heroku -s' command output a format we didn't recognize.  Make sure you're running the latest version of the heroku gem"
-        NOT_LOGGED_IN = "Log in to your heroku account first using 'heroku login'"
-        APP_NOT_FOUND = "The app '%s' is not recognized by Heroku"
-      end
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
       ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"

@@ -10,7 +10,6 @@ Feature: Password command
     When I run `tddium password`
     Then the exit status should not be 0
     And the output should contain "tddium login"
-    And the output should contain "tddium heroku"
 
   Scenario: Successfully change password interactively
     Given the user is logged in

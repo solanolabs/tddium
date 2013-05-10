@@ -12,7 +12,6 @@ SAMPLE_EMAIL = "someone@example.com"
 SAMPLE_FILE_PATH = "./my_user_file.png"
 SAMPLE_FILE_PATH2 = "./my_user_file2.png"
 SAMPLE_INVITATION_TOKEN = "TZce3NueiXp2lMTmaeRr"
-SAMPLE_HEROKU_CONFIG = {"TDDIUM_API_KEY" => SAMPLE_API_KEY, "TDDIUM_USER_NAME" => SAMPLE_EMAIL}
 SAMPLE_LICENSE_TEXT = "LICENSE"
 SAMPLE_PASSWORD = "foobar"
 SAMPLE_NEW_PASSWORD = "foobar2"
@@ -68,13 +67,6 @@ SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
     "created_at" => SAMPLE_DATE_TIME, 
     "account" => SAMPLE_ACCOUNT_NAME,
     "account_role" => SAMPLE_ROLE}}
-SAMPLE_HEROKU_USER_RESPONSE = {"status"=>0, "user"=>
-  { "id"=>SAMPLE_USER_ID, 
-    "api_key" => "apikey", 
-    "email" => SAMPLE_EMAIL, 
-    "created_at" => SAMPLE_DATE_TIME, 
-    "heroku_needs_activation" => true,
-    "recurly_url" => SAMPLE_RECURLY_URL}}
 PASSWORD_ERROR_EXPLANATION = "bad confirmation"
 PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
 SAMPLE_ACCOUNT_USAGE = {"status"=>0, "usage"=>"Usage: something"}
