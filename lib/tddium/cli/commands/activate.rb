@@ -2,53 +2,13 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "activate", "Activate an account with an invitation token"
+    desc "activate", "Activate an account (deprecated)"
     method_option :email, :type => :string, :default => nil
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
     def activate
-      user_details = tddium_setup({:login => false})
-
-      if user_details then
-        exit_failure Text::Error::ACTIVATE_LOGGED_IN
-      else
-        params = @tddium_api.get_user_credentials(options.merge(:invited => true))
-
-        # Prompt for the password confirmation if password is not from command line
-        unless options[:password]
-          password_confirmation = HighLine.ask(Text::Prompt::PASSWORD_CONFIRMATION) { |q| q.echo = "*" }
-          unless password_confirmation == params[:password]
-            exit_failure Text::Process::PASSWORD_CONFIRMATION_INCORRECT
-          end
-        end
-
-        begin
-          params[:user_ssh_key] = prompt_ssh_key(options[:ssh_key_file])
-        rescue TddiumError => e
-          exit_failure e.message
-        end
-
-        # Prompt for accepting terms
-        say Text::Process::TERMS_OF_SERVICE
-        license_accepted = ask(Text::Prompt::LICENSE_AGREEMENT)
-        exit_failure unless license_accepted.downcase == Text::Prompt::Response::AGREE_TO_LICENSE.downcase
-
-        begin
-          say Text::Process::STARTING_ACCOUNT_CREATION
-          new_user = @tddium_api.set_user(params)
-          @api_config.set_api_key(new_user["api_key"], new_user["email"])
-          role = new_user["account_role"]
-          if role.nil? || role == "owner"
-            say Text::Process::ACCOUNT_CREATED % [new_user["email"], new_user["trial_remaining"], new_user["recurly_url"]]
-          else
-            say Text::Process::ACCOUNT_ADDED % [new_user["email"], new_user["account_role"], new_user["account"]]
-          end
-        rescue TddiumClient::Error::API => e
-          exit_failure ((e.status == Api::ErrorCode::INVALID_INVITATION) ? Text::Error::INVALID_INVITATION : e.message)
-        rescue TddiumClient::Error::Base => e
-          exit_failure say e.message
-        end
-      end
+      say "To activate your account, please visit"
+      say "https://api.tddium.com/FIXME"
     end
   end
 end

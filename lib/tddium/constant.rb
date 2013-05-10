@@ -48,9 +48,6 @@ module TddiumConstant
       ACCOUNTS = "accounts"
       REPOS = "repos"
     end
-    module ErrorCode
-      INVALID_INVITATION = 2
-    end
   end
 
   module License
@@ -60,13 +57,11 @@ module TddiumConstant
   module Text
     module Prompt
       module Response
-        AGREE_TO_LICENSE = "I AGREE"
         YES = "y"
         DISABLE = 'disable'
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a repo name or press 'Return'. Using '%s' by default:"
-      LICENSE_AGREEMENT = "Type '%s' to accept the Terms of Service and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address: "
       CURRENT_PASSWORD = "Enter your old password: "
       PASSWORD = "Enter password: "
@@ -89,15 +84,6 @@ module TddiumConstant
     end
 
     module Process
-      TERMS_OF_SERVICE =<<EOF
-
-Before you can use Tddium, you must agree to our Terms of Service.
-
-Read them at this URL:
-
- https://www.tddium.com/terms.html 
-
-EOF
       SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\n\n"
       DEFAULT_KEY_ADDED = "SSH key authorized."
       NO_KEYS = "No authorized keys."
@@ -183,31 +169,6 @@ Next, you should register your test suite and start tests by running:
 $ tddium run
 
 "
-      ACCOUNT_CREATED = "
-Congratulations %s, your tddium account has been created!
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-You have %s days left in your free trial.
-
-To sign up a for a billing plan, open this URL in your browser:
-
-%s
-
-"
-      ACCOUNT_ADDED = "
-Congratulations %s, your tddium account has been activated.
-
-You are a %s of the account: %s
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-"
-      STARTING_ACCOUNT_CREATION = "Creating account.  This may take a few seconds..."
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
@@ -428,20 +389,11 @@ git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
-      INVALID_INVITATION = "
-Your activation token wasn't recognized. If you have a token,
-make sure you have entered it correctly.
-
-To register, visit:
-
-http://www.tddium.com/
-"
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
-      ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
       USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
       INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
     end
