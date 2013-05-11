@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (1.7.6)
+    tddium (1.8.0)
       highline
       json
       launchy
@@ -40,7 +40,7 @@ GEM
     ffi (1.1.5)
     gherkin (2.11.2)
       json (>= 1.4.6)
-    highline (1.6.15)
+    highline (1.6.18)
     httparty (0.9.0)
       multi_json (~> 1.0)
       multi_xml
