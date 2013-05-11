@@ -26,7 +26,7 @@ module Tddium
         end
         return changes
       end
-  
+
       def git_version_ok
         version = nil
         begin
@@ -45,16 +45,16 @@ module Tddium
           warn(Text::Warning::GIT_VERSION % version)
         end
       end
-  
+
       def git_current_branch
         `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
       end
-  
+
       def git_push
         say Text::Process::GIT_PUSH
         system("git push -f #{Config::REMOTE_NAME} #{git_current_branch}")
       end
-  
+
       def git_repo?
         if File.directory?('.git') then
           return true
@@ -63,7 +63,7 @@ module Tddium
         ok = $?.success?
         return ok
       end
-  
+
       def git_root
         root = `git rev-parse --show-toplevel 2>&1`
         if $?.exitstatus == 0 then
@@ -72,17 +72,21 @@ module Tddium
         end
         return Dir.pwd
       end
-  
+
       def git_repo_name
         return File.basename(git_root)
       end
-  
+
+      def latest_commit
+        `git log --pretty='%H%n%s%n%aN%n%aE%n%at%n%cN%n%cE%n%ct%n' HEAD^..HEAD`
+      end
+
       def git_origin_url
         result = `(git config --get remote.origin.url || echo GIT_FAILED) 2>/dev/null`
         return nil if result =~ /GIT_FAILED/
         result.strip
       end
-  
+
       def update_git_remote_and_push(git_repo_uri)
         unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
           `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
