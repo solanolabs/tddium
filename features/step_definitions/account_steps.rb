@@ -1,11 +1,7 @@
 # Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
 
 Given /^the user has the following memberships in his account:$/ do |table|
-  Antilles.install(:get, "/1/memberships", {:status=>0, :memberships=>table.hashes})
-  @memberships = {}
-  table.hashes.each do |row|
-    @memberships[row['email']]=row
-  end
+  Antilles.install(:get, "/1/memberships", {:status=>0, :account_roles=>table.hashes})
 end
 
 Given /^adding a member to the account will succeed$/ do

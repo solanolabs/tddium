@@ -40,7 +40,7 @@ module TddiumConstant
       REGISTER_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/register"
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
-      ACCOUNT_USAGE = "accounts/usage"
+      ACCOUNT_USAGE_BY_ACCOUNT = "accounts/usage_by_account"
       MEMBERSHIPS = "memberships"
       INSTANCES = "instances"
       KEYS = "keys"
@@ -217,30 +217,37 @@ EOF
       SPEC_WARNINGS = "\n\n>>> Tddium Warnings:\n\n"
       SPEC_ERRORS = "\n\n>>> Tddium Errors:\n"
       NO_SUITE = "You currently do not have any suites"
-      ALL_SUITES = "Your suites:"
-      CURRENT_SUITE = "Your current suite: %s"
+      ALL_SUITES = "Suites:"
+      CURRENT_SUITE = "Current suite: %s"
       CURRENT_SUITE_UNAVAILABLE = "Your current suite is unavailable"
       NO_ACTIVE_SESSION = "There are no active sessions"
       ACTIVE_SESSIONS = "Your active sessions:"
       NO_INACTIVE_SESSION = "There are no previous sessions"
-      INACTIVE_SESSIONS = "Your latest sessions:"
+      INACTIVE_SESSIONS = "Latest sessions:"
       SESSION_DETAIL = " open %s # %8.8s Started: %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "\nUsing suite...\n"
       USER_DETAILS =<<EOF;
 
-  Username: <%=user["email"]%>
-  Account Created: <%=user["created_at"]%>
-  Plan: <%=user["plan"]%>
-<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>  Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
-<% if user["account_url"] %>  Account Management URL: <%=user["account_url"]%><% end %>
-<% if user["heroku"] %>  Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
-<% if user["third_party_pubkey"] %>
->>> Authorize the following SSH public key to allow Tddium's test workers to
-install gems from private git repos or communicate via SSH to your servers:
+Username: <%=user["email"]%>
+User created: <%=user["created_at"]%>
+EOF
+      ACCOUNT_DETAILS =<<EOF;
 
-    <%= user["third_party_pubkey"] %>
+Account: <%=acct["account"]%>
+
+  Role: <%=acct["account_role"]%>
+  Owner: <%=acct["account_owner"]%>
+  Plan: <%=acct["plan"]%>
+<% if acct["trial_remaining"] && acct["trial_remaining"] > 0 %>  Trial Period Remaining: <%=acct["trial_remaining"]%> days<% end %>
+<% if acct["account_url"] %>  Account Management URL: <%=acct["account_url"]%><% end %>
+<% if acct["heroku"] %>  Heroku Account Linked: <%=acct["heroku_activation_done"]%><% end %>
+<% if acct["third_party_pubkey"] %>
+  >>> Authorize the following SSH public key to allow Tddium's test workers to
+  install gems from private git repos or communicate via SSH to your servers:
+
+    <%= acct["third_party_pubkey"] %>
 
 <%end%>
 EOF
@@ -309,7 +316,7 @@ Notifications:
 >>> Run 'tddium suite --edit' to edit these settings.
 >>> Run 'tddium spec' to run tests in this suite.
 EOF
-      ACCOUNT_MEMBERS = "\nAuthorized users in this account:\n"
+      ACCOUNT_MEMBERS = "Authorized users:"
       KEYS_DETAILS =<<EOF
 
 You have authorized the following SSH public keys to communicate with Tddium:

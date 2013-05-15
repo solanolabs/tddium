@@ -77,37 +77,58 @@ module Tddium
       end
     end
 
+    def format_usage(usage)
+      "All tests: %.2f worker-hours  ($%.2f)" % [
+        usage["hours"] || 0, usage["charge"] || 0]
+    end
+
     def show_user_details(user)
+      current_suites = @tddium_api.get_suites
+      memberships = @tddium_api.get_memberships
+      account_usage = @tddium_api.get_usage
+
       # Given the user is logged in, he should be able to
       # use "tddium account" to display information about his account:
       # Email address
       # Account creation date
       say ERB.new(Text::Status::USER_DETAILS).result(binding)
+      user["all_accounts"].each do |acct|
+        id = acct['account_id'].to_i
 
-      current_suites = @tddium_api.get_suites
-      if current_suites.empty? then
-        say Text::Status::NO_SUITE
-      else
-        say Text::Status::ALL_SUITES
-        suites = current_suites.sort_by{|s| "#{s['org_name']}/#{s['repo_name']}"}
-        formatted = suites.collect do |suite| 
-                            parts = []
-                            parts << suite['org_name'] if suite['org_name'] && suite['org_name']!= 'unknown'
-                            parts << suite['repo_name']
-                            "  #{parts.join("/")} #{suite["branch"]}        #{suite['repo_url']}"
-                          end
-        say formatted.join("\n")
+        say ERB.new(Text::Status::ACCOUNT_DETAILS).result(binding)
+
+        acct_suites = current_suites.select{|s| s['account_id'].to_i == id}
+        if acct_suites.empty? then
+          say '  ' + Text::Status::NO_SUITE
+        else
+          say '  ' + Text::Status::ALL_SUITES
+          suites = acct_suites.sort_by{|s| "#{s['org_name']}/#{s['repo_name']}"}
+          print_table suites.map {|suite|
+            repo_name = suite['repo_name']
+            if suite['org_name'] && suite['org_name'] != 'unknown'
+              repo_name = suite['org_name'] + '/' + repo_name
+            end
+            [repo_name, suite['branch'], suite['repo_url'] || '']
+          }, indent: 4
+        end
+
+        # Uugh, json converts the keys to strings.
+        usage = account_usage[id.to_s]
+        if usage
+          say "\n  Usage:"
+          say "    Current month:  " + format_usage(usage["current_month"])
+          say "    Last month:     " + format_usage(usage["last_month"])
+        end
+
+        acct_members = memberships.select{|m| m['account_id'].to_i == id}
+        if acct_members.length > 1
+          say "\n  " + Text::Status::ACCOUNT_MEMBERS
+          print_table acct_members.map {|ar|
+            [ar['user_handle'], ar['user_email'], ar['role']]
+          }, indent: 4
+        end
       end
 
-      memberships = @tddium_api.get_memberships
-      if memberships.length > 1
-        say Text::Status::ACCOUNT_MEMBERS
-        say memberships.collect{|x|x['display']}.join("\n")
-        say "\n"
-      end
-
-      account_usage = @tddium_api.get_usage
-      say account_usage
     rescue TddiumClient::Error::Base => e
       exit_failure e.message
     end

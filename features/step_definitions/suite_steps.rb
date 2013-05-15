@@ -20,11 +20,11 @@ Given /^the user has the following suites for the repo named "([^"]*)":$/ do |re
   suite_data.each do |suite|
     suite_response << make_suite_response(repo_name, suite["branch"], :id => suite["id"])
   end
-  Antilles.install(:get, "/1/suites", {:status=>0, :suites => suite_response})
+  Antilles.install(:get, "/1/suites/user_suites", {:status=>0, :suites => suite_response})
 end
 
 Given /^the user has a suite for "([^"]*)" on "([^"]*)"$/ do |name, branch|
-  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
+  Antilles.install(:get, "/1/suites/user_suites", {:status=>0, :suites=>[make_suite_response(name, branch)]})
   Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>make_suite_response(name, branch)})
 end
 
@@ -33,12 +33,12 @@ Given /^the user has a heroku-push suite for "([^"]*)" on "([^"]*)"$/ do |name, 
   suite["ci_enabled"] = true
   suite["ci_pull_url"] = "git@github.com:foo.git"
   suite["ci_push_url"] = "git@heroku.com:foo.git"
-  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[suite]})
+  Antilles.install(:get, "/1/suites/user_suites", {:status=>0, :suites=>[suite]})
   Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>suite})
 end
 
 Given /^the user has no suites/ do
-  Antilles.install(:get, "/1/suites", {:status=>0, :suites=>[]})
+  Antilles.install(:get, "/1/suites/user_suites", {:status=>0, :suites=>[]})
 end
 
 Given /^the user creates a suite for "([^"]*)" on branch "([^"]*)"$/ do |name, branch|
@@ -52,7 +52,7 @@ Given /^the user creates a pending suite for "([^"]*)" on branch "([^"]*)"$/ do 
 end
 
 Given /^there is a problem retrieving suite information$/ do
-  Antilles.install(:get, "/1/suites", {:status=>1, :explanation=>"Some error"})
+  Antilles.install(:get, "/1/suites/user_suites", {:status=>1, :explanation=>"Some error"})
 end
 
 Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)"$/ do |name, branch|

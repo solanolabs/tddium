@@ -32,8 +32,9 @@ CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
 SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
 SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME,
                          "repo_url" => SAMPLE_REPO_URL,
-                         "branch" => SAMPLE_BRANCH_NAME, 
-                         "id" => SAMPLE_SUITE_ID, 
+                         "branch" => SAMPLE_BRANCH_NAME,
+                         "id" => SAMPLE_SUITE_ID,
+                         "account_id" => SAMPLE_ACCOUNT_ID,
                          "ruby_version"=>SAMPLE_RUBY_VERSION,
                          "rubygems_version"=>SAMPLE_RUBYGEMS_VERSION,
                          "bundler_version"=>SAMPLE_BUNDLER_VERSION,
@@ -44,29 +45,33 @@ SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
 SAMPLE_TDDIUM_DEPLOY_KEY_FILE = ".tddium-deploy-key.test"
 SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
 SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
-  { "id"=>SAMPLE_USER_ID, 
-    "api_key" => SAMPLE_API_KEY, 
-    "email" => SAMPLE_EMAIL, 
-    "created_at" => SAMPLE_DATE_TIME, 
-    "account" => SAMPLE_EMAIL,
-    "account_id" => SAMPLE_ACCOUNT_ID,
-    "recurly_url" => SAMPLE_RECURLY_URL}}
+  { "id" => SAMPLE_USER_ID,
+    "api_key" => SAMPLE_API_KEY,
+    "email" => SAMPLE_EMAIL,
+    "created_at" => SAMPLE_DATE_TIME,
+    "all_accounts" => [
+      { "account" => SAMPLE_EMAIL,
+        "account_id" => SAMPLE_ACCOUNT_ID,
+        "recurly_url" => SAMPLE_RECURLY_URL}]}}
 SAMPLE_THIRD_PARTY_PUBKEY = "ABCDEF"
 SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE = {"status"=>0, "user"=>
-  { "id"=>SAMPLE_USER_ID, 
-    "api_key" => SAMPLE_API_KEY, 
-    "email" => SAMPLE_EMAIL, 
-    "created_at" => SAMPLE_DATE_TIME, 
-    "account" => SAMPLE_EMAIL,
-    "recurly_url" => SAMPLE_RECURLY_URL,
-    "third_party_pubkey" => SAMPLE_THIRD_PARTY_PUBKEY}}
+  { "id"=>SAMPLE_USER_ID,
+    "api_key" => SAMPLE_API_KEY,
+    "email" => SAMPLE_EMAIL,
+    "created_at" => SAMPLE_DATE_TIME,
+    "all_accounts" => [
+      { "account" => SAMPLE_EMAIL,
+        "account_id" => SAMPLE_ACCOUNT_ID,
+        "recurly_url" => SAMPLE_RECURLY_URL,
+        "third_party_pubkey" => SAMPLE_THIRD_PARTY_PUBKEY}]}}
 SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
-  { "id"=>SAMPLE_USER_ID, 
-    "api_key" => SAMPLE_API_KEY, 
-    "email" => SAMPLE_EMAIL, 
-    "created_at" => SAMPLE_DATE_TIME, 
-    "account" => SAMPLE_ACCOUNT_NAME,
-    "account_role" => SAMPLE_ROLE}}
+  { "id"=>SAMPLE_USER_ID,
+    "api_key" => SAMPLE_API_KEY,
+    "email" => SAMPLE_EMAIL,
+    "created_at" => SAMPLE_DATE_TIME,
+    "all_accounts" => [
+      { "account" => SAMPLE_ACCOUNT_NAME,
+        "account_role" => SAMPLE_ROLE}]}}
 PASSWORD_ERROR_EXPLANATION = "bad confirmation"
 PASSWORD_ERROR_RESPONSE = {"status"=>1, "explanation"=> PASSWORD_ERROR_EXPLANATION}
 SAMPLE_ACCOUNT_USAGE = {"status"=>0, "usage"=>"Usage: something"}

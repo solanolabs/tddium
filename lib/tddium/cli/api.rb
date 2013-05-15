@@ -135,37 +135,34 @@ module Tddium
 
     def get_memberships(params={})
       result = call_api(:get, Api::Path::MEMBERSHIPS)
-      return result['memberships']|| []
+      result['account_roles'] || []
     end
 
     def set_memberships(params={})
       result = call_api(:post, Api::Path::MEMBERSHIPS, params)
-      return result['memberships']|| []
+      result['memberships'] || []
     end
 
     def delete_memberships(email, params={})
-      result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}", params)
-      return result
+      call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}", params)
     end
 
     def get_usage(params={})
-      result = call_api(:get, Api::Path::ACCOUNT_USAGE)
-      return result['usage'] || []
+      result = call_api(:get, Api::Path::ACCOUNT_USAGE_BY_ACCOUNT)
+      result['usage'] || []
     end
 
     def get_keys(params={})
       result = call_api(:get, Api::Path::KEYS)
-      return result['keys']|| []
+      result['keys']|| []
     end
 
     def set_keys(params)
-      result = call_api(:post, Api::Path::KEYS, params)
-      return result
+      call_api(:post, Api::Path::KEYS, params)
     end
 
     def delete_keys(name, params={})
-      result = call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
-      return result
+      call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
     end
 
     def current_suite_id
@@ -179,32 +176,31 @@ module Tddium
     end
 
     def get_suites(params={})
-      current_suites = call_api(:get, Api::Path::SUITES, params)
+      current_suites = call_api(:get, "#{Api::Path::SUITES}/user_suites", params)
       current_suites ||= {}
-      return current_suites['suites'] || []
+      current_suites['suites'] || []
     end
 
     def get_suite_by_id(id, params={})
       current_suites = call_api(:get, "#{Api::Path::SUITES}/#{id}", params)
       current_suites ||= {}
-      return current_suites['suite']
+      current_suites['suite']
     end
 
     def get_suite_by_url(repo_url, branch, params={})
       params.merge!(:repo_url=>repo_url, :branch=>branch)
-      matching_suites = call_api(:get, Api::Path::SUITES, params)
+      matching_suites = call_api(:get, "#{Api::Path::SUITES}/user_suites", params)
       matching_suites ||= {}
-      return matching_suites['suites'] || []
+      matching_suites['suites'] || []
     end
 
     def create_suite(params)
       new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
-      return new_suite["suite"]
+      new_suite["suite"]
     end
 
     def update_suite(id, params={})
-      result = call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
-      return result
+      call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
     end
 
     def get_sessions(params={})
@@ -213,7 +209,7 @@ module Tddium
       rescue TddiumClient::Error::Base
         current_sessions = []
       end
-      return current_sessions['sessions']
+      current_sessions['sessions']
     end
 
     def create_session(suite_id, params = {})
@@ -226,18 +222,15 @@ module Tddium
     end
 
     def start_session(session_id, params)
-      result = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", params)
-      return result
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", params)
     end
 
     def poll_session(session_id, params={})
-      result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
-      return result
+      call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
     end
 
     def check_session_done(session_id)
-      result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/check_done")
-      return result
+      call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/check_done")
     end
   end
 end

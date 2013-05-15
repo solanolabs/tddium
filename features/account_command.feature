@@ -8,23 +8,22 @@ Feature: Account command
 
   Background:
     Given the user has the following memberships in his account:
-      | id | role    | email               | display                 |
-      | 1  | member  | member@example.com  | [member] member@example.com |
-      | 2  | admin   | admin@example.com   | [admin]  admin@example.com  |
-      | 3  | owner   | owner@example.com   | [owner]  owner@example.com |
-      | 4  | admin   | someone@example.com | [admin]  someone@example.com  |
+      | id | account_id  | role    | user_handle  | user_email          |
+      | 1  | 1           | admin   | member       | member@example.com  |
+      | 2  | 1           | admin   | admin        | admin@example.com   |
+      | 3  | 1           | owner   | owner        | owner@example.com   |
+      | 4  | 1           | admin   | someone      | someone@example.com |
 
   Scenario: Display account information
     Given the user is logged in
     And the user has a suite for "alpha" on "master"
     When I run `tddium account`
     Then the output should contain "someone@example.com"
-    And the output should contain:
-    """
-    [member] member@example.com
-    [admin]  admin@example.com
-    """
-    And the output should contain "alpha master"
+    And the output should contain "member   member@example.com   admin"
+    And the output should contain "admin    admin@example.com    admin"
+    And the output should contain "owner    owner@example.com    owner"
+    And the output should contain "someone  someone@example.com  admin"
+    And the output should contain "alpha  master  git@github.com:user/repo.git"
     And the output should not contain "Authorize the following SSH"
 
   Scenario: Display account information with third-party key
@@ -32,21 +31,18 @@ Feature: Account command
     And the user has a suite for "alpha" on "master"
     When I run `tddium account`
     Then the output should contain "someone@example.com"
-    And the output should contain:
-    """
-    [member] member@example.com
-    [admin]  admin@example.com
-    """
-    And the output should contain "alpha master"
+    And the output should contain "member   member@example.com   admin"
+    And the output should contain "admin    admin@example.com    admin"
+    And the output should contain "owner    owner@example.com    owner"
+    And the output should contain "someone  someone@example.com  admin"
+    And the output should contain "alpha  master  git@github.com:user/repo.git"
     And the output should contain "Authorize the following SSH"
     And the ouptut should contain the third party key
-
 
   Scenario: Handle API failure
     Given the user is logged in
     And there is a problem retrieving suite information
     When I run `tddium account`
-    Then the output should contain "someone@example.com"
     And the output should contain:
     """
     API Error
@@ -57,12 +53,13 @@ Feature: Account command
     Then it should fail with a login hint
 
   Scenario: Fail if the user is logged into multiple accounts
-    Given the user is logged in to multple accounts
+    Given the user is logged in to multiple accounts
     When I run `tddium account`
     Then it should fail with "Your .tddium file has an invalid API key."
 
   Scenario: Display account info if the .tddium files match
     Given the user is logged in to a single account
+    And the user has no suites
     When I run `tddium account`
     Then the output should contain "someone@example.com"
 
