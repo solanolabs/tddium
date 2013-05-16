@@ -5,7 +5,7 @@ PATH
       highline
       json
       launchy
-      tddium_client (~> 0.2.0)
+      tddium_client (~> 0.4.1)
       thor
 
 GEM
@@ -44,6 +44,7 @@ GEM
     httparty (0.9.0)
       multi_json (~> 1.0)
       multi_xml
+    httpclient (2.3.3)
     json (1.7.5)
     launchy (2.3.0)
       addressable (~> 2.3)
@@ -79,8 +80,8 @@ GEM
       rack (~> 1.3, >= 1.3.6)
       rack-protection (~> 1.2)
       tilt (~> 1.3, >= 1.3.3)
-    tddium_client (0.2.0)
-      httparty (>= 0.8.1)
+    tddium_client (0.4.1)
+      httpclient (>= 2.2.5)
       json
     thor (0.17.0)
     tilt (1.3.3)
