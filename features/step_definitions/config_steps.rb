@@ -1,4 +1,10 @@
+def empty_config_for_account_2
+  Antilles.install(:get, "/1/accounts/#{SAMPLE_ACCOUNT_ID_2}/env",
+                   {:status=>0, :env=>{}})
+end
+
 Given /^the user has the following config:$/ do |table|
+  empty_config_for_account_2
   table.hashes.each do |row|
     sc = row[:scope]
     next if sc == "repo"
@@ -8,6 +14,7 @@ Given /^the user has the following config:$/ do |table|
 end
 
 Given /^the user has no config$/ do
+  empty_config_for_account_2
   %w{account suite}.each do |sc|
     Antilles.install(:get, "/1/#{sc}s/#{eval("SAMPLE_#{sc.upcase}_ID")}/env",
                      {:status=>0, :env=>{}})
@@ -15,6 +22,7 @@ Given /^the user has no config$/ do
 end
 
 Given /^there is a problem retrieving config$/ do
+  empty_config_for_account_2
   %w{account suite}.each do |sc|
     Antilles.install(:get, "/1/#{sc}s/#{eval("SAMPLE_#{sc.upcase}_ID")}/env",
                      {:status=>1, :explanation=>"ERROR"},

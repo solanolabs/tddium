@@ -23,59 +23,81 @@ module Tddium
       result
     end
 
-    def get_current_id(scope)
-      case scope
-      when "suite"
-        current_suite_id
-      when "account"
-        current_account_id
-      else
-        raise "unrecognized scope"
+    def get_single_account_id
+      user_details = user_logged_in?(true, false)
+      return nil unless user_details
+      accounts = user_details["all_accounts"]
+      unless accounts.length == 1
+        msg = "You are a member of more than one account.\n"
+        msg << "Please specify the account you want to operate on with "
+        msg << "'account:an_account_name'.\n"
+        accounts.each do |acct|
+          msg << "  #{acct["account"]}\n"
+        end
+        raise msg
       end
+      accounts.first["account_id"]
     end
 
-    def current_account_id
+    def get_account_id(acct_name)
       user_details = user_logged_in?(true, false)
-      return user_details ? user_details["account_id"] : nil
+      return nil unless user_details
+      accts = user_details["all_accounts"]
+      acct = accts.select{|acct| acct["account"] == acct_name}.first
+      if acct.nil?
+        raise "You aren't a member of account '%s'." % acct_name
+      end
+      acct["account_id"]
     end
 
     def env_path(scope, key=nil)
-      path = "/#{scope}s/#{get_current_id(scope)}/env"
-      path += "/#{key}" if key
-      return path
+      path = ['']
+
+      case scope
+      when "suite"
+        path << 'suites'
+        path << current_suite_id
+      when "account"
+        path << 'accounts'
+        path << get_single_account_id
+      when /\Aaccount:/
+        path << 'accounts'
+        path << get_account_id(scope.sub(/\Aaccount:/, ''))
+      else
+        raise "Unrecognized scope. Use 'suite', 'account', or 'account:an_account_name'."
+      end
+
+      path << 'env'
+      path << key if key
+      path.join('/')
     end
 
     def get_config_key(scope, key=nil)
       path = env_path(scope, key)
-      result = call_api(:get, path)
-      return result
+      call_api(:get, path)
     end
 
     def set_config_key(scope, key, value)
       path = env_path(scope)
-      result = call_api(:post, path, :env=>{key=>value})
-      return result
+      call_api(:post, path, :env=>{key=>value})
     end
 
     def delete_config_key(scope, key)
       path = env_path(scope, key)
-      result = call_api(:delete, path)
-      return result
+      call_api(:delete, path)
     end
 
     def get_user(api_key=nil)
       result = call_api(:get, Api::Path::USERS, {}, api_key, false) rescue nil
-      return result && result['user']
+      result && result['user']
     end
 
     def set_user(params)
-      new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-      return new_user
+      call_api(:post, Api::Path::USERS, {:user => params}, false, false)
     end
 
     def update_user(user_id, params, api_key=nil)
-      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, api_key, false)
-      return result
+      call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, api_key, false)
     end
 
     def get_user_credentials(options = {})

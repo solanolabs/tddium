@@ -74,6 +74,10 @@ Given /^the user is logged in with a configured suite(?: on branch "(.*)")?$/ do
   }
 end
 
+Given /^the user belongs to two accounts$/ do
+  Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE_2)
+end
+
 Given /^the user is logged in with a configured suite and remembered options$/ do
   @api_key = "abcdef"
   branch ||= "master"

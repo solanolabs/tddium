@@ -32,6 +32,42 @@ Feature: Config command
     And the exit status should be 0
     And the output should contain "config:add"
 
+  Scenario: Display account config without disambiguating account
+    Given the user belongs to two accounts
+    And the user is logged in with a configured suite on branch "test/foobar"
+    When I run `tddium config account`
+    Then the output should contain "You are a member of more than one account"
+    And the exit status should be 1
+
+  Scenario: Display account config without disambiguating account
+    Given the user belongs to two accounts
+    And the user is logged in with a configured suite on branch "test/foobar"
+    When I run `tddium config account:not_my_account`
+    Then the output should contain "You aren't a member of account"
+    And the exit status should be 1
+
+  Scenario: Display account config for the first account
+    Given the user belongs to two accounts
+    And the user is logged in with a configured suite on branch "test/foobar"
+    And the user has the following config:
+      | scope     | name      | value     |
+      | account   | foo       | bar       |
+      | suite     | quz       | blehher   |
+    When I run `tddium config account:some_account`
+    Then the output should contain "foo=bar"
+    And the exit status should be 0
+
+  Scenario: Display account config for the second account
+    Given the user belongs to two accounts
+    And the user is logged in with a configured suite on branch "test/foobar"
+    And the user has the following config:
+      | scope     | name      | value     |
+      | account   | foo       | bar       |
+      | suite     | quz       | blehher   |
+    When I run `tddium config account:another_account`
+    Then the output should not contain "foo=bar"
+    And the exit status should be 0
+
   Scenario: Handle no keys
     Given the user is logged in with a configured suite on branch "test/foobar"
     And the user has no config

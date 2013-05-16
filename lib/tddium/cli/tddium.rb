@@ -96,7 +96,6 @@ module Tddium
       end
 
       if params[:suite] && !suite_for_current_branch? then
-        say Test::Process::NO_CONFIGURED_SUITE
         exit_failure
       end
       return user_details
