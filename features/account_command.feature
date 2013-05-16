@@ -26,6 +26,15 @@ Feature: Account command
     And the output should contain "alpha  master  git@github.com:user/repo.git"
     And the output should not contain "Authorize the following SSH"
 
+  Scenario: Display account information for two accounts
+    Given the user belongs to two accounts
+    And the user is logged in
+    And the user has a suite for "alpha" on "master"
+    When I run `tddium account`
+    Then the output should contain "someone@example.com"
+    And the output should contain "Account: some_account"
+    And the output should contain "Account: another_account"
+
   Scenario: Display account information with third-party key
     Given the user is logged in with a third-party key
     And the user has a suite for "alpha" on "master"
