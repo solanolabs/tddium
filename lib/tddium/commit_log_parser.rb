@@ -31,7 +31,7 @@ class CommitLogParser
   def commits
     record = []
     commits = []
-    commit_log.lines.each_with_index do |line|
+    commit_log.lines.each do |line|
       line.strip!
       if line.empty?
         c = parse_commit(record)
