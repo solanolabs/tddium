@@ -3,5 +3,4 @@
   :bundler_version: 1.3.5
   :test_pattern:
     - features/*.feature
-    - spec/heroku_spec.rb
-    - spec/tddium_api_spec.rb
+    - spec/**_spec.rb
