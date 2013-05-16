@@ -4,6 +4,7 @@
 
 ## Version History
 
+v1.8.1 - REE compatibility fixes
 v1.8.0 - Send the latest commit on session creation
 v1.7.6 - Fixes for bundler version detection
 v1.7.5 - Honor bundler_version set in tddium.yml
