@@ -50,7 +50,7 @@ module Tddium
         # all in the same account, prompt with that as a default.
         # 4. Prompt.
         # IF we're not allowed to prompt and have no default, fail.
-        accounts = @user_details["all_accounts"]
+        accounts = user_details["all_accounts"]
         account_name = if options[:account]
           say Text::Process::USING_ACCOUNT_FROM_FLAG % options[:account]
           options[:account]

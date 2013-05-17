@@ -4,6 +4,8 @@ module Tddium
   class TddiumCli < Thor
     include TddiumConstant
 
+    attr_reader :user_details
+
     def initialize(*args)
       super(*args)
 
