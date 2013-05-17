@@ -40,6 +40,54 @@ module Tddium
         params[key] = prompt(text, options[key], current.fetch(key.to_s, default), options[:non_interactive])
       end
 
+      # If we already have a suite, it already has an account, so no need to
+      # figure it out here.
+      unless current['account_id']
+        # Find an account id. Strategy:
+        # 1. Use a command line option, if specified.
+        # 2. If the user has only one account, use that.
+        # 3. If the user has existing suites with the same repo, and they are
+        # all in the same account, prompt with that as a default.
+        # 4. Prompt.
+        # IF we're not allowed to prompt and have no default, fail.
+        accounts = @user_details["all_accounts"]
+        account_name = if options[:account]
+          say Text::Process::USING_ACCOUNT_FROM_FLAG % options[:account]
+          options[:account]
+        elsif accounts.length == 1
+          say Text::Process::USING_ACCOUNT % accounts.first["account"]
+          accounts.first["account"]
+        else
+          # Get all of this user's suites with this repo.
+          repo_suites = @tddium_api.get_suites(repo_url: params[:repo_url])
+          acct_ids = repo_suites.map{|s| s['account']}.uniq
+          default = acct_ids.length == 1 ? acct_ids.first : nil
+
+          if not options[:non_interactive] or default.nil?
+            say "You are a member of these accounts:"
+            accounts.each do |account|
+              say "  " + account['account']
+            end
+          end
+
+          msg = default.nil? ? Text::Prompt::ACCOUNT : Text::Prompt::ACCOUNT_DEFAULT
+          prompt(msg, nil, default, options[:non_interactive])
+        end
+
+        if account_name.nil?
+          exit_failure (options[:non_interactive] ?
+                        Text::Error::MISSING_ACCOUNT_OPTION :
+                        Text::Error::MISSING_ACCOUNT)
+        end
+        account = accounts.select{|a| a['account'] == account_name}.first
+        if account.nil?
+          exit_failure Text::Error::NOT_IN_ACCOUNT % account_name
+        end
+
+        say Text::Process::USING_ACCOUNT % account_name
+        params[:account_id] = account["account_id"].to_s
+      end
+
       pattern = configured_test_pattern
       cfn = @repo_config.config_filename
 
@@ -52,7 +100,6 @@ module Tddium
         say Text::Process::TEST_PATTERN_INSTRUCTIONS unless options[:non_interactive]
         ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
       end
-
 
       unless options[:non_interactive]
         say(Text::Process::SETUP_CI)

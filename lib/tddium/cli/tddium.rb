@@ -98,7 +98,8 @@ module Tddium
       if params[:suite] && !suite_for_current_branch? then
         exit_failure
       end
-      return user_details
+
+      @user_details = user_details
     end
   end
 end

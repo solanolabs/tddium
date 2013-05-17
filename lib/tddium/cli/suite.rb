@@ -4,13 +4,6 @@ module Tddium
   class TddiumCli < Thor
     protected
 
-    # Given a repo_url and a branch, lookup an existing suite
-    # and return its information
-    def lookup_suite(options, repo_url, branch)
-      matching_suites = @tddium_api.get_suite_by_url(repo_url, branch)
-      matching_suites.first
-    end
-
     def update_suite(suite, options)
       params = {}
       prompt_suite_params(options, params, suite)
@@ -35,32 +28,24 @@ module Tddium
       if current_suite_id && !user_config then
         current_suite = @tddium_api.get_suite_by_id(current_suite_id)
       else
-
         params = Hash.new
         params[:branch] = Tddium::Git.git_current_branch
         params[:repo_url] = Tddium::Git.git_origin_url
         params[:repo_name] = Tddium::Git.git_repo_name
-        
-        existing_suite = lookup_suite(options, params[:repo_url], params[:branch])
 
-        if existing_suite && !user_config then
-          current_suite = existing_suite
-          say Text::Process::FOUND_EXISTING_SUITE % [params[:repo_url], params[:branch]]
-        else
-          tool_cli_populate(options, params)
-          defaults = {}
-          if options[:no_ci]
-            say Text::Process::CREATING_SUITE_CI_DISABLED
-            defaults['ci_pull_url'] = ''
-            defaults['ci_push_url'] = ''
-          end
-          prompt_suite_params(options.merge({:non_interactive => true}), params, defaults)
-
-          # Create new suite if it does not exist yet
-          say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
-
-          current_suite = @tddium_api.create_suite(params)
+        tool_cli_populate(options, params)
+        defaults = {}
+        if options[:no_ci]
+          say Text::Process::CREATING_SUITE_CI_DISABLED
+          defaults['ci_pull_url'] = ''
+          defaults['ci_push_url'] = ''
         end
+        prompt_suite_params(options.merge({:non_interactive => true}), params, defaults)
+
+        # Create new suite if it does not exist yet
+        say Text::Process::CREATING_SUITE % [params[:repo_name], params[:branch]]
+
+        current_suite = @tddium_api.create_suite(params)
 
         # Save the created suite
         @api_config.set_suite(current_suite)

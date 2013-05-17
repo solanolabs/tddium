@@ -187,14 +187,16 @@ module Tddium
       call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
     end
 
+    def current_branch
+      @current_branch ||= Tddium::Git.git_current_branch
+    end
+
     def current_suite_id
-      @branch ||= Tddium::Git.git_current_branch
-      @api_config.get_branch(@branch, 'id')
+      @api_config.get_branch(current_branch, 'id')
     end
 
     def current_suite_options
-      @branch ||= Tddium::Git.git_current_branch
-      @api_config.get_branch(@branch, 'options')
+      @api_config.get_branch(current_branch, 'options')
     end
 
     def get_suites(params={})
@@ -209,15 +211,9 @@ module Tddium
       current_suites['suite']
     end
 
-    def get_suite_by_url(repo_url, branch, params={})
-      params.merge!(:repo_url=>repo_url, :branch=>branch)
-      matching_suites = call_api(:get, "#{Api::Path::SUITES}/user_suites", params)
-      matching_suites ||= {}
-      matching_suites['suites'] || []
-    end
-
     def create_suite(params)
-      new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
+      account_id = params.delete(:account_id)
+      new_suite = call_api(:post, Api::Path::SUITES, {:suite => params, :account_id => account_id})
       new_suite["suite"]
     end
 

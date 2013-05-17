@@ -4,6 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
     method_option :edit, :type => :boolean, :default => false
+    method_option :account, :type => :string, :default => nil
     method_option :name, :type => :string, :default => nil
     method_option :repo_url, :type => :string, :default => nil
     method_option :ci_pull_url, :type => :string, :default => nil
@@ -42,18 +43,6 @@ module Tddium
           params[:repo_name] = Tddium::Git.git_repo_name
 
           say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
-
-          existing_suite = lookup_suite(options, params[:repo_url], params[:branch])
-
-          if existing_suite then
-            # Write to file and exit when using the existing suite
-            say Text::Process::FOUND_EXISTING_SUITE % [params[:repo_url], params[:branch]]
-            @api_config.set_suite(existing_suite)
-            @api_config.write_config
-            say Text::Status::USING_SUITE, :bold
-            say format_suite_details(existing_suite)
-            return
-          end
 
           prompt_suite_params(options, params)
 

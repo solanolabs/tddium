@@ -73,6 +73,8 @@ module TddiumConstant
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
       CAMPFIRE_ROOM = "Custom Campfire room for this suite (current: '%s') or enter 'disable':"
       HIPCHAT_ROOM = "Custom HipChat room for this suite (current: '%s') or enter 'disable':"
+      ACCOUNT = "Enter the account to create the suite under:"
+      ACCOUNT_DEFAULT = "Enter the account to create the suite under (default: '%s'):"
     end
 
     module Warning
@@ -142,7 +144,7 @@ EOF
     Read more here: https://www.tddium.com/support/reference#customization
 
 EOF
-      NO_CONFIGURED_SUITE = "Looks like you haven't configured Tddium this computer for %s/%s...\n"
+      NO_CONFIGURED_SUITE = "Looks like you haven't configured Tddium on this computer for %s/%s...\n"
       FOUND_EXISTING_SUITE = "Found a suite in Tddium for\n\n%s\n\n(on branch %s)."
       TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
@@ -155,11 +157,11 @@ EOF
       CHECK_TEST_REPORT = ">>> To view results, visit: %s"
       FAILED_TESTS = "Failed tests:"
       SUMMARY_STATUS = "Final result: %s."
-      EXISTING_SUITE = "\nCurrent suite...\n"
+      EXISTING_SUITE = "\nCurrent suite:\n"
       USING_EXISTING_SUITE = "Using suite '%s/%s'."
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
       CREATING_SUITE_CI_DISABLED = "Disabling automatic CI for this new branch."
-      CREATED_SUITE = "\nCreated suite...\n"
+      CREATED_SUITE = "\nCreated suite.\n"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
       NEXT_STEPS = "
@@ -211,6 +213,9 @@ EOF
       ADDED_MEMBER = "Added %s"
       REMOVING_MEMBER = "Removing %s. This may take a few seconds..."
       REMOVED_MEMBER = "Removed %s"
+
+      USING_ACCOUNT_FROM_FLAG = "Using account '%s' (from command line)."
+      USING_ACCOUNT = "Using account '%s'."
     end
 
     module Status
@@ -227,7 +232,7 @@ EOF
       SESSION_DETAIL = " open %s # %8.8s Started: %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
-      USING_SUITE = "\nUsing suite...\n"
+      USING_SUITE = "\nUsing suite:\n"
       USER_DETAILS =<<EOF;
 
 Username: <%=user["email"]%>
@@ -261,6 +266,7 @@ install gems from private git repos or communicate via SSH to your servers:
 EOF
 
       SUITE_DETAILS =<<EOF;
+  Account:              <%=suite["account"]%>
   Repo:                 <%=suite["repo_url"]%>
   Branch:               <%=suite["branch"]%>
   Default Test Pattern: <%=suite["test_pattern"]%>
@@ -403,6 +409,9 @@ EOF
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
       USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
       INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
+      MISSING_ACCOUNT_OPTION = "You must specify an account by passing the --account option."
+      MISSING_ACCOUNT = "You must specify an account."
+      NOT_IN_ACCOUNT = "You aren't a member of account %s."
     end
   end
 
