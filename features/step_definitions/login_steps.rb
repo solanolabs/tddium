@@ -3,7 +3,7 @@
 Given /^the user is logged in$/ do
   @api_key = "abcdef"
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -12,9 +12,9 @@ Given /^the user is logged in$/ do
   }
 end
 
-Given /^the user is logged in to multple accounts$/ do
+Given /^the user is logged in to multiple accounts$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -29,7 +29,7 @@ end
 
 Given /^the user is logged in to a single account$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -45,7 +45,7 @@ end
 Given /^the user is logged in with a third-party key$/ do
   @api_key = "abcdef"
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """
@@ -67,18 +67,22 @@ Given /^the user is logged in with a configured suite(?: on branch "(.*)")?$/ do
   @api_key = "abcdef"
   branch ||= "master"
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given the user has a .tddium for branch "#{branch}"
     And the user has a suite for "repo" on "#{branch}"
   }
 end
 
+Given /^the user belongs to two accounts$/ do
+  Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE_2)
+end
+
 Given /^the user is logged in with a configured suite and remembered options$/ do
   @api_key = "abcdef"
   branch ||= "master"
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
-  Antilles.install(:get, "/1/accounts/usage", SAMPLE_ACCOUNT_USAGE)
+  Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
     Given a file named ".tddium.mimic" with:
     """

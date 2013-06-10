@@ -2,7 +2,10 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "config [SCOPE=suite]", "Display config variables for SCOPE (account, suite)"
+    desc "config [suite | account[:ACCOUNT]]", "Display config variables.
+    The scope argument can be either 'suite', 'account' (if you are a member of
+    one account), or 'account:an_account_name' (if you are a member of multiple
+    accounts). The default is 'suite'."
     def config(scope="suite")
       tddium_setup({:repo => true, :suite => true})
 
@@ -11,10 +14,15 @@ module Tddium
         show_config_details(scope, config_details['env'])
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::LIST_CONFIG_ERROR
+      rescue Exception => e
+        exit_failure e.message
       end
     end
 
-    desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE (of account, suite)"
+    desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE.
+    The scope argument can be either 'suite', 'account' (if you are a member of
+    one account), or 'account:an_account_name' (if you are a member of multiple
+    accounts)."
     define_method "config:add" do |scope, key, value|
       tddium_setup({:repo => true, :suite => true})
 
@@ -24,10 +32,12 @@ module Tddium
         say Text::Process::ADD_CONFIG_DONE % [key, value, scope]
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::ADD_CONFIG_ERROR
+      rescue Exception => e
+        exit_failure e.message
       end
     end
 
-    desc "config:remove [SCOPE] [KEY]", "Remove config variable NAME from SCOPE"
+    desc "config:remove [SCOPE] [KEY]", "Remove config variable NAME from SCOPE."
     define_method "config:remove" do |scope, key|
       tddium_setup({:repo => true, :suite => true})
 
@@ -37,7 +47,9 @@ module Tddium
         say Text::Process::REMOVE_CONFIG_DONE % [key, scope]
       rescue TddiumClient::Error::API => e
         exit_failure Text::Error::REMOVE_CONFIG_ERROR
+      rescue Exception => e
+        exit_failure e.message
       end
     end
   end
-end  
+end

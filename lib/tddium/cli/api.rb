@@ -23,59 +23,81 @@ module Tddium
       result
     end
 
-    def get_current_id(scope)
-      case scope
-      when "suite"
-        current_suite_id
-      when "account"
-        current_account_id
-      else
-        raise "unrecognized scope"
+    def get_single_account_id
+      user_details = user_logged_in?(true, false)
+      return nil unless user_details
+      accounts = user_details["all_accounts"]
+      unless accounts.length == 1
+        msg = "You are a member of more than one account.\n"
+        msg << "Please specify the account you want to operate on with "
+        msg << "'account:an_account_name'.\n"
+        accounts.each do |acct|
+          msg << "  #{acct["account"]}\n"
+        end
+        raise msg
       end
+      accounts.first["account_id"]
     end
 
-    def current_account_id
+    def get_account_id(acct_name)
       user_details = user_logged_in?(true, false)
-      return user_details ? user_details["account_id"] : nil
+      return nil unless user_details
+      accts = user_details["all_accounts"]
+      acct = accts.select{|acct| acct["account"] == acct_name}.first
+      if acct.nil?
+        raise "You aren't a member of account '%s'." % acct_name
+      end
+      acct["account_id"]
     end
 
     def env_path(scope, key=nil)
-      path = "/#{scope}s/#{get_current_id(scope)}/env"
-      path += "/#{key}" if key
-      return path
+      path = ['']
+
+      case scope
+      when "suite"
+        path << 'suites'
+        path << current_suite_id
+      when "account"
+        path << 'accounts'
+        path << get_single_account_id
+      when /\Aaccount:/
+        path << 'accounts'
+        path << get_account_id(scope.sub(/\Aaccount:/, ''))
+      else
+        raise "Unrecognized scope. Use 'suite', 'account', or 'account:an_account_name'."
+      end
+
+      path << 'env'
+      path << key if key
+      path.join('/')
     end
 
     def get_config_key(scope, key=nil)
       path = env_path(scope, key)
-      result = call_api(:get, path)
-      return result
+      call_api(:get, path)
     end
 
     def set_config_key(scope, key, value)
       path = env_path(scope)
-      result = call_api(:post, path, :env=>{key=>value})
-      return result
+      call_api(:post, path, :env=>{key=>value})
     end
 
     def delete_config_key(scope, key)
       path = env_path(scope, key)
-      result = call_api(:delete, path)
-      return result
+      call_api(:delete, path)
     end
 
     def get_user(api_key=nil)
       result = call_api(:get, Api::Path::USERS, {}, api_key, false) rescue nil
-      return result && result['user']
+      result && result['user']
     end
 
     def set_user(params)
-      new_user = call_api(:post, Api::Path::USERS, {:user => params}, false, false)
-      return new_user
+      call_api(:post, Api::Path::USERS, {:user => params}, false, false)
     end
 
     def update_user(user_id, params, api_key=nil)
-      result = call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, api_key, false)
-      return result
+      call_api(:put, "#{Api::Path::USERS}/#{user_id}/", params, api_key, false)
     end
 
     def get_user_credentials(options = {})
@@ -135,76 +157,68 @@ module Tddium
 
     def get_memberships(params={})
       result = call_api(:get, Api::Path::MEMBERSHIPS)
-      return result['memberships']|| []
+      result['account_roles'] || []
     end
 
     def set_memberships(params={})
       result = call_api(:post, Api::Path::MEMBERSHIPS, params)
-      return result['memberships']|| []
+      result['memberships'] || []
     end
 
     def delete_memberships(email, params={})
-      result = call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}", params)
-      return result
+      call_api(:delete, "#{Api::Path::MEMBERSHIPS}/#{email}", params)
     end
 
     def get_usage(params={})
-      result = call_api(:get, Api::Path::ACCOUNT_USAGE)
-      return result['usage'] || []
+      result = call_api(:get, Api::Path::ACCOUNT_USAGE_BY_ACCOUNT)
+      result['usage'] || []
     end
 
     def get_keys(params={})
       result = call_api(:get, Api::Path::KEYS)
-      return result['keys']|| []
+      result['keys']|| []
     end
 
     def set_keys(params)
-      result = call_api(:post, Api::Path::KEYS, params)
-      return result
+      call_api(:post, Api::Path::KEYS, params)
     end
 
     def delete_keys(name, params={})
-      result = call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
-      return result
+      call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
+    end
+
+    def current_branch
+      @current_branch ||= Tddium::Git.git_current_branch
     end
 
     def current_suite_id
-      @branch ||= Tddium::Git.git_current_branch
-      @api_config.get_branch(@branch, 'id')
+      @api_config.get_branch(current_branch, 'id')
     end
 
     def current_suite_options
-      @branch ||= Tddium::Git.git_current_branch
-      @api_config.get_branch(@branch, 'options')
+      @api_config.get_branch(current_branch, 'options')
     end
 
     def get_suites(params={})
-      current_suites = call_api(:get, Api::Path::SUITES, params)
+      current_suites = call_api(:get, "#{Api::Path::SUITES}/user_suites", params)
       current_suites ||= {}
-      return current_suites['suites'] || []
+      current_suites['suites'] || []
     end
 
     def get_suite_by_id(id, params={})
       current_suites = call_api(:get, "#{Api::Path::SUITES}/#{id}", params)
       current_suites ||= {}
-      return current_suites['suite']
-    end
-
-    def get_suite_by_url(repo_url, branch, params={})
-      params.merge!(:repo_url=>repo_url, :branch=>branch)
-      matching_suites = call_api(:get, Api::Path::SUITES, params)
-      matching_suites ||= {}
-      return matching_suites['suites'] || []
+      current_suites['suite']
     end
 
     def create_suite(params)
-      new_suite = call_api(:post, Api::Path::SUITES, {:suite => params})
-      return new_suite["suite"]
+      account_id = params.delete(:account_id)
+      new_suite = call_api(:post, Api::Path::SUITES, {:suite => params, :account_id => account_id})
+      new_suite["suite"]
     end
 
     def update_suite(id, params={})
-      result = call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
-      return result
+      call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
     end
 
     def get_sessions(params={})
@@ -213,7 +227,7 @@ module Tddium
       rescue TddiumClient::Error::Base
         current_sessions = []
       end
-      return current_sessions['sessions']
+      current_sessions['sessions']
     end
 
     def create_session(suite_id, params = {})
@@ -226,18 +240,15 @@ module Tddium
     end
 
     def start_session(session_id, params)
-      result = call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", params)
-      return result
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", params)
     end
 
     def poll_session(session_id, params={})
-      result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
-      return result
+      call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
     end
 
     def check_session_done(session_id)
-      result = call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/check_done")
-      return result
+      call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/check_done")
     end
   end
 end

@@ -2,7 +2,6 @@
 
 require "tddium/constant"
 require "tddium/version"
-require "tddium/heroku"
 
 require "tddium/git"
 require "tddium/ssh"

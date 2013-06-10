@@ -90,7 +90,7 @@ module Tddium
       if !File.exists?(path) then
         raise Errno::ENOENT.new(path)
       end
-      if File.new(path).size > MAXIMUM_ATTACHMENT_SIZE then
+      if File.size(path) > MAXIMUM_ATTACHMENT_SIZE then
         raise TddiumError.new("Data are too large to attach to session")
       end
       name = metadata[:name] || File.basename(path)

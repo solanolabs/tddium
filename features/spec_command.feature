@@ -12,7 +12,6 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should not be 0
     And the output should contain "tddium login"
-    And the output should contain "tddium heroku"
 
   @announce-cmd
   Scenario: Fail if user has uncommitted changes

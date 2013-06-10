@@ -40,16 +40,13 @@ module TddiumConstant
       REGISTER_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/register"
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
-      ACCOUNT_USAGE = "accounts/usage"
+      ACCOUNT_USAGE_BY_ACCOUNT = "accounts/usage_by_account"
       MEMBERSHIPS = "memberships"
       INSTANCES = "instances"
       KEYS = "keys"
       CONFIG = "env"
       ACCOUNTS = "accounts"
       REPOS = "repos"
-    end
-    module ErrorCode
-      INVALID_INVITATION = 2
     end
   end
 
@@ -60,13 +57,11 @@ module TddiumConstant
   module Text
     module Prompt
       module Response
-        AGREE_TO_LICENSE = "I AGREE"
         YES = "y"
         DISABLE = 'disable'
       end
       SSH_KEY = "Enter your ssh key or press 'Return'. Using '%s' by default:"
       SUITE_NAME = "Enter a repo name or press 'Return'. Using '%s' by default:"
-      LICENSE_AGREEMENT = "Type '%s' to accept the Terms of Service and continue:" % Response::AGREE_TO_LICENSE
       EMAIL = "Enter your email address: "
       CURRENT_PASSWORD = "Enter your old password: "
       PASSWORD = "Enter password: "
@@ -78,6 +73,8 @@ module TddiumConstant
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
       CAMPFIRE_ROOM = "Custom Campfire room for this suite (current: '%s') or enter 'disable':"
       HIPCHAT_ROOM = "Custom HipChat room for this suite (current: '%s') or enter 'disable':"
+      ACCOUNT = "Enter the account to create the suite under:"
+      ACCOUNT_DEFAULT = "Enter the account to create the suite under (default: '%s'):"
     end
 
     module Warning
@@ -89,15 +86,6 @@ module TddiumConstant
     end
 
     module Process
-      TERMS_OF_SERVICE =<<EOF
-
-Before you can use Tddium, you must agree to our Terms of Service.
-
-Read them at this URL:
-
- https://www.tddium.com/terms.html 
-
-EOF
       SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\n\n"
       DEFAULT_KEY_ADDED = "SSH key authorized."
       NO_KEYS = "No authorized keys."
@@ -156,7 +144,7 @@ EOF
     Read more here: https://www.tddium.com/support/reference#customization
 
 EOF
-      NO_CONFIGURED_SUITE = "Looks like you haven't configured Tddium this computer for %s/%s...\n"
+      NO_CONFIGURED_SUITE = "Looks like you haven't configured Tddium on this computer for %s/%s...\n"
       FOUND_EXISTING_SUITE = "Found a suite in Tddium for\n\n%s\n\n(on branch %s)."
       TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
@@ -169,11 +157,11 @@ EOF
       CHECK_TEST_REPORT = ">>> To view results, visit: %s"
       FAILED_TESTS = "Failed tests:"
       SUMMARY_STATUS = "Final result: %s."
-      EXISTING_SUITE = "\nCurrent suite...\n"
+      EXISTING_SUITE = "\nCurrent suite:\n"
       USING_EXISTING_SUITE = "Using suite '%s/%s'."
       CREATING_SUITE = "Creating suite '%s/%s'.  This will take a few seconds."
       CREATING_SUITE_CI_DISABLED = "Disabling automatic CI for this new branch."
-      CREATED_SUITE = "\nCreated suite...\n"
+      CREATED_SUITE = "\nCreated suite.\n"
       PASSWORD_CONFIRMATION_INCORRECT = "Password confirmation incorrect"
       PASSWORD_CHANGED = "Your password has been changed."
       NEXT_STEPS = "
@@ -183,31 +171,6 @@ Next, you should register your test suite and start tests by running:
 $ tddium run
 
 "
-      ACCOUNT_CREATED = "
-Congratulations %s, your tddium account has been created!
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-You have %s days left in your free trial.
-
-To sign up a for a billing plan, open this URL in your browser:
-
-%s
-
-"
-      ACCOUNT_ADDED = "
-Congratulations %s, your tddium account has been activated.
-
-You are a %s of the account: %s
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-"
-      STARTING_ACCOUNT_CREATION = "Creating account.  This may take a few seconds..."
       ALREADY_LOGGED_IN = "You're already logged in"
       LOGGED_IN_SUCCESSFULLY = "Logged in successfully"
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
@@ -215,17 +178,6 @@ $ tddium run
                            :user_data_file => "Sending user data from %s",
                            :test_pattern => "Selecting tests that match '%s'"}
       REMEMBERED = " (Remembered value)"
-      HEROKU_WELCOME = "
-Thanks for installing the Tddium Heroku Add-On!
-
-Your tddium username is: %s
-
-"
-      HEROKU_ACTIVATE = "
-Next, set a password and provide an SSH key to authenticate your communication
-with Tddium.
-
-"
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
       UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
@@ -261,36 +213,46 @@ EOF
       ADDED_MEMBER = "Added %s"
       REMOVING_MEMBER = "Removing %s. This may take a few seconds..."
       REMOVED_MEMBER = "Removed %s"
+
+      USING_ACCOUNT_FROM_FLAG = "Using account '%s' (from command line)."
+      USING_ACCOUNT = "Using account '%s'."
     end
 
     module Status
       SPEC_WARNINGS = "\n\n>>> Tddium Warnings:\n\n"
       SPEC_ERRORS = "\n\n>>> Tddium Errors:\n"
       NO_SUITE = "You currently do not have any suites"
-      ALL_SUITES = "Your suites:"
-      CURRENT_SUITE = "Your current suite: %s"
+      ALL_SUITES = "Suites:"
+      CURRENT_SUITE = "Current suite: %s"
       CURRENT_SUITE_UNAVAILABLE = "Your current suite is unavailable"
       NO_ACTIVE_SESSION = "There are no active sessions"
       ACTIVE_SESSIONS = "Your active sessions:"
       NO_INACTIVE_SESSION = "There are no previous sessions"
-      INACTIVE_SESSIONS = "Your latest sessions:"
+      INACTIVE_SESSIONS = "Latest sessions:"
       SESSION_DETAIL = " open %s # %8.8s Started: %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
-      USING_SUITE = "\nUsing suite...\n"
+      USING_SUITE = "\nUsing suite:\n"
       USER_DETAILS =<<EOF;
 
-  Username: <%=user["email"]%>
-  Account Created: <%=user["created_at"]%>
-  Plan: <%=user["plan"]%>
-<% if user["trial_remaining"] && user["trial_remaining"] > 0 %>  Trial Period Remaining: <%=user["trial_remaining"]%> days<% end %>
-<% if user["account_url"] %>  Account Management URL: <%=user["account_url"]%><% end %>
-<% if user["heroku"] %>  Heroku Account Linked: <%=user["heroku_activation_done"]%><% end %>
-<% if user["third_party_pubkey"] %>
->>> Authorize the following SSH public key to allow Tddium's test workers to
-install gems from private git repos or communicate via SSH to your servers:
+Username: <%=user["email"]%>
+User created: <%=user["created_at"]%>
+EOF
+      ACCOUNT_DETAILS =<<EOF;
 
-    <%= user["third_party_pubkey"] %>
+Account: <%=acct["account"]%>
+
+  Role: <%=acct["account_role"]%>
+  Owner: <%=acct["account_owner"]%>
+  Plan: <%=acct["plan"]%>
+<% if acct["trial_remaining"] && acct["trial_remaining"] > 0 %>  Trial Period Remaining: <%=acct["trial_remaining"]%> days<% end %>
+<% if acct["account_url"] %>  Account Management URL: <%=acct["account_url"]%><% end %>
+<% if acct["heroku"] %>  Heroku Account Linked: <%=acct["heroku_activation_done"]%><% end %>
+<% if acct["third_party_pubkey"] %>
+  >>> Authorize the following SSH public key to allow Tddium's test workers to
+  install gems from private git repos or communicate via SSH to your servers:
+
+    <%= acct["third_party_pubkey"] %>
 
 <%end%>
 EOF
@@ -303,15 +265,8 @@ install gems from private git repos or communicate via SSH to your servers:
 <%end%>
 EOF
 
-      HEROKU_CONFIG = "
-Tddium is configured to work with your Heroku app.
-
-Next, you should register your test suite and start tests by running:
-
-$ tddium run
-
-"
       SUITE_DETAILS =<<EOF;
+  Account:              <%=suite["account"]%>
   Repo:                 <%=suite["repo_url"]%>
   Branch:               <%=suite["branch"]%>
   Default Test Pattern: <%=suite["test_pattern"]%>
@@ -367,7 +322,7 @@ Notifications:
 >>> Run 'tddium suite --edit' to edit these settings.
 >>> Run 'tddium spec' to run tests in this suite.
 EOF
-      ACCOUNT_MEMBERS = "\nAuthorized users in this account:\n"
+      ACCOUNT_MEMBERS = "Authorized users:"
       KEYS_DETAILS =<<EOF
 
 You have authorized the following SSH public keys to communicate with Tddium:
@@ -426,7 +381,7 @@ Commit changes before running 'tddium spec'.
 
 Use 'tddium spec --force' to test with only already-committed changes.
 EOF
-      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login' or 'tddium heroku'"
+      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
       GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
       GIT_NOT_INITIALIZED =<<EOF;
@@ -447,38 +402,16 @@ git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
-      INVALID_INVITATION = "
-Your activation token wasn't recognized. If you have a token,
-make sure you have entered it correctly.
-
-To register, visit:
-
-http://www.tddium.com/
-"
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
-      HEROKU_MISCONFIGURED = "There was an error linking your Heroku account to Tddium: %s"
-      module Heroku
-        NOT_FOUND = "heroku command not found.  Make sure the latest heroku gem is installed.\nOutput of `gem list heroku`:\n%s"
-        NOT_ADDED =<<EOF;
-It looks like you haven't enabled the tddium add-on for the default app.
-Add it using 'heroku addons:add tddium'
-
-If you've already enabled the addon for a specific app, try running:
-
-   $ tddium heroku --app <your app name>'
-
-EOF
-        INVALID_FORMAT = "The 'heroku -s' command output a format we didn't recognize.  Make sure you're running the latest version of the heroku gem"
-        NOT_LOGGED_IN = "Log in to your heroku account first using 'heroku login'"
-        APP_NOT_FOUND = "The app '%s' is not recognized by Heroku"
-      end
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
-      ACTIVATE_LOGGED_IN = "You are logged in.  Use 'tddium account' for account information"
       USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
       INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
+      MISSING_ACCOUNT_OPTION = "You must specify an account by passing the --account option."
+      MISSING_ACCOUNT = "You must specify an account."
+      NOT_IN_ACCOUNT = "You aren't a member of account %s."
     end
   end
 

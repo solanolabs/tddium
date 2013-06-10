@@ -12,4 +12,3 @@ Feature: "tddium status" command
     When I run `tddium status`
     Then the exit status should not be 0
     And the output should contain "tddium login"
-    And the output should contain "tddium heroku"

@@ -31,7 +31,8 @@ Feature: suite command
     Then "tddium suite" output should contain "Detected branch test/foobar"
     Then "tddium suite" stderr should not contain "WARNING: Unable to parse"
     When I choose defaults for test pattern, CI settings
-    Then "tddium suite" output should contain "Created suite..."
+    Then "tddium suite" output should contain "Using account 'some_account'"
+    Then "tddium suite" output should contain "Created suite"
     When the console session ends
     Then the exit status should be 0
 
@@ -72,4 +73,46 @@ Feature: suite command
     Then the output should contain "Heroku"
     And the file ".tddium-deploy-key.mimic" should contain "ssh-rsa"
     Then the exit status should be 0
-    
+
+  Scenario: Belong to mulitple accounts, fail if not provided
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user belongs to two accounts
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar"
+    When I run `tddium suite` interactively
+    Then "tddium suite" output should contain "You are a member of these accounts:"
+    Then "tddium suite" output should contain "some_account"
+    Then "tddium suite" output should contain "another_account"
+    When I respond to "account" with ""
+    Then "tddium suite" output should contain "You must specify an account"
+    When the console session ends
+    Then the exit status should be 1
+
+  Scenario: Create a suite under a different account interactively
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user belongs to two accounts
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar"
+    When I run `tddium suite` interactively
+    When I respond to "account" with "another_account"
+    And I choose defaults for test pattern, CI settings
+    Then "tddium suite" output should contain "Using account 'another_account'"
+    Then "tddium suite" output should contain "Created suite"
+    When the console session ends
+    Then the exit status should be 0
+
+  Scenario: Create a suite under a different account with an option
+    Given the destination repo exists
+    And a git repo is initialized on branch "test/foobar"
+    And the user belongs to two accounts
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "beta" on branch "test/foobar"
+    When I run `tddium suite --account=another_account --non-interactive`
+    Then the output should contain "Using account 'another_account'"
+    And the output should contain "Created suite"
+    And the exit status should be 0

@@ -4,19 +4,15 @@ module Tddium
   class TddiumCli < Thor
     include TddiumConstant
 
+    attr_reader :user_details
+
     def initialize(*args)
       super(*args)
 
-      tddium_client = TddiumClient::Client.new.tap do |c|
-        c.caller_version = caller_version
-      end
-
-      @tddium_client = tddium_client
-
-      @api_config = ApiConfig.new(tddium_client)
+      @tddium_client = TddiumClient::Client.new(:development, caller_version)
+      @api_config = ApiConfig.new(@tddium_client)
       @repo_config = RepoConfig.new
-
-      @tddium_api = TddiumAPI.new(@api_config, tddium_client)
+      @tddium_api = TddiumAPI.new(@api_config, @tddium_client)
 
       # BOTCH: fugly
       @api_config.set_api(@tddium_api)
@@ -36,7 +32,6 @@ module Tddium
     require "tddium/cli/commands/status"
     require "tddium/cli/commands/keys"
     require "tddium/cli/commands/config"
-    require "tddium/cli/commands/console"
     require "tddium/cli/commands/web"
 
     map "-v" => :version
@@ -65,15 +60,13 @@ module Tddium
     def set_default_environment
       env = options[:environment] || ENV['TDDIUM_CLIENT_ENVIRONMENT']
       if env.nil? then
-        if File.exists?(@api_config.tddium_file_name) then
-          @tddium_client.environment = :development
-        else
+        @tddium_client.environment = :development
+        if not File.exists?(@api_config.tddium_file_name) then
           @tddium_client.environment = :production
         end
       else
         @tddium_client.environment = env.to_sym
       end
-      @tddium_client.caller_version = caller_version
 
       port = options[:port] || ENV['TDDIUM_CLIENT_PORT']
       @tddium_client.port = port.to_i if port
@@ -105,10 +98,10 @@ module Tddium
       end
 
       if params[:suite] && !suite_for_current_branch? then
-        say Test::Process::NO_CONFIGURED_SUITE
         exit_failure
       end
-      return user_details
+
+      @user_details = user_details
     end
   end
 end
