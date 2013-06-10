@@ -59,7 +59,7 @@ module Tddium
           accounts.first["account"]
         else
           # Get all of this user's suites with this repo.
-          repo_suites = @tddium_api.get_suites(repo_url: params[:repo_url])
+          repo_suites = @tddium_api.get_suites(:repo_url => params[:repo_url])
           acct_ids = repo_suites.map{|s| s['account']}.uniq
           default = acct_ids.length == 1 ? acct_ids.first : nil
 

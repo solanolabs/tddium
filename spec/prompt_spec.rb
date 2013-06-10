@@ -43,7 +43,7 @@ describe Tddium::TddiumCli do
     describe "account logic" do
       before do
         @prompt_calls = 0
-        subject.stub(:prompt) do |text, current_value, default_value, dont_prompt=false|
+        subject.stub(:prompt) do |text, current_value, default_value, dont_prompt|
           @prompt_calls += 1 if /account/i.match(text)
           default_value
         end

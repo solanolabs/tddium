@@ -109,7 +109,7 @@ module Tddium
               repo_name = suite['org_name'] + '/' + repo_name
             end
             [repo_name, suite['branch'], suite['repo_url'] || '']
-          }, indent: 4
+          }, :indent => 4
         end
 
         # Uugh, json converts the keys to strings.
@@ -125,7 +125,7 @@ module Tddium
           say "\n  " + Text::Status::ACCOUNT_MEMBERS
           print_table acct_members.map {|ar|
             [ar['user_handle'], ar['user_email'], ar['role']]
-          }, indent: 4
+          }, :indent => 4
         end
       end
 
