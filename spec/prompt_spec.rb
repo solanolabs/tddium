@@ -53,7 +53,7 @@ describe Tddium::TddiumCli do
         accounts = (1..n).map {|x|
           {"account_id" => x, "account" => "handle-#{x}"}
         }
-        subject.stub(:user_details).and_return({"all_accounts" => accounts})
+        subject.stub(:user_details).and_return({"participating_accounts" => accounts})
       end
 
       it "should not use an account_id for an existing suite" do
