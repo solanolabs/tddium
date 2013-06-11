@@ -56,12 +56,22 @@ SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
     "all_accounts" => [
       { "account" => SAMPLE_ACCOUNT_HANDLE,
         "account_id" => SAMPLE_ACCOUNT_ID,
-        "recurly_url" => SAMPLE_RECURLY_URL}]}}
+        "recurly_url" => SAMPLE_RECURLY_URL}],
+    "participating_accounts" => [
+      { "account" => SAMPLE_ACCOUNT_HANDLE,
+        "account_id" => SAMPLE_ACCOUNT_ID }]
+  }
+}
 SAMPLE_USER_RESPONSE_2 = {"status"=>0, "user"=>
   { "id" => SAMPLE_USER_ID,
     "api_key" => SAMPLE_API_KEY,
     "email" => SAMPLE_EMAIL,
     "created_at" => SAMPLE_DATE_TIME,
+    "participating_accounts" => [
+      { "account" => SAMPLE_ACCOUNT_HANDLE,
+        "account_id" => SAMPLE_ACCOUNT_ID },
+      { "account" => SAMPLE_ACCOUNT_HANDLE_2,
+        "account_id" => SAMPLE_ACCOUNT_ID_2 } ],
     "all_accounts" => [
       { "account" => SAMPLE_ACCOUNT_HANDLE,
         "account_id" => SAMPLE_ACCOUNT_ID,
@@ -75,6 +85,9 @@ SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE = {"status"=>0, "user"=>
     "api_key" => SAMPLE_API_KEY,
     "email" => SAMPLE_EMAIL,
     "created_at" => SAMPLE_DATE_TIME,
+    "participating_accounts" => [
+      { "account" => SAMPLE_ACCOUNT_HANDLE,
+        "account_id" => SAMPLE_ACCOUNT_ID }],
     "all_accounts" => [
       { "account" => SAMPLE_EMAIL,
         "account_id" => SAMPLE_ACCOUNT_ID,
@@ -85,6 +98,9 @@ SAMPLE_ADDED_USER_RESPONSE = {"status"=>0, "user"=>
     "api_key" => SAMPLE_API_KEY,
     "email" => SAMPLE_EMAIL,
     "created_at" => SAMPLE_DATE_TIME,
+    "participating_accounts" => [
+      { "account" => SAMPLE_ACCOUNT_HANDLE,
+        "account_id" => SAMPLE_ACCOUNT_ID }],
     "all_accounts" => [
       { "account" => SAMPLE_ACCOUNT_NAME,
         "account_role" => SAMPLE_ROLE}]}}

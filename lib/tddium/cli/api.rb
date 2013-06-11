@@ -26,7 +26,7 @@ module Tddium
     def get_single_account_id
       user_details = user_logged_in?(true, false)
       return nil unless user_details
-      accounts = user_details["all_accounts"]
+      accounts = user_details["participating_accounts"]
       unless accounts.length == 1
         msg = "You are a member of more than one account.\n"
         msg << "Please specify the account you want to operate on with "
@@ -42,7 +42,7 @@ module Tddium
     def get_account_id(acct_name)
       user_details = user_logged_in?(true, false)
       return nil unless user_details
-      accts = user_details["all_accounts"]
+      accts = user_details["participating_accounts"]
       acct = accts.select{|acct| acct["account"] == acct_name}.first
       if acct.nil?
         raise "You aren't a member of account '%s'." % acct_name

@@ -92,6 +92,9 @@ module Tddium
       # Email address
       # Account creation date
       say ERB.new(Text::Status::USER_DETAILS).result(binding)
+
+      # Use "all_accounts" here instead of "participating_accounts" -- these
+      # are the accounts the user can administer.
       user["all_accounts"].each do |acct|
         id = acct['account_id'].to_i
 
