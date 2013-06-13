@@ -17,7 +17,7 @@ module Tddium
       rescue TddiumClient::Error::UpgradeRequired => e
         abort e.message
       rescue TddiumClient::Error::Base => e
-        say e.message if show_error
+        say e.message.dup if show_error
         raise e
       end
       result

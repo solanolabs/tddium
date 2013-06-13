@@ -43,9 +43,10 @@ module Tddium
     include TddiumConstant
 
     # BOTCH: should be a state object rather than entire CLI object
-    def initialize(tddium_client)
+    def initialize(tddium_client, host)
       @tddium_client = tddium_client
       @config = Hash.new
+      @host = host
     end
 
     # BOTCH: fugly
@@ -145,8 +146,7 @@ module Tddium
     end
 
     def tddium_file_name(scope=:repo, kind='', root=nil)
-      env = environment
-      ext = env == :production ? '' : ".#{env}"
+      ext = @host == 'api.tddium.com' ? '' : ".#{@host}"
 
       case scope
       when :repo
@@ -161,10 +161,6 @@ module Tddium
 
     def tddium_deploy_key_file_name
       return tddium_file_name(:repo, '-deploy-key')
-    end
-
-    def environment
-      @tddium_client.environment.to_sym
     end
 
     protected

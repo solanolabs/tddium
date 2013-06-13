@@ -1,6 +1,6 @@
 module FileHelpers
   def tddium_global_config_file_path
-    File.join(ENV["HOME"], ".tddium.mimic")
+    File.join(ENV["HOME"], ".tddium.localhost")
   end
 
   def tddium_homedir_path

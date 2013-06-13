@@ -65,13 +65,13 @@ Feature: Login command
     """
     Logged in successfully
     """
-    And the file ".tddium.mimic" should contain "branch1"
+    And the file ".tddium.localhost" should contain "branch1"
     And the output should not contain "tddium suite"
     And the output should not contain "tddium spec"
     And the output should not contain "tddium run"
     And the exit status should be 0
     And dotfiles should be updated
-    And the file ".tddium.mimic" should contain the following branches:
+    And the file ".tddium.localhost" should contain the following branches:
       | id | branch  |
       | 1  | branch1 |
       | 2  | branch2 |
@@ -158,7 +158,7 @@ Feature: Login command
     Access Denied
     """
     And the exit status should be 1
-    And the file ".tddium.mimic" should not exist
+    And the file ".tddium.localhost" should not exist
     And the file ".gitignore" should not exist
 
   Scenario: Non-interactively log in successfully
@@ -185,5 +185,5 @@ Feature: Login command
     Access Denied
     """
     And the exit status should be 1
-    And the file ".tddium.mimic" should not exist
+    And the file ".tddium.localhost" should not exist
     And the file ".gitignore" should not exist
