@@ -56,5 +56,5 @@ Before do
   FileUtils.rm_rf(tddium_homedir_path)
   FileUtils.mkdir_p(tddium_homedir_path)
   ENV['HOME'] = tddium_homedir_path
-  FileUtils.rm_f(File.join(ENV['HOME'], '.tddium.mimic'))
+  FileUtils.rm_f(File.join(ENV['HOME'], '.tddium.*'))
 end

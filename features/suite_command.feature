@@ -71,7 +71,7 @@ Feature: suite command
     And the user has a heroku-push suite for "test" on "test/foobar"
     When I run `tddium suite --name=test --non-interactive`
     Then the output should contain "Heroku"
-    And the file ".tddium-deploy-key.mimic" should contain "ssh-rsa"
+    And the file ".tddium-deploy-key.localhost" should contain "ssh-rsa"
     Then the exit status should be 0
 
   Scenario: Belong to mulitple accounts, fail if not provided

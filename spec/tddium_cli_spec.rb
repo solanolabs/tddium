@@ -5,7 +5,7 @@ require 'tddium/cli/commands/spec'
 describe Tddium::TddiumCli do
   let(:api_config) { mock(Tddium::ApiConfig, :get_branch => nil) }
   let(:tddium_api) { mock(Tddium::TddiumAPI) }
-  let(:tddium_client) { mock(TddiumClient::Client, :environment => :production) }
+  let(:tddium_client) { mock(TddiumClient::InternalClient) }
 
   def stub_tddium_api
     tddium_api.stub(:user_logged_in?).and_return(true)
@@ -14,9 +14,8 @@ describe Tddium::TddiumCli do
 
   def stub_tddium_client
     tddium_client.stub(:caller_version=)
-    tddium_client.stub(:environment=)
     tddium_client.stub(:call_api)
-    TddiumClient::Client.stub(:new).and_return(tddium_client)
+    TddiumClient::InternalClient.stub(:new).and_return(tddium_client)
   end
 
   before do

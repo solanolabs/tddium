@@ -5,7 +5,7 @@ Given /^the user is logged in$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"#{@api_key}"}
     """
@@ -16,7 +16,7 @@ Given /^the user is logged in to multiple accounts$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"abcdef"}
     """
@@ -31,7 +31,7 @@ Given /^the user is logged in to a single account$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"abcdef"}
     """
@@ -47,7 +47,7 @@ Given /^the user is logged in with a third-party key$/ do
   Antilles.install(:get, "/1/users", SAMPLE_USER_THIRD_PARTY_KEY_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"#{@api_key}"}
     """
@@ -56,7 +56,7 @@ end
 
 Given /^the user has a .tddium for branch "(.*)"$/ do |branch|
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1}}}
     """
@@ -84,7 +84,7 @@ Given /^the user is logged in with a configured suite and remembered options$/ d
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{
-    Given a file named ".tddium.mimic" with:
+    Given a file named ".tddium.localhost" with:
     """
     {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1,"options":{"user_data_file":null,"max_parallelism":1,"test_pattern":"abc"}}}}
     """
@@ -119,7 +119,7 @@ end
 
 Then /^dotfiles should be updated$/ do
   steps %Q{
-    And the file ".tddium.mimic" should contain "apikey"
+    And the file ".tddium.localhost" should contain "apikey"
     And the file ".gitignore" should contain ".tddium"
     And the file ".gitignore" should contain ".tddium*"
   }
@@ -127,8 +127,8 @@ end
 
 Then /^options should not be saved$/ do
   steps %Q{
-    Then the file ".tddium.mimic" should not contain "test_pattern"
-    And the file ".tddium.mimic" should not contain "max_parallelism"
-    And the file ".tddium.mimic" should not contain "user_data_file"
+    Then the file ".tddium.localhost" should not contain "test_pattern"
+    And the file ".tddium.localhost" should not contain "max_parallelism"
+    And the file ".tddium.localhost" should not contain "user_data_file"
   }
 end

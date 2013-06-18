@@ -6,11 +6,26 @@ module Tddium
 
     attr_reader :user_details
 
+    class_option :host, :type => :string, :default => ENV['TDDIUM_CLIENT_HOST'] || "api.tddium.com"
+    class_option :port, :type => :numeric, :default => (ENV['TDDIUM_CLIENT_PORT'] || 0).to_i
+    class_option :proto, :type => :string, :default => ENV['TDDIUM_CLIENT_PROTO'] || "https"
+    class_option :insecure, :type => :boolean, :default => false
+
     def initialize(*args)
       super(*args)
 
-      @tddium_client = TddiumClient::Client.new(:development, caller_version)
-      @api_config = ApiConfig.new(@tddium_client)
+      # XXX TODO: read host from .tddium file, allow selecting which .tddium "profile" to use
+      port = options[:port] == 0 ? nil : options[:port]
+      cli_opts = options[:insecure] ? { :insecure => true } : {}
+      @tddium_client = TddiumClient::InternalClient.new(options[:host], 
+                                                        port, 
+                                                        options[:proto], 
+                                                        1, 
+                                                        caller_version, 
+                                                        cli_opts)
+
+
+      @api_config = ApiConfig.new(@tddium_client, options[:host])
       @repo_config = RepoConfig.new
       @tddium_api = TddiumAPI.new(@api_config, @tddium_client)
 
@@ -18,8 +33,6 @@ module Tddium
       @api_config.set_api(@tddium_api)
     end
 
-    class_option :environment, :type => :string, :default => nil
-    class_option :port, :type => :numeric, :default => nil
 
     require "tddium/cli/commands/account"
     require "tddium/cli/commands/activate"
@@ -53,25 +66,6 @@ module Tddium
       return pattern
     end
 
-    def environment
-      @tddium_client.environment.to_sym
-    end
-
-    def set_default_environment
-      env = options[:environment] || ENV['TDDIUM_CLIENT_ENVIRONMENT']
-      if env.nil? then
-        @tddium_client.environment = :development
-        if not File.exists?(@api_config.tddium_file_name) then
-          @tddium_client.environment = :production
-        end
-      else
-        @tddium_client.environment = env.to_sym
-      end
-
-      port = options[:port] || ENV['TDDIUM_CLIENT_PORT']
-      @tddium_client.port = port.to_i if port
-    end
-
     def tddium_setup(params={})
       params[:git] = true unless params.member?(:git)
       params[:login] = true unless params.member?(:login)
@@ -82,7 +76,6 @@ module Tddium
       $stderr.sync = true
 
       set_shell
-      set_default_environment
       Tddium::Git.git_version_ok if params[:git]
 
       @api_config.load_config
