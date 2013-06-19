@@ -6,19 +6,29 @@ module Tddium
 
     attr_reader :user_details
 
-    class_option :host, :type => :string, :default => ENV['TDDIUM_CLIENT_HOST'] || "api.tddium.com"
-    class_option :port, :type => :numeric, :default => (ENV['TDDIUM_CLIENT_PORT'] || 0).to_i
-    class_option :proto, :type => :string, :default => ENV['TDDIUM_CLIENT_PROTO'] || "https"
-    class_option :insecure, :type => :boolean, :default => false
+    class_option :host, :type => :string, 
+                        :default => ENV['TDDIUM_CLIENT_HOST'] || "api.tddium.com",
+                        :desc => "Tddium app server hostname"
+
+    class_option :port, :type => :numeric,
+                        :default => (ENV['TDDIUM_CLIENT_PORT'].nil? ? nil : ENV['TDDIUM_CLIENT_PORT'].to_i),
+                        :desc => "Tddium app server port"
+
+    class_option :proto, :type => :string,
+                         :default => ENV['TDDIUM_CLIENT_PROTO'] || "https",
+                         :desc => "API Protocol"
+
+    class_option :insecure, :type => :boolean, 
+                            :default => (ENV['TDDIUM_CLIENT_INSECURE'] != nil),
+                            :desc => "Don't verify Tddium app SSL server certificate"
 
     def initialize(*args)
       super(*args)
 
       # XXX TODO: read host from .tddium file, allow selecting which .tddium "profile" to use
-      port = options[:port] == 0 ? nil : options[:port]
       cli_opts = options[:insecure] ? { :insecure => true } : {}
       @tddium_client = TddiumClient::InternalClient.new(options[:host], 
-                                                        port, 
+                                                        options[:port], 
                                                         options[:proto], 
                                                         1, 
                                                         caller_version, 
