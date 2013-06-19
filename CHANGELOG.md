@@ -4,6 +4,7 @@
 
 ## Version History
 
+v1.10.0 - Allow specifying host, port, protocol, and noverify from CLI and environment variables
 v1.9.1 - Properly route new suite creation to organizations (if the user belongs to multiple)
 v1.9.0 - Support for Tddium Organizations: http://blog.tddium.com/2013/06/09/new-feature-organizations/
 v1.8.1 - REE compatibility fixes
