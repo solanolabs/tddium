@@ -216,6 +216,17 @@ EOF
 
       USING_ACCOUNT_FROM_FLAG = "Using account '%s' (from command line)."
       USING_ACCOUNT = "Using account '%s'."
+
+      CONFIRM_DELETE_SUITE = <<EOF.rstrip
+Are you sure you want to delete the suite %s/%s
+in account %s?
+This will delete all sessions associated with this suite, and cannot be un-done.
+y/[n]:
+EOF
+      SUITE_IN_MULTIPLE_ACCOUNTS = "The suite %s/%s exists in multiple accounts:"
+      SUITE_IN_MULTIPLE_ACCOUNTS_PROMPT = "Which account do you want to delete it from:"
+
+      ABORTING = "Aborting."
     end
 
     module Status
@@ -412,6 +423,8 @@ EOF
       MISSING_ACCOUNT_OPTION = "You must specify an account by passing the --account option."
       MISSING_ACCOUNT = "You must specify an account."
       NOT_IN_ACCOUNT = "You aren't a member of account %s."
+      CANT_FIND_SUITE = "Can't find suite for %s/%s"
+      INVALID_ACCOUNT_NAME = "Invalid account name."
     end
   end
 

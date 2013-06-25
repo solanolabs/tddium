@@ -116,3 +116,35 @@ Feature: suite command
     Then the output should contain "Using account 'another_account'"
     And the output should contain "Created suite"
     And the exit status should be 0
+
+  Scenario: Delete a suite when none exists
+    Given a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has no suites
+    When I run `tddium suite --delete`
+    Then the output should contain "Can't find suite"
+    And the exit status should be 1
+
+  Scenario: Delete a suite when one exists
+    Given the command is "tddium suite --delete"
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has a suite for "test" on "foobar"
+    And the suite deletion succeeds for 1
+    When I run `tddium suite --delete` interactively
+    And I respond to "Are you sure" with "y"
+    Then the exit status should be 0
+
+  Scenario: Delete a suite when more than one exists
+    Given the command is "tddium suite --delete"
+    And a git repo is initialized on branch "test/foobar"
+    And the user is logged in
+    And the user has the following suites for the repo named "test":
+      | id | branch | account |
+      | 1  | foobar | org1    |
+      | 2  | foobar | org2    |
+    And the suite deletion succeeds for 2
+    When I run `tddium suite --delete` interactively
+    And I respond to "Which account" with "org2"
+    And I respond to "Are you sure" with "y"
+    Then the exit status should be 0

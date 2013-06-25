@@ -221,6 +221,10 @@ module Tddium
       call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
     end
 
+    def permanent_destroy_suite(id, params={})
+      call_api(:delete, "#{Api::Path::SUITES}/#{id}/permanent_destroy", params)
+    end
+
     def get_sessions(params={})
       begin
         current_sessions = call_api(:get, Api::Path::SESSIONS, params)
