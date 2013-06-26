@@ -7,7 +7,8 @@ module Tddium
     map "test" => :spec
     map "run" => :spec
     desc "run [PATTERN]", "Run the test suite, or tests that match PATTERN"
-    method_option :account, :type => :string, :default => nil
+    method_option :account, :type => :string, :default => nil,
+      :aliases => %w(--org --organization)
     method_option :user_data_file, :type => :string, :default => nil
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :test_pattern, :type => :string, :default => nil

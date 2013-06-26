@@ -5,7 +5,9 @@ require 'bundler'
 
 def make_suite_response(name, branch, options = {})
   suite = SAMPLE_SUITE_RESPONSE.dup
-  suite["id"] = options[:id] if options[:id]
+  options.each do |k, v|
+    suite[k.to_str] = v if v
+  end
   suite["repo_name"] = name
   suite["branch"] = branch
   suite["git_repo_uri"] = "file:///#{Dir.tmpdir}/tddium-aruba/repo"
@@ -18,7 +20,7 @@ Given /^the user has the following suites for the repo named "([^"]*)":$/ do |re
   suite_data = table.hashes
   suite_response = []
   suite_data.each do |suite|
-    suite_response << make_suite_response(repo_name, suite["branch"], :id => suite["id"])
+    suite_response << make_suite_response(repo_name, suite["branch"], suite)
   end
   Antilles.install(:get, "/1/suites/user_suites", {:status=>0, :suites => suite_response})
 end
@@ -81,6 +83,10 @@ end
 
 Given /^the user fails to update the suite's test_pattern$/ do
   Antilles.install(:put, "/1/suites/1", {:status=>1, :explanation=>"Some error"})
+end
+
+Given /^the suite deletion succeeds for ([0-9]+)$/ do |n|
+  Antilles.install(:delete, "/1/suites/#{n}/permanent_destroy", {:status=>0})
 end
 
 Given /^I choose defaults for test pattern, CI settings$/ do

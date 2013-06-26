@@ -98,6 +98,11 @@ module Tddium
       @config.merge!({"branches" => branches})
     end
 
+    def delete_suite(branch)
+      branches = @config["branches"] || {}
+      branches.delete_if { |k, v| k == branch }
+    end
+
     def load_config(options = {})
       global_config = load_config_from_file(:global)
       return global_config if options[:global]

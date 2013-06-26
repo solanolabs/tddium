@@ -9,7 +9,7 @@ module Tddium
     method_option :app, :type => :string, :default => nil
     def heroku
       say "To activate your heroku account, please visit"
-      say "https://api.tddium.com/FIXME"
+      say "https://api.tddium.com/"
     end
   end
 end

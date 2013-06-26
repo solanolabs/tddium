@@ -28,9 +28,9 @@ module Tddium
       return nil unless user_details
       accounts = user_details["participating_accounts"]
       unless accounts.length == 1
-        msg = "You are a member of more than one account.\n"
-        msg << "Please specify the account you want to operate on with "
-        msg << "'account:an_account_name'.\n"
+        msg = "You are a member of more than one organization.\n"
+        msg << "Please specify the organization you want to operate on with "
+        msg << "'org:an_organization_name'.\n"
         accounts.each do |acct|
           msg << "  #{acct["account"]}\n"
         end
@@ -45,7 +45,7 @@ module Tddium
       accts = user_details["participating_accounts"]
       acct = accts.select{|acct| acct["account"] == acct_name}.first
       if acct.nil?
-        raise "You aren't a member of account '%s'." % acct_name
+        raise "You aren't a member of organization '%s'." % acct_name
       end
       acct["account_id"]
     end
@@ -57,14 +57,17 @@ module Tddium
       when "suite"
         path << 'suites'
         path << current_suite_id
-      when "account"
+      when "account", "org"
         path << 'accounts'
         path << get_single_account_id
       when /\Aaccount:/
         path << 'accounts'
         path << get_account_id(scope.sub(/\Aaccount:/, ''))
+      when /\Aorg:/
+        path << 'accounts'
+        path << get_account_id(scope.sub(/\Aorg:/, ''))
       else
-        raise "Unrecognized scope. Use 'suite', 'account', or 'account:an_account_name'."
+        raise "Unrecognized scope. Use 'suite', 'org', or 'org:an_organization_name'."
       end
 
       path << 'env'
@@ -219,6 +222,10 @@ module Tddium
 
     def update_suite(id, params={})
       call_api(:put, "#{Api::Path::SUITES}/#{id}", params)
+    end
+
+    def permanent_destroy_suite(id, params={})
+      call_api(:delete, "#{Api::Path::SUITES}/#{id}/permanent_destroy", params)
     end
 
     def get_sessions(params={})

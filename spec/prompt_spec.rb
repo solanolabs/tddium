@@ -43,7 +43,7 @@ describe Tddium::TddiumCli do
       before do
         @prompt_calls = 0
         subject.stub(:prompt) do |text, current_value, default_value, dont_prompt|
-          @prompt_calls += 1 if /account/i.match(text)
+          @prompt_calls += 1 if /organization/i.match(text)
           default_value
         end
       end
@@ -67,7 +67,7 @@ describe Tddium::TddiumCli do
         stub_accounts(1)
         expect {
           subject.prompt_suite_params({:account => "abc"}, {})
-        }.to raise_error(SystemExit, "You aren't a member of account abc.")
+        }.to raise_error(SystemExit, "You aren't a member of organization abc.")
         should_not_have_called_prompt
       end
 
@@ -106,7 +106,7 @@ describe Tddium::TddiumCli do
         ])
         expect {
           subject.prompt_suite_params({}, {})
-        }.to raise_error(SystemExit, "You must specify an account.")
+        }.to raise_error(SystemExit, "You must specify an organization.")
         should_have_called_prompt
       end
     end
