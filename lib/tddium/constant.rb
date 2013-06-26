@@ -73,8 +73,8 @@ module TddiumConstant
       CI_PUSH_URL = "Enter git URL to push to (default '%s') or enter 'disable':"
       CAMPFIRE_ROOM = "Custom Campfire room for this suite (current: '%s') or enter 'disable':"
       HIPCHAT_ROOM = "Custom HipChat room for this suite (current: '%s') or enter 'disable':"
-      ACCOUNT = "Enter the account to create the suite under:"
-      ACCOUNT_DEFAULT = "Enter the account to create the suite under (default: '%s'):"
+      ACCOUNT = "Enter the organization to create the suite under:"
+      ACCOUNT_DEFAULT = "Enter the organization to create the suite under (default: '%s'):"
     end
 
     module Warning
@@ -214,17 +214,17 @@ EOF
       REMOVING_MEMBER = "Removing %s. This may take a few seconds..."
       REMOVED_MEMBER = "Removed %s"
 
-      USING_ACCOUNT_FROM_FLAG = "Using account '%s' (from command line)."
-      USING_ACCOUNT = "Using account '%s'."
+      USING_ACCOUNT_FROM_FLAG = "Using organization '%s' (from command line)."
+      USING_ACCOUNT = "Using organization '%s'."
 
       CONFIRM_DELETE_SUITE = <<EOF.rstrip
 Are you sure you want to delete the suite %s/%s
-in account %s?
+in organization %s?
 This will delete all sessions associated with this suite, and cannot be un-done.
 y/[n]:
 EOF
-      SUITE_IN_MULTIPLE_ACCOUNTS = "The suite %s/%s exists in multiple accounts:"
-      SUITE_IN_MULTIPLE_ACCOUNTS_PROMPT = "Which account do you want to delete it from:"
+      SUITE_IN_MULTIPLE_ACCOUNTS = "The suite %s/%s exists in multiple organization:"
+      SUITE_IN_MULTIPLE_ACCOUNTS_PROMPT = "Which organization do you want to delete it from:"
 
       ABORTING = "Aborting."
     end
@@ -251,13 +251,13 @@ User created: <%=user["created_at"]%>
 EOF
       ACCOUNT_DETAILS =<<EOF;
 
-Account: <%=acct["account"]%>
+Organization: <%=acct["account"]%>
 
   Role: <%=acct["account_role"]%>
   Owner: <%=acct["account_owner"]%>
   Plan: <%=acct["plan"]%>
 <% if acct["trial_remaining"] && acct["trial_remaining"] > 0 %>  Trial Period Remaining: <%=acct["trial_remaining"]%> days<% end %>
-<% if acct["account_url"] %>  Account Management URL: <%=acct["account_url"]%><% end %>
+<% if acct["account_url"] %>  Organization Management URL: <%=acct["account_url"]%><% end %>
 <% if acct["heroku"] %>  Heroku Account Linked: <%=acct["heroku_activation_done"]%><% end %>
 <% if acct["third_party_pubkey"] %>
   >>> Authorize the following SSH public key to allow Tddium's test workers to
@@ -277,7 +277,7 @@ install gems from private git repos or communicate via SSH to your servers:
 EOF
 
       SUITE_DETAILS =<<EOF;
-  Account:              <%=suite["account"]%>
+  Organization:         <%=suite["account"]%>
   Repo:                 <%=suite["repo_url"]%>
   Branch:               <%=suite["branch"]%>
   Default Test Pattern: <%=suite["test_pattern"]%>
@@ -418,13 +418,13 @@ EOF
       PASSWORD_ERROR = "Error changing password: %s"
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
-      USE_ACTIVATE = "Use 'tddium activate' to activate your account for the first time."
+      USE_ACTIVATE = "Visit 'https://api.tddium.com' to activate your account for the first time."
       INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
-      MISSING_ACCOUNT_OPTION = "You must specify an account by passing the --account option."
-      MISSING_ACCOUNT = "You must specify an account."
-      NOT_IN_ACCOUNT = "You aren't a member of account %s."
+      MISSING_ACCOUNT_OPTION = "You must specify an organization by passing the --org option."
+      MISSING_ACCOUNT = "You must specify an organization."
+      NOT_IN_ACCOUNT = "You aren't a member of organization %s."
       CANT_FIND_SUITE = "Can't find suite for %s/%s"
-      INVALID_ACCOUNT_NAME = "Invalid account name."
+      INVALID_ACCOUNT_NAME = "Invalid organization name."
     end
   end
 
