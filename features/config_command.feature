@@ -27,7 +27,7 @@ Feature: Config command
       | scope     | name      | value     |
       | account   | foo       | bar       |
       | suite     | quz       | blehher   |
-    When I run `tddium config account`
+    When I run `tddium config org`
     Then the output should contain "foo=bar"
     And the exit status should be 0
     And the output should contain "config:add"
@@ -35,15 +35,15 @@ Feature: Config command
   Scenario: Display account config without disambiguating account
     Given the user belongs to two accounts
     And the user is logged in with a configured suite on branch "test/foobar"
-    When I run `tddium config account`
-    Then the output should contain "You are a member of more than one account"
+    When I run `tddium config org`
+    Then the output should contain "You are a member of more than one organization"
     And the exit status should be 1
 
   Scenario: Display account config without disambiguating account
     Given the user belongs to two accounts
     And the user is logged in with a configured suite on branch "test/foobar"
-    When I run `tddium config account:not_my_account`
-    Then the output should contain "You aren't a member of account"
+    When I run `tddium config org:not_my_account`
+    Then the output should contain "You aren't a member of organization"
     And the exit status should be 1
 
   Scenario: Display account config for the first account
@@ -53,7 +53,7 @@ Feature: Config command
       | scope     | name      | value     |
       | account   | foo       | bar       |
       | suite     | quz       | blehher   |
-    When I run `tddium config account:some_account`
+    When I run `tddium config org:some_account`
     Then the output should contain "foo=bar"
     And the exit status should be 0
 
@@ -64,7 +64,7 @@ Feature: Config command
       | scope     | name      | value     |
       | account   | foo       | bar       |
       | suite     | quz       | blehher   |
-    When I run `tddium config account:another_account`
+    When I run `tddium config org:another_account`
     Then the output should not contain "foo=bar"
     And the exit status should be 0
 

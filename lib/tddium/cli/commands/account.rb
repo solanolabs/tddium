@@ -14,7 +14,7 @@ module Tddium
       end
     end
 
-    desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your account"
+    desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your organization"
     define_method "account:add" do |role, email|
       tddium_setup({:git => false})
 
@@ -28,7 +28,7 @@ module Tddium
       end
     end
 
-    desc "account:remove [EMAIL]", "Remove a user from your account"
+    desc "account:remove [EMAIL]", "Remove a user from an organization"
     define_method "account:remove" do |email|
       tddium_setup({:git => false})
 

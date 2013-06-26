@@ -4,7 +4,8 @@ module Tddium
   class TddiumCli < Thor
     desc "suite", "Register the current repo/branch, view/edit CI repos & deploy keys"
     method_option :edit, :type => :boolean, :default => false
-    method_option :account, :type => :string, :default => nil
+    method_option :account, :type => :string, :default => nil,
+      :aliases => %w(--org --organization)
     method_option :name, :type => :string, :default => nil
     method_option :repo_url, :type => :string, :default => nil
     method_option :ci_pull_url, :type => :string, :default => nil

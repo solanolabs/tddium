@@ -32,8 +32,8 @@ Feature: Account command
     And the user has a suite for "alpha" on "master"
     When I run `tddium account`
     Then the output should contain "someone@example.com"
-    And the output should contain "Account: some_account"
-    And the output should contain "Account: another_account"
+    And the output should contain "Organization: some_account"
+    And the output should contain "Organization: another_account"
 
   Scenario: Display account information with third-party key
     Given the user is logged in with a third-party key

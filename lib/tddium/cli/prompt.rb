@@ -64,7 +64,7 @@ module Tddium
           default = acct_ids.length == 1 ? acct_ids.first : nil
 
           if not options[:non_interactive] or default.nil?
-            say "You are a member of these accounts:"
+            say "You are a member of these organizations:"
             accounts.each do |account|
               say "  " + account['account']
             end

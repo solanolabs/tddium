@@ -31,7 +31,7 @@ Feature: suite command
     Then "tddium suite" output should contain "Detected branch test/foobar"
     Then "tddium suite" stderr should not contain "WARNING: Unable to parse"
     When I choose defaults for test pattern, CI settings
-    Then "tddium suite" output should contain "Using account 'some_account'"
+    Then "tddium suite" output should contain "Using organization 'some_account'"
     Then "tddium suite" output should contain "Created suite"
     When the console session ends
     Then the exit status should be 0
@@ -82,11 +82,11 @@ Feature: suite command
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
     When I run `tddium suite` interactively
-    Then "tddium suite" output should contain "You are a member of these accounts:"
+    Then "tddium suite" output should contain "You are a member of these organizations:"
     Then "tddium suite" output should contain "some_account"
     Then "tddium suite" output should contain "another_account"
     When I respond to "account" with ""
-    Then "tddium suite" output should contain "You must specify an account"
+    Then "tddium suite" output should contain "You must specify an organization"
     When the console session ends
     Then the exit status should be 1
 
@@ -98,9 +98,9 @@ Feature: suite command
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
     When I run `tddium suite` interactively
-    When I respond to "account" with "another_account"
+    When I respond to "organization" with "another_account"
     And I choose defaults for test pattern, CI settings
-    Then "tddium suite" output should contain "Using account 'another_account'"
+    Then "tddium suite" output should contain "Using organization 'another_account'"
     Then "tddium suite" output should contain "Created suite"
     When the console session ends
     Then the exit status should be 0
@@ -112,8 +112,8 @@ Feature: suite command
     And the user is logged in
     And the user has no suites
     And the user can create a suite named "beta" on branch "test/foobar"
-    When I run `tddium suite --account=another_account --non-interactive`
-    Then the output should contain "Using account 'another_account'"
+    When I run `tddium suite --org=another_account --non-interactive`
+    Then the output should contain "Using organization 'another_account'"
     And the output should contain "Created suite"
     And the exit status should be 0
 
@@ -145,6 +145,6 @@ Feature: suite command
       | 2  | foobar | org2    |
     And the suite deletion succeeds for 2
     When I run `tddium suite --delete` interactively
-    And I respond to "Which account" with "org2"
+    And I respond to "Which organization" with "org2"
     And I respond to "Are you sure" with "y"
     Then the exit status should be 0
