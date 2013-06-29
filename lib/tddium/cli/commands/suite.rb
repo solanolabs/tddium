@@ -16,7 +16,7 @@ module Tddium
     method_option :non_interactive, :type => :boolean, :default => false
     method_option :tool, :type => :hash, :default => {}
     method_option :delete, :type => :boolean, :default => false
-    def suite
+    def suite(*argv)
       tddium_setup({:repo => true})
 
       params = {}
@@ -31,7 +31,13 @@ module Tddium
           # multiple suites with the same branch name in two different accounts.
 
           repo_url = Tddium::Git.git_origin_url
-          branch = @tddium_api.current_branch
+
+          if argv.is_a?(Array) && argv.size > 0
+            branch = argv[0]
+          else
+            branch = @tddium_api.current_branch
+          end
+
           suites = @tddium_api.get_suites(:repo_url => repo_url, :branch => branch)
           if suites.count == 0
             exit_failure Text::Error::CANT_FIND_SUITE % [repo_url, branch]
