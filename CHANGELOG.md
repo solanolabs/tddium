@@ -4,6 +4,7 @@
 
 ## Version History
 
+v1.11.1 - Allow `tddium suite --delete` to take the branch name as a parameter.
 v1.11.0 - Add --delete option to `tddium suite` command.  s/account/organization/g.
 v1.10.0 - Allow specifying host, port, protocol, and noverify from CLI and environment variables
 v1.9.1 - Properly route new suite creation to organizations (if the user belongs to multiple)
