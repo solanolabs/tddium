@@ -135,6 +135,16 @@ Feature: suite command
     And I respond to "Are you sure" with "y"
     Then the exit status should be 0
 
+  Scenario: Delete a suite by name
+    Given the command is "tddium suite --delete bar"
+    And a git repo is initialized on branch "test/foo"
+    And the user is logged in
+    And the user has a suite for "test" on "bar"
+    And the suite deletion succeeds for 1
+    When I run `tddium suite --delete bar` interactively
+    And I respond to "Are you sure" with "y"
+    Then the exit status should be 0
+
   Scenario: Delete a suite when more than one exists
     Given the command is "tddium suite --delete"
     And a git repo is initialized on branch "test/foobar"
