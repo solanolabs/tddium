@@ -35,7 +35,10 @@ module Tddium
 
         tool_cli_populate(options, params)
         defaults = {}
-        if options[:no_ci]
+
+        # For backwards compatibility, honor options[:no_ci].
+        # Allow override with options[:enable_ci], which is false by default.
+        if options[:enable_ci] == false && options[:no_ci] 
           say Text::Process::CREATING_SUITE_CI_DISABLED
           defaults['ci_pull_url'] = ''
           defaults['ci_push_url'] = ''
