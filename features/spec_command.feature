@@ -41,7 +41,7 @@ Feature: spec command
     And a git repo is initialized on branch "foobar"
     And the user is logged in
     And the user has no suites
-    And the user can create a suite named "work/foobar" on branch "foobar"
+    And the user can create a ci-disabled suite named "work/foobar" on branch "foobar"
     And the user creates a suite for "work/foobar" on branch "foobar"
     And the user can create a session
     And the user successfully registers tests for the suite 
@@ -49,25 +49,10 @@ Feature: spec command
     And the test all pass
     When I run `tddium spec`
     Then the exit status should be 0
+    And the output should contain "Disabling automatic CI for this new branch"
     And the output should contain "Creating suite"
 
   Scenario: Auto-create a new suite with .gitignore
-    Given the destination repo exists
-    And a git repo is initialized on branch "foobar"
-    And a .gitignore file exists in git
-    And the user is logged in
-    And the user has no suites
-    And the user can create a suite named "work/foobar" on branch "foobar"
-    And the user creates a suite for "work/foobar" on branch "foobar"
-    And the user can create a session
-    And the user successfully registers tests for the suite 
-    And the tests start successfully
-    And the test all pass
-    When I run `tddium spec`
-    Then the exit status should be 0
-    And the output should contain "Creating suite"
-
-  Scenario: Auto-create a new suite with CI disabled
     Given the destination repo exists
     And a git repo is initialized on branch "foobar"
     And a .gitignore file exists in git
@@ -79,9 +64,25 @@ Feature: spec command
     And the user successfully registers tests for the suite 
     And the tests start successfully
     And the test all pass
-    When I run `tddium run --no-ci`
+    When I run `tddium spec`
     Then the exit status should be 0
-    And the output should contain "Disabling automatic CI for this new branch"
+    And the output should contain "Creating suite"
+
+  Scenario: Auto-create a new suite with CI enabled
+    Given the destination repo exists
+    And a git repo is initialized on branch "foobar"
+    And a .gitignore file exists in git
+    And the user is logged in
+    And the user has no suites
+    And the user can create a suite named "work/foobar" on branch "foobar"
+    And the user creates a suite for "work/foobar" on branch "foobar"
+    And the user can create a session
+    And the user successfully registers tests for the suite 
+    And the tests start successfully
+    And the test all pass
+    When I run `tddium run --enable-ci`
+    Then the exit status should be 0
+    And the output should not contain "Disabling automatic CI for this new branch"
     And the output should contain "Creating suite"
 
   Scenario: Wait until repo preparation is done
@@ -90,7 +91,7 @@ Feature: spec command
     And a git repo is initialized on branch "foobar"
     And the user is logged in
     And the user has no suites
-    And the user can create a suite named "work/foobar" on branch "foobar"
+    And the user can create a ci-disabled suite named "work/foobar" on branch "foobar"
     And the user creates a pending suite for "work/foobar" on branch "foobar"
     And the user can create a session
     And the user successfully registers tests for the suite 
@@ -130,20 +131,6 @@ Feature: spec command
     And the output should contain "To view results"
     And the output should contain "Final result: failed."
     And the output should contain the list of failed tests
-    And options should not be saved
-
-  Scenario: Ignore remembered test pattern and max-parallelism
-    Given the destination repo exists
-    And a git repo is initialized
-    And the user is logged in with a configured suite and remembered options
-    And the user can create a session
-    And the user successfully registers tests for the suite with test_pattern: default
-    And the tests start successfully
-    And the test all pass
-    When I run `tddium spec`
-    Then the exit status should be 0
-    And the output should contain "To view results"
-    And the output should not contain "emembered"
     And options should not be saved
 
   @announce-cmd
