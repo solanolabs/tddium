@@ -7,7 +7,7 @@ module Tddium
       tddium_setup
 
       begin
-        current_suites = @tddium_api.get_suites
+        current_suites = @tddium_api.get_suites(:repo_url => Tddium::Git.git_origin_url)
         if current_suites.empty? then
           say Text::Status::NO_SUITE
         else

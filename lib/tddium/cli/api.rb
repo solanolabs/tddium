@@ -202,6 +202,18 @@ module Tddium
       @api_config.get_branch(current_branch, 'options')
     end
 
+    # suites/user_suites returns:
+    # [                                                                               
+    #   'account',
+    #   'account_id',
+    #   'branch',                                                                          
+    #   'ci_ssh_pubkey', 
+    #   'git_repo_uri', 
+    #   'id', 
+    #   'org_name', 
+    #   'repo_name', 
+    #   'repo_url'                                  
+    # ]
     def get_suites(params={})
       current_suites = call_api(:get, "#{Api::Path::SUITES}/user_suites", params)
       current_suites ||= {}
