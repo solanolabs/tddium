@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
 require 'tddium/commit_log_parser'
 
 module Tddium
