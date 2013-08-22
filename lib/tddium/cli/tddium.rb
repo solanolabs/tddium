@@ -55,6 +55,7 @@ module Tddium
     require "tddium/cli/commands/status"
     require "tddium/cli/commands/keys"
     require "tddium/cli/commands/config"
+    require 'tddium/cli/commands/describe'
     require "tddium/cli/commands/web"
 
     map "-v" => :version

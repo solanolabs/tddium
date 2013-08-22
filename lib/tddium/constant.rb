@@ -37,6 +37,7 @@ module TddiumConstant
       USERS = "users"
       SIGN_IN = "#{USERS}/sign_in"
       TEST_EXECUTIONS = "test_executions"
+      QUERY_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/query"
       REGISTER_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/register"
       START_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/start"
       REPORT_TEST_EXECUTIONS = "#{TEST_EXECUTIONS}/report"
