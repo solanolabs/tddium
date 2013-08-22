@@ -2,7 +2,7 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "describe <session>", "Describe the state of a session"
+    desc "describe [SESSION]", "Describe the state of a session"
     method_option :account, :type => :string, :default => nil,
       :aliases => %w(--org --organization)
     def describe(*args)
