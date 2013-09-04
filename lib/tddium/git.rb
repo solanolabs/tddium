@@ -59,7 +59,7 @@ module Tddium
         if File.directory?('.git') then
           return true
         end
-        ignore = `git status`
+        ignore = `git status 2>&1`
         ok = $?.success?
         return ok
       end
