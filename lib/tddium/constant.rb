@@ -228,6 +228,12 @@ EOF
       SUITE_IN_MULTIPLE_ACCOUNTS_PROMPT = "Which organization do you want to delete it from:"
 
       ABORTING = "Aborting."
+      DESCRIBE_SESSION =<<EOF
+
+Session %d
+Showing %s tests
+
+EOF
     end
 
     module Status
