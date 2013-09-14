@@ -27,7 +27,7 @@ module Tddium
       if options[:json]
         puts JSON.pretty_generate(result['session'])
       elsif options[:names]
-        puts filtered.map{|x| x['test_name']}.join(" ")
+        say filtered.map{|x| x['test_name']}.join(" ")
       else
         filtered.sort!{|a,b| [a['test_type'], a['test_name']] <=> [b['test_type'], b['test_name']]}
 
