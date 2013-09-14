@@ -17,11 +17,11 @@ module Tddium
 
       filtered = result['session']['tests']
       if !options[:all]
-        filtered.select!{|x| x['status'] == 'failed'}
+        filtered = filtered.select{|x| x['status'] == 'failed'}
       end
 
       if options[:type]
-        filtered.select!{|x| x['test_type'].downcase == options[:type].downcase}
+        filtered = filtered.select{|x| x['test_type'].downcase == options[:type].downcase}
       end
 
       if options[:json]
