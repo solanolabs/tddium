@@ -22,7 +22,7 @@ module Tddium
       cmd += " --force" if options[:force]
       cmd += " #{tests.join(" ")}"
 
-      puts cmd
+      say cmd
       Kernel.exec(cmd) if !options[:no_op]
     end
   end
