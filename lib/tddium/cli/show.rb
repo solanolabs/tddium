@@ -60,23 +60,6 @@ module Tddium
       end
     end
 
-    def show_session_details(params, no_session_prompt, all_session_prompt)
-      current_sessions = @tddium_api.get_sessions(params)
-      say Text::Status::SEPARATOR
-      if current_sessions.empty? then
-        say no_session_prompt
-      else
-        say all_session_prompt
-        current_sessions.reverse_each do |session|
-          duration = "(%ds)" % ((session["end_time"] ? Time.parse(session["end_time"]) : Time.now) - Time.parse(session["start_time"])).round
-          say Text::Status::SESSION_DETAIL % [session["report"],
-                                              duration,
-                                              session["start_time"],
-                                              session["test_execution_stats"]]
-        end
-      end
-    end
-
     def format_usage(usage)
       "All tests: %.2f worker-hours  ($%.2f)" % [
         usage["hours"] || 0, usage["charge"] || 0]
