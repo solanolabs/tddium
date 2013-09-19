@@ -242,11 +242,10 @@ module Tddium
 
     def get_sessions(params={})
       begin
-        current_sessions = call_api(:get, Api::Path::SESSIONS, params)
+        call_api(:get, Api::Path::SESSIONS, params)['sessions']
       rescue TddiumClient::Error::Base
-        current_sessions = []
+        []
       end
-      current_sessions['sessions']
     end
 
     def create_session(suite_id, params = {})

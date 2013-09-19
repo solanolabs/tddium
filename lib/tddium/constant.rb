@@ -234,6 +234,12 @@ Session %d
 Showing %s tests
 
 EOF
+      RERUN_SESSION =<<EOF
+
+Re-run failures from a session with `tddium rerun <session_id>`.
+Extract details of a session with `tddium describe <session_id>`.
+
+EOF
     end
 
     module Status
@@ -243,11 +249,11 @@ EOF
       ALL_SUITES = "Suites:"
       CURRENT_SUITE = "Current suite: %s"
       CURRENT_SUITE_UNAVAILABLE = "Your current suite is unavailable"
-      NO_ACTIVE_SESSION = "There are no active sessions"
-      ACTIVE_SESSIONS = "Your active sessions:"
-      NO_INACTIVE_SESSION = "There are no previous sessions"
-      INACTIVE_SESSIONS = "Latest sessions:"
-      SESSION_DETAIL = " open %s # %8.8s Started: %s"
+      NO_ACTIVE_SESSION = "There are no running sessions for this repo."
+      ACTIVE_SESSIONS = "Your active sessions for this repo%s:"
+      NO_INACTIVE_SESSION = "There are no recent sessions on this branch."
+      INACTIVE_SESSIONS = "Latest sessions on this branch (%s):"
+      SESSION_DETAIL = " %10.10s %s in %s, %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "\nUsing suite:\n"
