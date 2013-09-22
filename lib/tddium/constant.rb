@@ -253,7 +253,7 @@ EOF
       ACTIVE_SESSIONS = "Your active sessions for this repo%s:"
       NO_INACTIVE_SESSION = "There are no recent sessions on this branch."
       INACTIVE_SESSIONS = "Latest sessions on this branch (%s):"
-      SESSION_DETAIL = " %10.10s %s in %s, %s"
+      SESSION_DETAIL = " %10.10s %s %s in %s, %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
       USING_SUITE = "\nUsing suite:\n"

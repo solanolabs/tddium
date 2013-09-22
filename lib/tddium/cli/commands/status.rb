@@ -45,6 +45,7 @@ module Tddium
           duration = "%ds" % session['duration']
           start_timeago = "%s ago" % Tddium::TimeFormat.seconds_to_human_time(Time.now - Time.parse(session["start_time"]))
           say Text::Status::SESSION_DETAIL % ["# #{session["id"]}",
+                                              session["commit"][0...7],
                                               session["status"],
                                               duration,
                                               start_timeago]
