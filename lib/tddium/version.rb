@@ -1,5 +1,5 @@
 # Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
 
 module Tddium
-  VERSION = "1.13.0"
+  VERSION = "1.14.0"
 end
