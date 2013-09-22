@@ -4,7 +4,7 @@
 
 ## Version History
 
-v1.14.0 - Update `tddium status` to work better with `tddium rerun`
+v1.14.1 - Update `tddium status` to work better with `tddium rerun`
 v1.13.0 - Add `tddium rerun` and `tddium describe` commands.
 v1.12.0 - Change `tddium run` to not enable CI for the suite by default (Use `tddium run --enable-ci` for the old behavior.)
 v1.11.1 - Allow `tddium suite --delete` to take the branch name as a parameter.
