@@ -40,5 +40,11 @@ describe Tddium::TddiumCli do
       tddium_api.should_receive(:create_session).with(suite_id, :commits => [latest_commit])
       subject.spec
     end
+
+    it "should not create a new session if a session_id is specified" do
+      tddium_api.should_not_receive(:create_session)
+      subject.stub(:options) { {:session_id=>1} }
+      subject.spec
+    end
   end
 end

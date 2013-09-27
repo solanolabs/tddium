@@ -14,6 +14,7 @@ module Tddium
     method_option :test_pattern, :type => :string, :default => nil
     method_option :force, :type => :boolean, :default => false
     method_option :machine, :type => :boolean, :default => false
+    method_option :session_id, :type => :numeric, :default => nil
     method_option :tool, :type => :hash, :default => {}
     method_option :no_ci, :type => :boolean, :default => true
     method_option :enable_ci, :type => :boolean, :default => false
@@ -89,8 +90,15 @@ module Tddium
       commits = CommitLogParser.new(Tddium::Git.latest_commit).commits
 
       # Create a session
-      new_session = @tddium_api.create_session(@tddium_api.current_suite_id, :commits => commits)
-      machine_data[:session_id] = session_id = new_session["id"]
+      # or use an already-created session
+      #
+      if options[:session_id] && options[:session_id] > 0
+        session_id = options[:session_id]
+      else
+        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, :commits => commits)["id"]
+      end
+
+      machine_data[:session_id] = session_id 
 
       # Register the tests
       @tddium_api.register_session(session_id, @tddium_api.current_suite_id, test_pattern)
