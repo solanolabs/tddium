@@ -40,7 +40,7 @@ module Tddium
           [
             x['test_name'],
             x['status'],
-            "#{x['elapsed_time']}s"
+            x['elapsed_time'] ? "#{x['elapsed_time']}s" : "-"
           ]
         end
         print_table table

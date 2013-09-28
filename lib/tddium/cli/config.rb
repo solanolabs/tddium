@@ -58,8 +58,8 @@ module Tddium
       remove_tddium_files
     end
 
-    def populate_branches
-      suites = @tddium_api.get_suites(:repo_url => Tddium::Git.git_origin_url)
+    def populate_branches(branch)
+      suites = @tddium_api.get_suites(:repo_url => Tddium::Git.git_origin_url, :branch=>branch)
       suites.each do |ste|
         set_suite(ste)
       end
@@ -69,7 +69,7 @@ module Tddium
       val = fetch('branches', branch, var)
       return val unless val.nil?
 
-      populate_branches
+      populate_branches(branch)
 
       return fetch('branches', branch, var)
     end

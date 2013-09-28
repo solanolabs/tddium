@@ -23,7 +23,7 @@ module Tddium
       elsif user = @tddium_api.login_user(:params => @tddium_api.get_user_credentials(login_options), :show_error => true)
         say Text::Process::LOGGED_IN_SUCCESSFULLY 
         if Tddium::Git.git_repo? then
-          @api_config.populate_branches
+          @api_config.populate_branches(@tddium_api.current_branch)
         end
         @api_config.write_config
       else
