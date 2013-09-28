@@ -4,6 +4,7 @@
 
 ## Version History
 
+v1.15.0 - Improve performance of `tddium status`, add --json option to it.
 v1.14.1 - Update `tddium status` to work better with `tddium rerun`
 v1.13.0 - Add `tddium rerun` and `tddium describe` commands.
 v1.12.0 - Change `tddium run` to not enable CI for the suite by default (Use `tddium run --enable-ci` for the old behavior.)
