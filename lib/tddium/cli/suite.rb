@@ -66,11 +66,9 @@ module Tddium
     end
 
     def suite_for_current_branch?
-      unless @tddium_api.current_suite_id
-        message = Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_current_branch
-        say message
-      end
-      message.nil?
+      return true if @tddium_api.current_suite_id
+      say Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_current_branch
+      false
     end
 
     # Update the suite parameters from tddium.yml

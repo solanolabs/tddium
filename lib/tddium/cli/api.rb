@@ -195,6 +195,7 @@ module Tddium
     end
 
     def current_suite_id
+      # api_config.get_branch will query the server if there is no locally cached data
       @api_config.get_branch(current_branch, 'id')
     end
 
