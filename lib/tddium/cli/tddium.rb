@@ -65,6 +65,11 @@ module Tddium
       say VERSION
     end
 
+    # Thor has the wrong default behavior
+    def self.exit_on_failure?
+      return true
+    end
+
     protected
 
     def caller_version
