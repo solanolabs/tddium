@@ -254,6 +254,10 @@ module Tddium
       new_session['session']
     end
 
+    def update_session(session_id, params={})
+      call_api(:put, "#{Api::Path::SESSIONS}/#{session_id}", params)
+    end
+
     def register_session(session_id, suite_id, test_pattern)
       call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => suite_id, :test_pattern => test_pattern})
     end

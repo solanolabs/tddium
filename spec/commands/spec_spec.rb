@@ -43,6 +43,7 @@ describe Tddium::TddiumCli do
 
     it "should not create a new session if a session_id is specified" do
       tddium_api.should_not_receive(:create_session)
+      tddium_api.should_receive(:update_session)
       subject.stub(:options) { {:session_id=>1} }
       subject.spec
     end
