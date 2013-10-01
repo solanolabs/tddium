@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'tddium/commit_log_parser'
+require 'msgpack'
 
 describe CommitLogParser do
   let(:commit_log) {
