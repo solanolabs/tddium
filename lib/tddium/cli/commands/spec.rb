@@ -97,7 +97,7 @@ module Tddium
         session_id = options[:session_id]
         @tddium_api.update_session(session_id, :commits_encoded => commits_encoded) rescue nil
       else
-        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, :commits => commits)["id"]
+        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, :commits_encoded => commits_encoded)["id"]
       end
 
       machine_data[:session_id] = session_id 
