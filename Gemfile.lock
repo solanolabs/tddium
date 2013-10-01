@@ -5,6 +5,7 @@ PATH
       highline
       json
       launchy
+      msgpack (= 0.5.6)
       tddium_client (~> 0.4.2)
       thor
 
@@ -53,6 +54,7 @@ GEM
       plist
       rack
       sinatra
+    msgpack (0.5.6)
     multi_json (1.3.6)
     multi_xml (0.5.1)
     pickle (0.4.11)

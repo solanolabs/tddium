@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.email       = ["info@tddium.com"]
   s.homepage    = "https://github.com/solanolabs/tddium.git"
   s.summary     = %q{tddium Hosted Test Environment}
+  s.license     = "MIT"
   s.description = <<-EOF
 tddium runs your test suite simply and quickly in our managed
 cloud environment.  You can run tests by hand, or enable our hosted CI to watch
@@ -42,6 +43,7 @@ EOF
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("launchy")
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
+  s.add_runtime_dependency("msgpack", "=0.5.6")
 
 #  s.add_development_dependency("bundler", "~> 1.1.0")
   s.add_development_dependency("rspec")

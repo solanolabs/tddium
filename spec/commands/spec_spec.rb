@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'msgpack'
 require 'tddium/cli'
 require 'tddium/cli/commands/spec'
 
@@ -37,7 +38,7 @@ describe Tddium::TddiumCli do
     end
 
     it "should create a new session" do
-      tddium_api.should_receive(:create_session).with(suite_id, :commits => [latest_commit])
+      tddium_api.should_receive(:create_session).with(suite_id, :commits_encoded => Base64.encode64([latest_commit].to_msgpack))
       subject.spec
     end
 

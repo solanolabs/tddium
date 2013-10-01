@@ -25,7 +25,7 @@ class CommitLogParser
   #  "author" =>    {"name"=>"Bob Smith", "email"=>"bob@example.com"},
   #  "committer" => {"name"=>"Fred Smith", "email"=>"fred@example.com"},
   #  "summary"   => "ignore .ruby-version for rvm",
-  #  "date"      => 2013-05-03 11:45:11 +0700
+  #  "date"      => 1380603292
   # }]
 
   def commits
@@ -48,7 +48,7 @@ class CommitLogParser
   private
 
   def parse_commit(record)
-    time = Time.at(record[4].to_i)
+    time = record[4].to_i
     author = build_user(record[2], record[3])
     committer = build_user(record[5], record[6])
     build_commit(record[0], author, committer, record[1], time)

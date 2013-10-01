@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'tddium/commit_log_parser'
+require 'msgpack'
 
 describe CommitLogParser do
   let(:commit_log) {
@@ -33,7 +34,11 @@ describe CommitLogParser do
       commit["author"]["email"].should == "bob@example.com"
       commit["committer"]["name"].should == "Fred Smith"
       commit["committer"]["email"].should == "fred@example.com"
-      commit["date"].should == Time.at(1367556311)
+      commit["date"].should == 1367556311
+    end
+
+    it "should be msgpackable" do
+      expect { subject.commits.to_msgpack }.not_to raise_error
     end
   end
 end
