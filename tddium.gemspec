@@ -42,6 +42,7 @@ EOF
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("launchy")
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
+  s.add_runtime_dependency("msgpack", "=0.5.6")
 
 #  s.add_development_dependency("bundler", "~> 1.1.0")
   s.add_development_dependency("rspec")

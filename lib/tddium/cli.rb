@@ -8,6 +8,7 @@ require 'launchy'
 require 'tddium_client'
 require 'shellwords'
 require 'base64'
+require 'msgpack'
 require 'erb'
 
 require 'tddium/cli/tddium'
