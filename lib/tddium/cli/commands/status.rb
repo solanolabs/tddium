@@ -18,14 +18,14 @@ module Tddium
           :suite_id => @tddium_api.current_suite_id, 
           :active => false, 
           :limit => 10
-        }
+        } if suite_for_current_branch?
 
         if options[:json] 
           res = {}
           res[:running] = { origin_url => @tddium_api.get_sessions(repo_params) }          
           res[:history] = { 
             @tddium_api.current_branch => @tddium_api.get_sessions(suite_params)
-          } if suite_for_current_branch?
+          } if suite_params
           puts JSON.pretty_generate(res)
         else
           show_session_details(
@@ -37,7 +37,7 @@ module Tddium
             suite_params, 
             Text::Status::NO_INACTIVE_SESSION, 
             Text::Status::INACTIVE_SESSIONS
-          ) if suite_for_current_branch?
+          ) if suite_params
         end
 
         say Text::Process::RERUN_SESSION
