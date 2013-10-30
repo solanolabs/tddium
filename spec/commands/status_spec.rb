@@ -38,8 +38,8 @@ describe Tddium::TddiumCli do
       it "should display current status as valid JSON" do
         tddium_api.should_not_receive(:get_suites)
         tddium_api.should_receive(:get_sessions).exactly(2).times.and_return([])
-        STDOUT.should_receive(:puts).with(/running|history/i)
-        STDOUT.should_receive(:puts).with(/Re-run failures from a session with/i)
+        subject.should_receive(:puts).with(/running|history/i)
+        subject.should_not_receive(:puts).with(/Re-run failures from a session with/i)
         subject.stub(:options) { {:json => true } }
         subject.status
       end

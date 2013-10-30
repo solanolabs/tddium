@@ -38,9 +38,9 @@ module Tddium
             Text::Status::NO_INACTIVE_SESSION, 
             Text::Status::INACTIVE_SESSIONS
           ) if suite_params
+          say Text::Process::RERUN_SESSION
         end
 
-        say Text::Process::RERUN_SESSION
       rescue TddiumClient::Error::Base => e
         exit_failure e.message
       end
