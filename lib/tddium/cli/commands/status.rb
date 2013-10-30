@@ -10,13 +10,37 @@ module Tddium
       begin
         # tddium_setup asserts that we're in a git repo
         origin_url = Tddium::Git.git_origin_url
+        repo_params = {
+          :active => true, 
+          :repo_url => origin_url
+        }
+        suite_params = {
+          :suite_id => @tddium_api.current_suite_id, 
+          :active => false, 
+          :limit => 10
+        } if suite_for_current_branch?
 
-        if suite_for_current_branch?
-          show_session_details({:suite_id=>@tddium_api.current_suite_id, :active => false, :limit => 10}, Text::Status::NO_INACTIVE_SESSION, Text::Status::INACTIVE_SESSIONS, options[:json])
+        if options[:json] 
+          res = {}
+          res[:running] = { origin_url => @tddium_api.get_sessions(repo_params) }          
+          res[:history] = { 
+            @tddium_api.current_branch => @tddium_api.get_sessions(suite_params)
+          } if suite_params
+          puts JSON.pretty_generate(res)
+        else
+          show_session_details(
+            repo_params, 
+            Text::Status::NO_ACTIVE_SESSION, 
+            Text::Status::ACTIVE_SESSIONS
+          )
+          show_session_details(
+            suite_params, 
+            Text::Status::NO_INACTIVE_SESSION, 
+            Text::Status::INACTIVE_SESSIONS
+          ) if suite_params
+          say Text::Process::RERUN_SESSION
         end
-        show_session_details({:active => true, :repo_url=>origin_url}, Text::Status::NO_ACTIVE_SESSION, Text::Status::ACTIVE_SESSIONS, options[:json])
 
-        say Text::Process::RERUN_SESSION
       rescue TddiumClient::Error::Base => e
         exit_failure e.message
       end
@@ -24,14 +48,8 @@ module Tddium
 
     private 
 
-    def show_session_details(params, no_session_prompt, all_session_prompt, json)
+    def show_session_details(params, no_session_prompt, all_session_prompt)
       current_sessions = @tddium_api.get_sessions(params)
-      
-      if json
-        scope = params[:suite_id] ? @tddium_api.current_branch : params[:repo_url]
-        puts JSON.pretty_generate({scope => current_sessions})
-        return
-      end
 
       say ""
       if current_sessions.empty? then
