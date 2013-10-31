@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.16.1 - Fix `tddium status --json` to output a proper JSON document.
 - v1.16.0 - encode commit data for transport reliability
 - v1.15.2 - Update tddium_client to handle more error cases, update committers for preexisting session.
 - v1.15.1 - Exit failure on invalid CLI arguments
