@@ -16,7 +16,7 @@ module Tddium
 
       session_id = args.first
       if !session_id then
-        # params to get the most recent session on current branch
+        # params to get the most recent session id on current branch
         suite_params = {
           :suite_id => @tddium_api.current_suite_id,
           :active => false,
@@ -26,9 +26,9 @@ module Tddium
         sessions = @tddium_api.get_sessions(suite_params)
         if sessions.empty? then
           exit_failure Text::Status::NO_INACTIVE_SESSION
-        else
-          session_id = sessions[0]['id']
         end
+
+        session_id = sessions[0]['id']
       end
 
       result = @tddium_api.query_session(session_id)
