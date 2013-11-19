@@ -3,15 +3,32 @@
 module Tddium
   class TddiumCli < Thor
     map "show" => :describe
-    desc "describe SESSION", "Describe the state of a session"
+    desc "describe [SESSION]", "Describe the state of a session, if it
+    is provided; otherwise, the latest session on current branch."
     method_option :account, :type => :string, :default => nil,
       :aliases => %w(--org --organization)
     method_option :all, :type=>:boolean, :default=>false
     method_option :type, :type=>:string, :default=>nil
     method_option :json, :type=>:boolean, :default=>false
     method_option :names, :type=>:boolean, :deafult=>false
-    def describe(session_id)
+    def describe(session_id=nil)
       tddium_setup({:repo => false})
+
+      if !session_id then
+        # params to get the most recent session id on current branch
+        suite_params = {
+          :suite_id => @tddium_api.current_suite_id,
+          :active => false,
+          :limit => 1
+        } if suite_for_current_branch?
+
+        sessions = @tddium_api.get_sessions(suite_params)
+        if sessions.empty? then
+          exit_failure Text::Status::NO_INACTIVE_SESSION
+        end
+
+        session_id = sessions[0]['id']
+      end
 
       result = @tddium_api.query_session(session_id)
 
