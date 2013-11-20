@@ -10,7 +10,7 @@ module Tddium
     method_option :all, :type=>:boolean, :default=>false
     method_option :type, :type=>:string, :default=>nil
     method_option :json, :type=>:boolean, :default=>false
-    method_option :names, :type=>:boolean, :deafult=>false
+    method_option :names, :type=>:boolean, :default=>false
     def describe(session_id=nil)
       tddium_setup({:repo => false})
 
@@ -22,7 +22,7 @@ module Tddium
           :limit => 1
         } if suite_for_current_branch?
 
-        sessions = @tddium_api.get_sessions(suite_params)
+        sessions = suite_params ? @tddium_api.get_sessions(suite_params) : []
         if sessions.empty? then
           exit_failure Text::Status::NO_INACTIVE_SESSION
         end

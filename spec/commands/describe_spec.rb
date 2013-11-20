@@ -46,5 +46,14 @@ describe Tddium::TddiumCli do
       }.to raise_error(SystemExit,
                        /There are no recent sessions on this branch./)
     end
+
+    it "should exit with failure when no suite exists on current branch" do
+      tddium_api.stub(:current_suite_id) { nil }
+      tddium_api.should_not_receive(:get_sessions)
+      expect {
+        subject.describe
+      }.to raise_error(SystemExit,
+                       /There are no recent sessions on this branch./)
+    end
   end
 end
