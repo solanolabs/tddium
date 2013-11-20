@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.16.2 - Make `tddium describe` query the latest session on the branch by default.
 - v1.16.1 - Fix `tddium status --json` to output a proper JSON document.
 - v1.16.0 - encode commit data for transport reliability
 - v1.15.2 - Update tddium_client to handle more error cases, update committers for preexisting session.
