@@ -66,7 +66,8 @@ module Tddium
       tries = 0
       while tries < Default::GIT_READY_TRIES do
         # Call the API to get the suite and its tests
-        suite_details = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id)
+        suite_details = @tddium_api.get_suite_by_id(
+          @tddium_api.current_suite_id, session_id: options[:session_id])
 
         tries += 1
 
@@ -79,7 +80,7 @@ module Tddium
       end
       exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["repoman_current"]
 
-      update_suite_parameters!(suite_details)
+      update_suite_parameters!(suite_details, options[:session_id])
 
       start_time = Time.now
 
@@ -121,7 +122,7 @@ module Tddium
         session_id = @tddium_api.create_session(@tddium_api.current_suite_id, new_session_params)["id"]
       end
 
-      machine_data[:session_id] = session_id 
+      machine_data[:session_id] = session_id
 
       # Register the tests
       @tddium_api.register_session(session_id, @tddium_api.current_suite_id, test_pattern)
