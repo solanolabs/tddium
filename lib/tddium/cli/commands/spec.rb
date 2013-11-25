@@ -88,7 +88,8 @@ module Tddium
       end
 
       commits = CommitLogParser.new(Tddium::Git.latest_commit).commits
-      commits_encoded = Base64.encode64(commits.to_msgpack)
+      commits_packed = MessagePack.pack(commits)
+      commits_encoded = Base64.encode64(commits_packed)
 
       # Create a session
       # or use an already-created session
