@@ -38,7 +38,7 @@ describe CommitLogParser do
     end
 
     it "should be msgpackable" do
-      expect { subject.commits.to_msgpack }.not_to raise_error
+      expect { MessagePack.pack(subject.commits) }.not_to raise_error
     end
   end
 end

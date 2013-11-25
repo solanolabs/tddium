@@ -7,7 +7,11 @@ $:.push File.expand_path("../lib", __FILE__)
 require "tddium/version"
 
 Gem::Specification.new do |s|
-  s.name        = "tddium"
+  if RUBY_PLATFORM == 'java' then
+    s.name        = "tddium-jruby"
+  else
+    s.name        = "tddium"
+  end
   s.version     = Tddium::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Solano Labs"]
@@ -43,7 +47,12 @@ EOF
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("launchy")
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
-  s.add_runtime_dependency("msgpack", "=0.5.6")
+  if RUBY_PLATFORM == 'java' then
+    s.add_runtime_dependency('jruby-openssl')
+    s.add_runtime_dependency("msgpack-jruby")
+  else
+    s.add_runtime_dependency("msgpack", "=0.5.6")
+  end
 
 #  s.add_development_dependency("bundler", "~> 1.1.0")
   s.add_development_dependency("rspec")
