@@ -59,4 +59,5 @@ EOF
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")
   s.add_development_dependency("rake")
+  s.add_development_dependency("httparty", "=0.9.0")
 end
