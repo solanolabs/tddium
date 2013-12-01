@@ -5,6 +5,7 @@ gemspec
 
 group :development, :test do
   gem 'aruba', '0.4.6'
+  gem 'rdiscount', '1.6.8'
   gem 'pickle'
   gem 'mimic'
   gem 'daemons'
