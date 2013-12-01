@@ -8,7 +8,7 @@ group :development, :test do
   gem 'pickle'
   gem 'mimic'
   gem 'daemons'
-  gem 'httparty'
+  gem 'httparty', "0.9.0"
   gem 'antilles'
 
   gem 'rspec'
