@@ -19,6 +19,8 @@ module TddiumConstant
     SCM_READY_TRIES = 18
     SCM_READY_SLEEP = 10
     TEST_FINISH_TIMEOUT = 15 * 60 # 15 minutes
+
+    MAX_OUTPUT_SIZE = 5
   end
 
   module Config
@@ -246,7 +248,7 @@ EOF
       ABORTING = "Aborting."
       DESCRIBE_SESSION =<<EOF
 
-Session %d%s
+Session %d %s
 Showing %s tests
 
 EOF
@@ -469,6 +471,8 @@ EOF
 ERROR: could not invoke tddium command
 Usage: "tddium COMMAND [ARGS] [OPTIONS]". For available commands, run "tddium help".
 EOF
+      DESCRIBE_OUTPUT_MUST_BE_JSON = "Raw test output is only supported for JSON output format.  Re-run with --json"
+      DESCRIBE_OUTPUT_TOO_MANY_TESTS = "Raw test output only outputs less than #{Default::MAX_OUTPUT_SIZE} results. Re-run with a regex supplied to --output"
     end
   end
 
