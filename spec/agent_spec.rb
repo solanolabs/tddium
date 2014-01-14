@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 require 'spec_helper'
 require 'tddium/agent'
@@ -97,7 +97,7 @@ describe "Agent" do
     @agent.attach(blob, {})
   end
 
-  it "should attach a file" do
+  it "should attach a file (stubbed)" do
     begin
       env = env_save
       ENV['TDDIUM_SESSION_ID'] = @session_id.to_s
