@@ -48,7 +48,7 @@ module Tddium
         duration = sessions[0]['duration']
         if duration == 0
           start_timeago = "%s ago" % Tddium::TimeFormat.seconds_to_human_time(Time.now - Time.parse(sessions[0]["start_time"]))
-          finish_timeago = "no info about duration info found, started #{start_timeago}"
+          finish_timeago = "no info about duration found, started #{start_timeago}"
         else
           finish_time = Time.parse(sessions[0]["start_time"]) + duration
           finish_timeago = "%s ago" % Tddium::TimeFormat.seconds_to_human_time(Time.now - finish_time)
