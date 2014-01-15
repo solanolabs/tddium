@@ -230,7 +230,7 @@ EOF
       ABORTING = "Aborting."
       DESCRIBE_SESSION =<<EOF
 
-Session %d
+Session %d%s
 Showing %s tests
 
 EOF
@@ -356,6 +356,15 @@ You have authorized the following SSH public keys to communicate with Tddium:
 EOF
       CONFIG_DETAILS =<<EOF
 The following environment variables are set for this %s:
+
+EOF
+      SESSION_STATUS =<<EOF
+
+Session Details:
+
+ Commit: %s (%s)
+ Status: %s
+ Finished: %s
 
 EOF
     end

@@ -94,6 +94,15 @@ module Tddium
         end
         git_push
       end
+
+      def git_current_commit
+        `git rev-parse --verify HEAD`.strip
+      end
+
+      def git_number_of_commits(id_from, id_to)
+        result = `git log --pretty='%H' #{id_from}..#{id_to}`
+        result.split("\n").length
+      end
     end
   end
 end
