@@ -279,6 +279,11 @@ module Tddium
       call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::START_TEST_EXECUTIONS}", params)
     end
 
+    def stop_session(ls_id, params)
+      call_api(:post, "#{Api::Path::SESSIONS}/#{ld_id}/stop", params)
+    end
+
+
     def poll_session(session_id, params={})
       call_api(:get, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}")
     end

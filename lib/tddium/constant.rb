@@ -34,6 +34,7 @@ module TddiumConstant
     module Path
       SUITES = "suites"
       SESSIONS = "sessions"
+      REPORTS = "reports"
       USERS = "users"
       SIGN_IN = "#{USERS}/sign_in"
       TEST_EXECUTIONS = "test_executions"
