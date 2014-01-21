@@ -1,5 +1,6 @@
 # Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
 require 'tddium/commit_log_parser'
+require 'digest'
 
 module Tddium
   class TddiumCli < Thor
@@ -91,14 +92,29 @@ module Tddium
       commits_packed = MessagePack.pack(commits)
       commits_encoded = Base64.encode64(commits_packed)
 
+      cache_control_config = @repo_config['cache'] || {}
+      cache_control_paths = cache_control_config['key_paths'] || []
+
+      cache_control_data = {}
+      cache_control_paths.each do |p|
+        if File.exists?(p)
+          cache_control_data[p] = Digest::SHA1.file(p)
+        end
+      end
+      cache_control_encoded = MessagePack.pack(cache_control_data)
+      new_session_params = {
+        :commits_encoded => commits_encoded,
+        :cache_control_encoded => cache_control_encoded
+      }
+
       # Create a session
       # or use an already-created session
       #
       if options[:session_id] && options[:session_id] > 0
         session_id = options[:session_id]
-        @tddium_api.update_session(session_id, :commits_encoded => commits_encoded) rescue nil
+        @tddium_api.update_session(session_id, new_session_params) rescue nil
       else
-        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, :commits_encoded => commits_encoded)["id"]
+        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, new_session_params)["id"]
       end
 
       machine_data[:session_id] = session_id 
