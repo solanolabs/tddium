@@ -3,6 +3,8 @@
 
 ## Version History
 
+- v1.16.4 - Check on current commit id when running 'tddium status'
+- v1.16.3 - Ruby 2.1.0 fix
 - v1.16.2 - Make `tddium describe` query the latest session on the branch by default.
 - v1.16.1 - Fix `tddium status --json` to output a proper JSON document.
 - v1.16.0 - encode commit data for transport reliability
