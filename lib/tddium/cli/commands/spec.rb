@@ -101,7 +101,8 @@ module Tddium
           cache_control_data[p] = Digest::SHA1.file(p)
         end
       end
-      cache_control_encoded = MessagePack.pack(cache_control_data)
+      cache_control_encoded = Base64.encode64(MessagePack.pack(cache_control_data))
+
       new_session_params = {
         :commits_encoded => commits_encoded,
         :cache_control_encoded => cache_control_encoded

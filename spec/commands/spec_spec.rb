@@ -38,7 +38,11 @@ describe Tddium::TddiumCli do
     end
 
     it "should create a new session" do
-      tddium_api.should_receive(:create_session).with(suite_id, :commits_encoded => Base64.encode64(MessagePack.pack([latest_commit])))
+      commits_encoded = Base64.encode64(MessagePack.pack([latest_commit]))
+      cache_control_encoded = Base64.encode64(MessagePack.pack({}))
+      tddium_api.should_receive(:create_session).with(suite_id, 
+                                              :commits_encoded => commits_encoded,
+                                              :cache_control_encoded => cache_control_encoded)
       subject.spec
     end
 
