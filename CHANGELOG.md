@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.17.1 - Better handling of warning/error messages
 - v1.17.0 - Capture cache-control metadata
 - v1.16.4 - Check on current commit id when running 'tddium status'
 - v1.16.3 - Ruby 2.1.0 fix
