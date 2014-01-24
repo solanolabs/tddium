@@ -14,6 +14,7 @@ module Tddium
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :test_pattern, :type => :string, :default => nil
     method_option :force, :type => :boolean, :default => false
+    method_option :quiet, :type => :boolean, :default => false
     method_option :machine, :type => :boolean, :default => false
     method_option :session_id, :type => :numeric, :default => nil
     method_option :tool, :type => :hash, :default => {}
@@ -267,7 +268,9 @@ module Tddium
         messages.each do |m|
           seqno = m["seqno"].to_i
           if seqno > latest_message
-            display_message(m)
+            if !options[:quiet] || message["level"] == 'error' then
+              display_message(m)
+            end
             latest_message = seqno
           end
         end
