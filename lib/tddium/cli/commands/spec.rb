@@ -133,7 +133,7 @@ module Tddium
 
       tests_finished = false
       finished_tests = {}
-      latest_message = -1
+      latest_message = -100000
       test_statuses = Hash.new(0)
       session_status = nil
       messages = nil
