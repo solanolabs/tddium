@@ -218,7 +218,6 @@ module Tddium
         end
       end
 
-      display_alerts(messages, 'warn', Text::Status::SPEC_WARNINGS)
       display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
       # Print out the result
