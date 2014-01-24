@@ -92,8 +92,8 @@ module Tddium
       commits_packed = MessagePack.pack(commits)
       commits_encoded = Base64.encode64(commits_packed)
 
-      cache_control_config = @repo_config['cache'] || {}
-      cache_control_paths = cache_control_config['key_paths']
+      cache_control_config = @repo_config['cache'] || @repo_config[:cache] || {}
+      cache_control_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths]
       cache_control_paths ||= ["Gemfile.lock", "requirements.txt", "packages.json"]
       cache_control_paths.reject!{|x| x =~ /tddium.yml$/}
 
