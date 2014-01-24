@@ -50,6 +50,10 @@ module Tddium
         `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
       end
 
+      def git_default_branch
+        `git remote show origin | grep HEAD | awk '{ print $3}'`.gsub("\n", "")
+      end
+
       def git_push
         say Text::Process::GIT_PUSH
         system("git push -f #{Config::REMOTE_NAME} #{git_current_branch}")
