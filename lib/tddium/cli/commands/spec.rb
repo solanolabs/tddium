@@ -95,21 +95,24 @@ module Tddium
       commits_encoded = Base64.encode64(commits_packed)
 
       cache_control_config = @repo_config['cache'] || @repo_config[:cache] || {}
-      cache_control_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths]
-      cache_control_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "package.json", "packages.json"]
-      cache_control_paths.reject!{|x| x =~ /tddium.yml$/}
+      cache_key_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths] 
+      cache_key_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "packages.json", "package.json"]
+      cache_key_paths.reject!{|x| x =~ /tddium.yml$/}
 
       cache_control_data = {}
-      cache_control_paths.each do |p|
+      cache_key_paths.each do |p|
         if File.exists?(p)
           cache_control_data[p] = Digest::SHA1.file(p).to_s
         end
       end
+      cache_save_paths = cache_control_config['save_paths'] || cache_control_config[:save_paths]
+      cache_save_paths_encoded = Base64.encode64(MessagePack.pack(cache_save_paths))
       cache_control_encoded = Base64.encode64(MessagePack.pack(cache_control_data))
 
       new_session_params = {
         :commits_encoded => commits_encoded,
-        :cache_control_encoded => cache_control_encoded
+        :cache_control_encoded => cache_control_encoded,
+        :cache_save_paths_encoded => cache_save_paths_encoded
       }
 
       # Create a session
