@@ -72,8 +72,10 @@ module Tddium
     end
 
     # Update the suite parameters from tddium.yml
-    def update_suite_parameters!(current_suite)
+    def update_suite_parameters!(current_suite, session_id=nil)
       update_params = {}
+
+      update_params[:session_id] = session_id if session_id
 
       pattern = configured_test_pattern
       if pattern.is_a?(Array)
