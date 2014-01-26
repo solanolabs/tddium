@@ -96,7 +96,7 @@ module Tddium
 
       cache_control_config = @repo_config['cache'] || @repo_config[:cache] || {}
       cache_control_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths]
-      cache_control_paths ||= ["Gemfile.lock", "requirements.txt", "packages.json"]
+      cache_control_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "package.json", "packages.json"]
       cache_control_paths.reject!{|x| x =~ /tddium.yml$/}
 
       cache_control_data = {}
