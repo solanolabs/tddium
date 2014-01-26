@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.17.4 - Include more paths as default cache invalidation keys
 - v1.17.3 - Fix quiet mode for `tddium run`
 - v1.17.2 - Add quiet mode to `tddium run`
 - v1.17.1 - Better handling of warning/error messages
