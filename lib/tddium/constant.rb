@@ -252,7 +252,7 @@ EOF
       NO_ACTIVE_SESSION = "There are no running sessions for this repo."
       ACTIVE_SESSIONS = "Your active sessions for this repo%s:"
       NO_INACTIVE_SESSION = "There are no recent sessions on this branch."
-      INACTIVE_SESSIONS = "Latest sessions on this branch (%s):"
+      INACTIVE_SESSIONS = "Latest sessions on branch %s:"
       SESSION_DETAIL = " %10.10s %s %s in %s, %s"
       ATTRIBUTE_DETAIL = "    %s: %s"
       SEPARATOR = "====="
@@ -435,7 +435,7 @@ git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
-      TRY_DEFAULT_BRANCH = "Geting suites for default '%s' branch."
+      TRY_DEFAULT_BRANCH = "Getting suites for default '%s' branch."
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"
