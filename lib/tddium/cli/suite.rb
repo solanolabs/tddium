@@ -71,6 +71,12 @@ module Tddium
       false
     end
 
+    def suite_for_default_branch?
+      return true if @tddium_api.default_suite_id
+      say Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_default_branch
+      false
+    end
+
     # Update the suite parameters from tddium.yml
     def update_suite_parameters!(current_suite, session_id=nil)
       update_params = {}

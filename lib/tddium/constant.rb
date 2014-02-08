@@ -435,6 +435,7 @@ git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
+      TRY_DEFAULT_BRANCH = "Geting suites for default '%s' branch."
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
       NO_MATCHING_FILES = "No files match '%s'"
       PASSWORD_ERROR = "Error changing password: %s"

@@ -203,6 +203,19 @@ module Tddium
       @api_config.get_branch(current_branch, 'options')
     end
 
+    def default_branch
+      @default_branch ||= Tddium::Git.git_default_branch
+    end
+
+    def default_suite_id
+      # api_config.get_branch will query the server if there is no locally cached data
+      @api_config.get_branch(default_branch, 'id')
+    end
+
+    def default_suite_options
+      @api_config.get_branch(default_branch, 'options')
+    end
+
     # suites/user_suites returns:
     # [                                                                               
     #   'account',

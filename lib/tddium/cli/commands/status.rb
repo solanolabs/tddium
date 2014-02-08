@@ -14,26 +14,40 @@ module Tddium
           :active => true, 
           :repo_url => origin_url
         }
-        suite_params = {
-          :suite_id => @tddium_api.current_suite_id, 
-          :active => false, 
-          :limit => 10
-        } if suite_for_current_branch?
+
+        if suite_for_current_branch? then
+          status_branch = @tddium_api.current_branch
+          suite_params = {
+            :suite_id => @tddium_api.current_suite_id,
+            :active => false,
+            :limit => 10
+          }
+        elsif suite_for_default_branch? then
+          status_branch = @tddium_api.default_branch
+          say Text::Error::TRY_DEFAULT_BRANCH % status_branch
+          suite_params = {
+            :suite_id => @tddium_api.default_suite_id,
+            :active => false,
+            :limit => 10
+          }
+        end
 
         if options[:json] 
           res = {}
           res[:running] = { origin_url => @tddium_api.get_sessions(repo_params) }          
           res[:history] = { 
-            @tddium_api.current_branch => @tddium_api.get_sessions(suite_params)
+            status_branch => @tddium_api.get_sessions(suite_params)
           } if suite_params
           puts JSON.pretty_generate(res)
         else
           show_session_details(
+            status_branch,
             repo_params, 
             Text::Status::NO_ACTIVE_SESSION, 
             Text::Status::ACTIVE_SESSIONS
           )
           show_session_details(
+            status_branch,
             suite_params, 
             Text::Status::NO_INACTIVE_SESSION, 
             Text::Status::INACTIVE_SESSIONS
@@ -48,14 +62,14 @@ module Tddium
 
     private 
 
-    def show_session_details(params, no_session_prompt, all_session_prompt)
+    def show_session_details(status_branch ,params, no_session_prompt, all_session_prompt)
       current_sessions = @tddium_api.get_sessions(params)
 
       say ""
       if current_sessions.empty? then
         say no_session_prompt
       else
-        say all_session_prompt % (params[:suite_id] ? @tddium_api.current_branch : "")
+        say all_session_prompt % (params[:suite_id] ? status_branch : "")
         say ""
         table = [
           ["Session #", "Commit", "Status", "Duration", "Started"],
