@@ -280,7 +280,9 @@ module Tddium
     end
 
     def stop_session(ls_id, params)
-      call_api(:post, "#{Api::Path::SESSIONS}/#{ld_id}/stop", params)
+      url = "#{Api::Path::REPORTS}/#{ls_id}/stop"
+      puts url
+      call_api(:post, url, params)
     end
 
 
