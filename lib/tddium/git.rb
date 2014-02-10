@@ -54,9 +54,13 @@ module Tddium
         `git remote show origin | grep HEAD | awk '{ print $3}'`.gsub("\n", "")
       end
 
-      def git_push
+      def git_push(additional_refs=[])
         say Text::Process::GIT_PUSH
-        system("git push -f #{Config::REMOTE_NAME} #{git_current_branch}")
+        this_branch = git_current_branch
+        refs = ["#{this_branch}:#{this_branch}"]
+        refs += additional_refs
+        refspec = refs.join(" ")
+        system("git push -f #{Config::REMOTE_NAME} #{refspec}")
       end
 
       def git_repo?
@@ -91,12 +95,12 @@ module Tddium
         result.strip
       end
 
-      def update_git_remote_and_push(git_repo_uri)
+      def update_git_remote_and_push(git_repo_uri, additional_refs=[])
         unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
           `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
           `git remote add #{Config::REMOTE_NAME} #{git_repo_uri}`
         end
-        git_push
+        git_push(additional_refs)
       end
 
       def git_current_commit
