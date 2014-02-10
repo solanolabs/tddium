@@ -10,6 +10,7 @@ require 'shellwords'
 require 'base64'
 require 'msgpack'
 require 'erb'
+require 'github_api'
 
 require 'tddium/cli/tddium'
 
