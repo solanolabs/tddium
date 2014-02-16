@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.18.0 - Support per-session ref from 'tddium run'
 - v1.17.6 - 'tddium status' checks ancestor branches if current branch is not setup
 - v1.17.5 - Send cache save paths (actually)
 - v1.17.4 - Include more paths as default cache invalidation keys
