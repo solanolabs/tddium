@@ -67,7 +67,7 @@ module Tddium
       while tries < Default::GIT_READY_TRIES do
         # Call the API to get the suite and its tests
         suite_details = @tddium_api.get_suite_by_id(
-          @tddium_api.current_suite_id, session_id: options[:session_id])
+          @tddium_api.current_suite_id, :session_id => options[:session_id])
 
         tries += 1
 
@@ -83,46 +83,33 @@ module Tddium
       update_suite_parameters!(suite_details, options[:session_id])
 
       start_time = Time.now
-
-      # Push the latest code to git
-      git_repo_uri = suite_details["git_repo_uri"]
-      if !Tddium::Git.update_git_remote_and_push(git_repo_uri) then
-        exit_failure Text::Error::GIT_PUSH_FAILED
-      end
-
-      commits = CommitLogParser.new(Tddium::Git.latest_commit).commits
-      commits_packed = MessagePack.pack(commits)
-      commits_encoded = Base64.encode64(commits_packed)
-
-      cache_control_config = @repo_config['cache'] || @repo_config[:cache] || {}
-      cache_key_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths] 
-      cache_key_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "packages.json", "package.json"]
-      cache_key_paths.reject!{|x| x =~ /tddium.yml$/}
-
-      cache_control_data = {}
-      cache_key_paths.each do |p|
-        if File.exists?(p)
-          cache_control_data[p] = Digest::SHA1.file(p).to_s
-        end
-      end
-      cache_save_paths = cache_control_config['save_paths'] || cache_control_config[:save_paths]
-      cache_save_paths_encoded = Base64.encode64(MessagePack.pack(cache_save_paths))
-      cache_control_encoded = Base64.encode64(MessagePack.pack(cache_control_data))
-
+      
       new_session_params = {
-        :commits_encoded => commits_encoded,
-        :cache_control_encoded => cache_control_encoded,
-        :cache_save_paths_encoded => cache_save_paths_encoded
+        :commits_encoded => read_and_encode_latest_commits,
+        :cache_control_encoded => read_and_encode_cache_control,
+        :cache_save_paths_encoded => read_and_encode_cache_save_paths
       }
 
       # Create a session
       # or use an already-created session
       #
-      if options[:session_id] && options[:session_id] > 0
-        session_id = options[:session_id]
-        @tddium_api.update_session(session_id, new_session_params) rescue nil
+      session_id = options[:session_id]
+      session_data = if session_id && session_id > 0
+        @tddium_api.update_session(session_id, new_session_params)
       else
-        session_id = @tddium_api.create_session(@tddium_api.current_suite_id, new_session_params)["id"]
+        @tddium_api.create_session(@tddium_api.current_suite_id, new_session_params)
+      end
+
+      session_data ||= {}
+      session_id ||= session_data["id"]
+
+      # Push the latest code to git
+      git_repo_uri = suite_details["git_repo_uri"]
+
+      this_ref = (session_data['commit_data'] || {})['git_ref']
+      refs = this_ref ? ["HEAD:#{this_ref}"] : []
+      if !Tddium::Git.update_git_remote_and_push(git_repo_uri, refs) then
+        exit_failure Text::Error::GIT_PUSH_FAILED
       end
 
       machine_data[:session_id] = session_id
@@ -280,6 +267,37 @@ module Tddium
         end
       end
       [messages, latest_message]
+    end
+
+    def read_and_encode_latest_commits
+      latest_commit = Tddium::Git.latest_commit
+      commits = CommitLogParser.new(latest_commit).commits
+      commits_packed = MessagePack.pack(commits)
+      commits_encoded = Base64.encode64(commits_packed)
+      commits_encoded
+    end
+
+    def cache_control_config
+      @repo_config['cache'] || @repo_config[:cache] || {}
+    end
+
+    def read_and_encode_cache_control
+      cache_key_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths] 
+      cache_key_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "packages.json", "package.json"]
+      cache_key_paths.reject!{|x| x =~ /tddium.yml$/}
+      cache_control_data = {}
+      cache_key_paths.each do |p|
+        if File.exists?(p)
+          cache_control_data[p] = Digest::SHA1.file(p).to_s
+        end
+      end
+
+      cache_control_encoded = Base64.encode64(MessagePack.pack(cache_control_data))
+    end
+
+    def read_and_encode_cache_save_paths
+      cache_save_paths = cache_control_config['save_paths'] || cache_control_config[:save_paths]
+      cache_save_paths_encoded = Base64.encode64(MessagePack.pack(cache_save_paths))
     end
   end
 end
