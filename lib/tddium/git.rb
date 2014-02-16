@@ -59,8 +59,10 @@ module Tddium
         this_branch = git_current_branch
         refs = ["#{this_branch}:#{this_branch}"]
         refs += additional_refs
-        refspec = refs.join(" ")
-        system("git push -f #{Config::REMOTE_NAME} #{refspec.shellescape}")
+        refspec = refs.map(&:shellescape).join(" ")
+        cmd = "git push -f #{Config::REMOTE_NAME} #{refspec}"
+        say "Running '#{cmd}'"
+        system(cmd)
       end
 
       def git_repo?
