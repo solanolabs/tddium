@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.18.1 - Fix shell escaping of git refs
 - v1.18.0 - Support per-session ref from 'tddium run'
 - v1.17.6 - 'tddium status' checks ancestor branches if current branch is not setup
 - v1.17.5 - Send cache save paths (actually)
