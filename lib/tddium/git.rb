@@ -60,7 +60,7 @@ module Tddium
         refs = ["#{this_branch}:#{this_branch}"]
         refs += additional_refs
         refspec = refs.join(" ")
-        system("git push -f #{Config::REMOTE_NAME} #{refspec}")
+        system("git push -f #{Config::REMOTE_NAME} #{refspec.shellescape}")
       end
 
       def git_repo?
@@ -98,7 +98,7 @@ module Tddium
       def update_git_remote_and_push(git_repo_uri, additional_refs=[])
         unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
           `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
-          `git remote add #{Config::REMOTE_NAME} #{git_repo_uri}`
+          `git remote add #{Config::REMOTE_NAME} #{git_repo_uri.shellescape}`
         end
         git_push(additional_refs)
       end
