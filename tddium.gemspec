@@ -1,21 +1,15 @@
 # Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
-# -*- encoding: utf-8 -*-
-$:.push File.expand_path("../lib", __FILE__)
-require "tddium/version"
+require "./lib/tddium/version"
 
 Gem::Specification.new do |s|
-  if RUBY_PLATFORM == 'java' then
-    s.name        = "tddium-jruby"
-  else
-    s.name        = "tddium"
-  end
+  s.name        = "tddium"
   s.version     = Tddium::VERSION
-  s.platform    = Gem::Platform::RUBY
+  s.platform    = (RUBY_PLATFORM == 'java' ? RUBY_PLATFORM : Gem::Platform::RUBY)
   s.authors     = ["Solano Labs"]
   s.email       = ["info@tddium.com"]
   s.homepage    = "https://github.com/solanolabs/tddium.git"
-  s.summary     = %q{tddium Hosted Test Environment}
+  s.summary     = "Run tests in tddium Hosted Test Environment"
   s.license     = "MIT"
   s.description = <<-EOF
 tddium runs your test suite simply and quickly in our managed
@@ -33,12 +27,8 @@ test::unit, and spinach.  Tddium also supports Javascript testing using
 jasmine, evergreen, and many other frameworks.
 EOF
 
-  s.rubyforge_project = "tddium"
-
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.files         = `git ls-files lib bin`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  s.require_paths = ["lib"]
 
   s.add_runtime_dependency("thor")
   s.add_runtime_dependency("highline")
@@ -53,8 +43,15 @@ EOF
     s.add_runtime_dependency("msgpack", "=0.5.6")
   end
 
-#  s.add_development_dependency("bundler", "~> 1.1.0")
+  s.add_development_dependency("aruba", "0.4.6")
+  s.add_development_dependency("rdiscount", "1.6.8")
+  s.add_development_dependency("pickle")
+  s.add_development_dependency("mimic")
+  s.add_development_dependency("daemons")
+  s.add_development_dependency("httparty", "0.9.0")
+  s.add_development_dependency("antilles")
   s.add_development_dependency("rspec")
+  s.add_development_dependency("cucumber")
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")
   s.add_development_dependency("rake")
