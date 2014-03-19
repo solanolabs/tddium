@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'highline/test'
 require 'tddium/cli'
 require 'tddium/cli/commands/github'
 
@@ -9,7 +8,7 @@ describe Tddium::TddiumCli do
 
     it 'with empty suites' do
       tddium_api.should_receive(:get_suites).and_return([])
-      subject.should_receive(:say).with("You have no any configured repos on tddium site.")
+      subject.should_receive(:say).with('You do not have any suites configured with tddium')
       subject.send('github:migrate_hooks')
     end
 
