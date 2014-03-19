@@ -2,34 +2,36 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "github:migrate_hooks", "Authorize and switche the repo to use the tddium webhook with the proper token"
+    desc "github:migrate_hooks", "Authorize and switch the repo to use the tddium webhook with the proper token"
     define_method "github:migrate_hooks" do
       suites = @tddium_api.get_suites
       if suites.any?
-        say 'Please enter your github credentials, we do not store them anywhere'
+        say 'Please enter your github credentials; we do not store them anywhere'
         username = HighLine.ask("username: ")
         password = HighLine.ask("password: "){ |q| q.echo = "*" }
         @github = Github.new(login: username, password: password)
         
         suites.each do |suite|
-          login = suite.org_name || username
+          login = suite['org_name'] || username
           unless has_hook_token?(suite, login)
-            if confirm_for_repo?(suite.repo_name)
+            if confirm_for_repo?(suite['repo_name'])
               set_hook_token(suite, login)
             end
           end
         end
       else
-        say "You have no any configured repos on tddium site."
+        say 'You do not have any suites configured with tddium'
       end
     end
 
     private
 
     def has_hook_token?(suite, login)
-      @github.repos.hooks.list(login, suite.repo_name).any? do |hook|
-         hook["config"].try(:[], "token") == suite.repo_ci_hook_key && hook["active"]
+      @github.repos.hooks.list(login, suite['repo_name']).any? do |hook|
+         hook["config"].try(:[], "token") == suite['repo_ci_hook_key'] && hook["active"]
       end
+    rescue => e
+      say e.to_s
     end
 
     def confirm_for_repo?(name)
@@ -39,11 +41,11 @@ module Tddium
     end
 
     def set_hook_token(suite, login)
-      @github.repos.hooks.create(login, suite.repo_name, {
+      @github.repos.hooks.create(login, suite['repo_name'], {
         active: true,
         name:   :tddium,
         config: { 
-          token: suite.repo_ci_hook_key 
+          token: suite['repo_ci_hook_key'] 
         }
       })
     end
