@@ -11,6 +11,7 @@ group :development, :test do
   gem 'daemons'
   gem 'httparty', "0.9.0"
   gem 'antilles'
+  gem 'github_api'
 
   gem 'rspec'
   gem 'cucumber'

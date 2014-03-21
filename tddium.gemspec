@@ -46,6 +46,7 @@ EOF
   s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("launchy")
+  s.add_runtime_dependency("github_api")
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
   if RUBY_PLATFORM == 'java' then
     s.add_runtime_dependency('jruby-openssl')
@@ -59,4 +60,5 @@ EOF
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")
   s.add_development_dependency("rake")
+  s.add_development_dependency("github_api")
 end
