@@ -16,7 +16,7 @@ describe Tddium::TddiumCli do
       tddium_api.should_receive(:get_suites).and_return([
         {'repo_ci_hook_key' => '', 'repo_name' => '', 'org_name' => ''}
       ])
-      subject.should_receive(:say).with('Please enter your github credentials, we do not store them anywhere')
+      subject.should_receive(:say).with('Please enter your github credentials; we do not store them anywhere')
       HighLine.stub(:ask).and_return("somename")
       subject.should_receive(:say).with(/401 Bad credentials/)
       subject.send('github:migrate_hooks')
