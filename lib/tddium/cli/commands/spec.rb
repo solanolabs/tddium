@@ -10,6 +10,7 @@ module Tddium
     desc "run [PATTERN]", "Run the test suite, or tests that match PATTERN"
     method_option :account, :type => :string, :default => nil,
       :aliases => %w(--org --organization)
+    method_option :tag, :type => :string, :default => nil
     method_option :user_data_file, :type => :string, :default => nil
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :test_pattern, :type => :string, :default => nil
@@ -52,6 +53,7 @@ module Tddium
         say Text::Process::USING_SPEC_OPTION[:max_parallelism] % max_parallelism
       end
 
+      test_execution_params[:tag] = options[:tag] if options[:tag]
       test_pattern = nil
 
       if pattern.is_a?(Array) && pattern.size > 0 then
