@@ -112,6 +112,12 @@ module Tddium
         update_params[:python] = python_config
       end
 
+      golang_config = @repo_config[:golang] || {}
+      current_golang_config = current_suite['golang_config'] || {}
+      if golang_config != (current_suite['golang_config'] || {}) then
+        update_params[:golang] = golang_config
+      end
+
       if !update_params.empty? then
         @tddium_api.update_suite(@tddium_api.current_suite_id, update_params)
         if update_params[:test_pattern]
@@ -129,6 +135,9 @@ module Tddium
         end
         if update_params[:python_config]
           say Text::Process::UPDATED_PYTHON_CONFIG % YAML.dump(python_config)
+        end
+        if update_params[:golang_config]
+          say Text::Process::UPDATED_PYTHON_CONFIG % YAML.dump(golang_config)
         end
       end
     end
