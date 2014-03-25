@@ -1,6 +1,4 @@
-=begin
-Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
-=end
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
@@ -60,5 +58,4 @@ EOF
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")
   s.add_development_dependency("rake")
-  s.add_development_dependency("github_api")
 end
