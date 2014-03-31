@@ -20,11 +20,12 @@ module Tddium
       config = nil
 
       root = Tddium::Git.git_root
-      cfgfile_list = Config::CONFIG_PATHS.map { |fn| File.join(root, fn) }
-      cfgfile = cfgfile_list.select { |fn| File.exists?(fn) }.first
+      cfgfile_list = Config::CONFIG_PATHS.map { |fn| [File.join(root, fn), fn] }
+      cfgfile_pair = cfgfile_list.select { |p| File.exists?(p.first) }.first
+      cfgfile = cfgfile_pair.first
 
-      if cfgfile
-        @config_filename = cfgfile
+      if cfgfile then
+        @config_filename = cfgfile_pair[1]
         begin
           rawconfig = File.read(cfgfile)
           if rawconfig && rawconfig !~ /\A\s*\z/ then
