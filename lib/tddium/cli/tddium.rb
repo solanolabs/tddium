@@ -51,6 +51,7 @@ module Tddium
     require "tddium/cli/commands/logout"
     require "tddium/cli/commands/password"
     require "tddium/cli/commands/rerun"
+    require "tddium/cli/commands/find_failing"
     require "tddium/cli/commands/spec"
     require "tddium/cli/commands/stop"
     require "tddium/cli/commands/suite"
