@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
   class RepoConfig
@@ -19,7 +19,9 @@ module Tddium
     def load_config
       config = nil
 
-      cfgfile = Config::CONFIG_PATHS.select{|fn| File.exists?(fn) }.first
+      root = Tddium::Git.git_root
+      cfgfile_list = Config::CONFIG_PATHS.map { |fn| File.join(root, fn) }
+      cfgfile = cfgfile_list.select { |fn| File.exists?(fn) }.first
 
       if cfgfile
         @config_filename = cfgfile
