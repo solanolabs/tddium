@@ -84,7 +84,7 @@ module Tddium
           exit_failure Text::Error::NOT_IN_ACCOUNT % account_name
         end
 
-        say Text::Process::USING_ACCOUNT % account_name
+        #say Text::Process::USING_ACCOUNT % account_name
         params[:account_id] = account["account_id"].to_s
       end
 
