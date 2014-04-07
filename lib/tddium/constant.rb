@@ -85,6 +85,7 @@ module TddiumConstant
       GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
+      TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of tddium.yml must be a list of configurations"
     end
 
     module Process

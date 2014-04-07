@@ -103,6 +103,10 @@ module Tddium
 
       test_configs = @repo_config[:tests] || []
       if test_configs != (current_suite['test_configs'] || []) then
+        if test_configs != 'disable' && !test_configs.is_a?(Array) then
+          warn(Text::Warning::TEST_CONFIGS_MUST_BE_LIST)
+          test_configs = []
+        end
         update_params[:test_configs] = test_configs
       end
 
