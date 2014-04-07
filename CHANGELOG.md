@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.18.5 - Implement further configuration validation
 - v1.18.4 - Implement 'tddium find_failing' courtesy of mgrosser
 - v1.18.1 - Fix shell escaping of git refs
 - v1.18.0 - Support per-session ref from 'tddium run'
