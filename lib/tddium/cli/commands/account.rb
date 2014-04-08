@@ -18,6 +18,11 @@ module Tddium
     define_method "account:add" do |role, email|
       tddium_setup({:git => false})
 
+      r = Regexp.new(/\A[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]+\z/)
+      if r !~ email then
+        exit_failure Text::Error::ADD_MEMBER_ERROR % [email, "Not a valid e-mail address: must be of the form user@host.domain"]
+      end
+
       params = {:role=>role, :email=>email}
       begin
         say Text::Process::ADDING_MEMBER % [params[:email], params[:role]]
