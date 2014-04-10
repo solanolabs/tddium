@@ -22,9 +22,9 @@ module Tddium
       root = Tddium::Git.git_root
       cfgfile_list = Config::CONFIG_PATHS.map { |fn| [File.join(root, fn), fn] }
       cfgfile_pair = cfgfile_list.select { |p| File.exists?(p.first) }.first
-      cfgfile = cfgfile_pair.first
 
-      if cfgfile then
+      if cfgfile_pair && cfgfile_pair.first then
+        cfgfile = cfgfile_pair.first
         @config_filename = cfgfile_pair[1]
         begin
           rawconfig = File.read(cfgfile)
