@@ -95,6 +95,15 @@ Feature: Config command
     And the output should contain "suite"
     And the output should contain "third=fourth"
 
+  Scenario: Add repo config
+    Given the user is logged in with a configured suite on branch "test/foobar"
+    And the user has no config
+    And setting "third" on the repo will succeed
+    When I run `tddium config:add repo third fourth`
+    Then the exit status should be 0
+    And the output should contain "repo"
+    And the output should contain "third=fourth"
+
   Scenario: Fail to add key if the user isn't logged in
     When I run `tddium config:add suite third fourth`
     Then it should fail with a login hint

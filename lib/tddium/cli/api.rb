@@ -57,6 +57,9 @@ module Tddium
       when "suite"
         path << 'suites'
         path << current_suite_id
+      when "repo"
+        path << 'repos'
+        path << current_repo_id
       when "account", "org"
         path << 'accounts'
         path << get_single_account_id
@@ -67,7 +70,7 @@ module Tddium
         path << 'accounts'
         path << get_account_id(scope.sub(/\Aorg:/, ''))
       else
-        raise "Unrecognized scope. Use 'suite', 'org', or 'org:an_organization_name'."
+        raise "Unrecognized scope. Use 'suite', 'repo', 'org', or 'org:an_organization_name'."
       end
 
       path << 'env'
@@ -192,6 +195,11 @@ module Tddium
 
     def current_branch
       @current_branch ||= Tddium::Git.git_current_branch
+    end
+
+    def current_repo_id
+      # api_config.get_branch will query the server if there is no locally cached data
+      @api_config.get_branch(current_branch, 'repo_id')
     end
 
     def current_suite_id

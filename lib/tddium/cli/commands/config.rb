@@ -2,8 +2,8 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "config [suite | account[:ACCOUNT]]", "Display config variables.
-    The scope argument can be either 'suite', 'org' (if you are a member of
+    desc "config [suite | repo | org[:ACCOUNT]]", "Display config variables.
+    The scope argument can be 'suite', 'repo', 'org' (if you are a member of
     one organization), or 'org:an_organization_name' (if you are a member of
     multiple organizations). The default is 'suite'."
     def config(scope="suite")
@@ -20,7 +20,7 @@ module Tddium
     end
 
     desc "config:add [SCOPE] [KEY] [VALUE]", "Set KEY=VALUE at SCOPE.
-    The scope argument can be either 'suite', 'org' (if you are a member of
+    The scope argument can be 'suite', 'repo', 'org' (if you are a member of
     one organization), or 'org:an_organization_name' (if you are a member of
     multiple organizations)."
     define_method "config:add" do |scope, key, value|

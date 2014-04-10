@@ -94,7 +94,7 @@ module Tddium
       branch = suite['branch']
       return if branch.nil? || branch.empty?
 
-      metadata = ['id', 'ci_ssh_pubkey'].inject({}) { |h, v| h[v] = suite[v]; h }
+      metadata = ['id', 'repo_id', 'ci_ssh_pubkey'].inject({}) { |h, v| h[v] = suite[v]; h }
 
       branches = @config["branches"] || {}
       branches.merge!({branch => metadata})

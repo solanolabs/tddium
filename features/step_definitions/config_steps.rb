@@ -7,7 +7,6 @@ Given /^the user has the following config:$/ do |table|
   empty_config_for_account_2
   table.hashes.each do |row|
     sc = row[:scope]
-    next if sc == "repo"
     Antilles.install(:get, "/1/#{sc}s/#{eval("SAMPLE_#{sc.upcase}_ID")}/env",
                      {:status=>0, :env=>{row[:name]=>row[:value]}})
   end
@@ -15,7 +14,7 @@ end
 
 Given /^the user has no config$/ do
   empty_config_for_account_2
-  %w{account suite}.each do |sc|
+  %w{account repo suite}.each do |sc|
     Antilles.install(:get, "/1/#{sc}s/#{eval("SAMPLE_#{sc.upcase}_ID")}/env",
                      {:status=>0, :env=>{}})
   end
@@ -23,7 +22,7 @@ end
 
 Given /^there is a problem retrieving config$/ do
   empty_config_for_account_2
-  %w{account suite}.each do |sc|
+  %w{account repo suite}.each do |sc|
     Antilles.install(:get, "/1/#{sc}s/#{eval("SAMPLE_#{sc.upcase}_ID")}/env",
                      {:status=>1, :explanation=>"ERROR"},
                      :code=>409)
