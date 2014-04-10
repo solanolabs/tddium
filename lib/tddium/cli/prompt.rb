@@ -40,6 +40,8 @@ module Tddium
         params[key] = prompt(text, options[key], current.fetch(key.to_s, default), options[:non_interactive])
       end
 
+      account_announced = false
+
       # If we already have a suite, it already has an account, so no need to
       # figure it out here.
       unless current['account_id']
@@ -52,9 +54,11 @@ module Tddium
         # IF we're not allowed to prompt and have no default, fail.
         accounts = user_details["participating_accounts"]
         account_name = if options[:account]
+          account_announced = true
           say Text::Process::USING_ACCOUNT_FROM_FLAG % options[:account]
           options[:account]
         elsif accounts.length == 1
+          account_announced = true
           say Text::Process::USING_ACCOUNT % accounts.first["account"]
           accounts.first["account"]
         else
@@ -84,7 +88,9 @@ module Tddium
           exit_failure Text::Error::NOT_IN_ACCOUNT % account_name
         end
 
-        #say Text::Process::USING_ACCOUNT % account_name
+        if !account_announced then
+          say Text::Process::USING_ACCOUNT % account_name
+        end
         params[:account_id] = account["account_id"].to_s
       end
 
