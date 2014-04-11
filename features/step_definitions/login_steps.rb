@@ -58,7 +58,7 @@ Given /^the user has a .tddium for branch "(.*)"$/ do |branch|
   steps %Q{
     Given a file named ".tddium.localhost" with:
     """
-    {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1}}}
+    {"api_key":"#{@api_key}", "branches":{"#{branch}":{"id":1,"repo_id":1}}}
     """
   }
 end
