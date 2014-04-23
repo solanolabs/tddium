@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.18.7 - Expose java JDK/JRE configuration
 - v1.18.6 - Expose repository level configuration variables
 - v1.18.5 - Implement further configuration validation
 - v1.18.4 - Implement 'tddium find_failing' courtesy of mgrosser
