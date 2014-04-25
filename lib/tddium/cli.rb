@@ -8,7 +8,7 @@ require 'launchy'
 require 'tddium_client'
 require 'shellwords'
 require 'base64'
-require 'msgpack'
+require 'msgpack_pure'
 require 'erb'
 require 'github_api'
 

@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'msgpack'
+require 'msgpack_pure'
 require 'tddium/cli'
 require 'tddium/cli/commands/spec'
 
@@ -38,9 +38,9 @@ describe Tddium::TddiumCli do
     end
 
     it "should create a new session" do
-      commits_encoded = Base64.encode64(MessagePack.pack([latest_commit]))
-      cache_paths_encoded = Base64.encode64(MessagePack.pack(nil))
-      cache_control_encoded = Base64.encode64(MessagePack.pack(
+      commits_encoded = Base64.encode64(MessagePackPure.pack([latest_commit]))
+      cache_paths_encoded = Base64.encode64(MessagePackPure.pack(nil))
+      cache_control_encoded = Base64.encode64(MessagePackPure.pack(
         'Gemfile' => Digest::SHA1.file("Gemfile").to_s,
         'Gemfile.lock' => Digest::SHA1.file("Gemfile.lock").to_s,
       ))

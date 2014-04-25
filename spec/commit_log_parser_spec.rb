@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'tddium/commit_log_parser'
-require 'msgpack'
+require 'msgpack_pure'
 
 describe CommitLogParser do
   let(:commit_log) {
@@ -38,7 +38,7 @@ describe CommitLogParser do
     end
 
     it "should be msgpackable" do
-      expect { MessagePack.pack(subject.commits) }.not_to raise_error
+      expect { MessagePackPure.pack(subject.commits) }.not_to raise_error
     end
   end
 end

@@ -36,12 +36,7 @@ EOF
   s.add_runtime_dependency("launchy")
   s.add_runtime_dependency("github_api")
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
-  if RUBY_PLATFORM == 'java' then
-    s.add_runtime_dependency('jruby-openssl')
-    s.add_runtime_dependency("msgpack-jruby")
-  else
-    s.add_runtime_dependency("msgpack", "=0.5.6")
-  end
+  s.add_runtime_dependency("nayutaya-msgpack-pure", "~> 0.0.2")
 
   s.add_development_dependency("aruba", "0.4.6")
   s.add_development_dependency("rdiscount", "1.6.8")
