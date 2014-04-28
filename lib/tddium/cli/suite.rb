@@ -110,6 +110,12 @@ module Tddium
         update_params[:test_configs] = test_configs
       end
 
+      php_config = @repo_config[:php] || {}
+      current_php_config = current_suite['php_config'] || {}
+      if php_config != (current_suite['php_config'] || {}) then
+        update_params[:php] = php_config
+      end
+
       python_config = @repo_config[:python] || {}
       current_python_config = current_suite['python_config'] || {}
       if python_config != (current_suite['python_config'] || {}) then

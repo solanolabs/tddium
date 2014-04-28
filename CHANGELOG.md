@@ -3,6 +3,8 @@
 
 ## Version History
 
+- v1.19.1 - Expose PHP configuration
+- v1.19.0 - Switch to pure-ruby implementation of msgpack
 - v1.18.7 - Expose java JDK/JRE configuration
 - v1.18.6 - Expose repository level configuration variables
 - v1.18.5 - Implement further configuration validation
