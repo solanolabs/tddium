@@ -73,17 +73,19 @@ module Tddium
       tries = 0
       while tries < Default::SCM_READY_TRIES do
         # Call the API to get the suite and its tests
-        suite_details = @tddium_api.get_suite_by_id(
-          @tddium_api.current_suite_id, :session_id => options[:session_id])
-
-        tries += 1
+        suite_details = @tddium_api.get_suite_by_id(@tddium_api.current_suite_id,
+                                                    :session_id => options[:session_id])
 
         if suite_details["repoman_current"] == true
           break
         else
+          @tddium_api.demand_repoman_account(suite_details["account_id"])
+
           say Text::Process::SCM_REPO_WAIT
           sleep @api_config.scm_ready_sleep
         end
+        
+        tries += 1
       end
       exit_failure Text::Error::SCM_REPO_NOT_READY unless suite_details["repoman_current"]
 

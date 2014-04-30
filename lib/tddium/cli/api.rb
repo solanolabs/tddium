@@ -265,6 +265,10 @@ module Tddium
       call_api(:delete, "#{Api::Path::SUITES}/#{id}/permanent_destroy", params)
     end
 
+    def demand_repoman_account(id, params={})
+      call_api(:post, "#{Api::Path::ACCOUNTS}/#{id}/demand_repoman", params)
+    end
+
     def get_sessions(params={})
       begin
         call_api(:get, Api::Path::SESSIONS, params)['sessions']
