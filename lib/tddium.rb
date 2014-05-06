@@ -3,7 +3,7 @@
 require "tddium/constant"
 require "tddium/version"
 
-require "tddium/git"
+require "tddium/scm"
 require "tddium/ssh"
 
 module Tddium
