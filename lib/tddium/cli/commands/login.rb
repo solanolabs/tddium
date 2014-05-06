@@ -7,7 +7,7 @@ module Tddium
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
     def login(*args)
-      user_details = tddium_setup({:login => false, :git => false})
+      user_details = tddium_setup({:login => false, :scm => false})
 
       login_options = options.dup
 

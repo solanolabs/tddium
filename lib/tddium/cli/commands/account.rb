@@ -4,7 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "account", "View account information"
     def account
-      user_details = tddium_setup({:git => false})
+      user_details = tddium_setup({:scm => false})
 
       if user_details then
         # User is already logged in, so just display the info
@@ -16,7 +16,7 @@ module Tddium
 
     desc "account:add [ROLE] [EMAIL]", "Authorize and invite a user to use your organization"
     define_method "account:add" do |role, email|
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
 
       r = Regexp.new(/\A[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]+\z/)
       if r !~ email then
@@ -35,7 +35,7 @@ module Tddium
 
     desc "account:remove [EMAIL]", "Remove a user from an organization"
     define_method "account:remove" do |email|
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
 
       begin
         say Text::Process::REMOVING_MEMBER % email

@@ -5,7 +5,7 @@ module Tddium
     desc "password", "Change password"
     map "passwd" => :password
     def password
-      user_details = tddium_setup({:git => false})
+      user_details = tddium_setup({:scm => false})
 
       params = {}
       params[:current_password] = HighLine.ask(Text::Prompt::CURRENT_PASSWORD) { |q| q.echo = "*" }

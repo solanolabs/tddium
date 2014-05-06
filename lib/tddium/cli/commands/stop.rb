@@ -4,7 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "stop [SESSION]", "Stop session by id"
     def stop(ls_id=nil)
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
       if ls_id
         begin
           say "Stoping session #{ls_id} ..."

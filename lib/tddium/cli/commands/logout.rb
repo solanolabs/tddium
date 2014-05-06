@@ -4,7 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "logout", "Log out of tddium"
     def logout
-      tddium_setup({:login => false, :git => false})
+      tddium_setup({:login => false, :scm => false})
 
       @api_config.logout
 

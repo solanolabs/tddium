@@ -4,7 +4,7 @@ module Tddium
   class TddiumCli < Thor
     desc "keys", "List SSH keys authorized for Tddium"
     def keys
-      user_details = tddium_setup({:git => false})
+      user_details = tddium_setup({:scm => false})
 
       begin
         if user_details then
@@ -21,7 +21,7 @@ module Tddium
     desc "keys:add [NAME] [PATH]", "Authorize an existing keypair for Tddium"
     method_option :dir, :type=>:string, :default=>nil
     define_method "keys:add" do |name, path|
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
 
       output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR']
       output_dir ||= Default::SSH_OUTPUT_DIR
@@ -50,7 +50,7 @@ module Tddium
     desc "keys:gen [NAME]", "Generate and authorize a keypair for Tddium"
     method_option :dir, :type=>:string, :default=>nil
     define_method "keys:gen" do |name|
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
 
       output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR']
       output_dir ||= Default::SSH_OUTPUT_DIR
@@ -77,7 +77,7 @@ module Tddium
 
     desc "keys:remove [NAME]", "Remove a key that was authorized for Tddium"
     define_method "keys:remove" do |name|
-      tddium_setup({:git => false})
+      tddium_setup({:scm => false})
 
       begin
         say Text::Process::REMOVE_KEYS % name
