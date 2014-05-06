@@ -58,19 +58,19 @@ describe Tddium::TddiumCli do
       end
 
       it "should work for equal commits" do
-        Tddium::Git.should_receive(:git_current_commit).and_return(git_commit)
+        subject.scm.should_receive(:current_commit).and_return(git_commit)
         subject.describe
       end
 
       it "should work when the worspace is ahead" do
-        Tddium::Git.should_receive(:git_current_commit).and_return("#{git_commit}1")
-        Tddium::Git.should_receive(:git_number_of_commits).and_return(1)
+        subject.scm.should_receive(:current_commit).and_return("#{git_commit}1")
+        subject.scm.should_receive(:number_of_commits).and_return(1)
         subject.describe
       end
 
       it "should work when the worspace is behind" do
-        Tddium::Git.should_receive(:git_current_commit).and_return("#{git_commit}1")
-        Tddium::Git.should_receive(:git_number_of_commits).and_return(0, 1)
+        subject.scm.should_receive(:current_commit).and_return("#{git_commit}1")
+        subject.scm.should_receive(:number_of_commits).and_return(0, 1)
         subject.describe
       end
     end

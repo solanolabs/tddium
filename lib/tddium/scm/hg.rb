@@ -1,100 +1,77 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
-  module Git
+  class Hg
+    include TddiumConstant
+
+    def initialize
+    end
+
+    def configure
+    end
+
+    def repo?
+    end
+
+    def root
+    end
+
+    def repo_name
+    end
+
+    def origin_url
+    end
+
+    def ignore_path
+    end
+
+    def current_branch
+    end
+
+    def default_branch
+    end
+
+    def changes?(options={})
+    end
+
+    def push_latest(session_data, suite_details)
+      return false
+    end
+
+    def current_commit
+    end
+
+    def commits
+    end
+
+    def number_of_commits(id_from, id_to)
+    end
+
     class << self
       include TddiumConstant
 
       def hg_changes?(options={})
-        changes = false
-        return changes
       end
 
-      def git_version_ok
+      def hg_push(additional_refs=[])
+      end
+
+      def version_ok
         version = nil
         begin
-          version_string = `git --version`
+          version_string = `hg -q --version`
           m =  version_string.match(Dependency::VERSION_REGEXP)
           version = m[0] unless m.nil?
         rescue Errno
         rescue Exception
         end
         if version.nil? || version.empty? then
-          abort Text::Error::GIT_NOT_FOUND
+          abort Text::Error::SCM_NOT_FOUND
         end
         version_parts = version.split(".")
-        if version_parts[0].to_i < 1 ||
-           version_parts[1].to_i < 7 then
-          warn(Text::Warning::GIT_VERSION % version)
+        if version_parts[0].to_i < 2 then
+          warn(Text::Warning::HG_VERSION % version)
         end
-      end
-
-      def git_current_branch
-        `git symbolic-ref HEAD`.gsub("\n", "").split("/")[2..-1].join("/")
-      end
-
-      def git_default_branch
-        `git remote show origin | grep HEAD | awk '{ print $3}'`.gsub("\n", "")
-      end
-
-      def git_push(additional_refs=[])
-        say Text::Process::GIT_PUSH
-        this_branch = git_current_branch
-        refs = ["#{this_branch}:#{this_branch}"]
-        refs += additional_refs
-        refspec = refs.map(&:shellescape).join(" ")
-        cmd = "git push -f #{Config::REMOTE_NAME} #{refspec}"
-        say "Running '#{cmd}'"
-        system(cmd)
-      end
-
-      def git_repo?
-        if File.directory?('.git') then
-          return true
-        end
-        ignore = `git status 2>&1`
-        ok = $?.success?
-        return ok
-      end
-
-      def git_root
-        root = `git rev-parse --show-toplevel 2>&1`
-        if $?.exitstatus == 0 then
-          root.chomp! if root
-          return root
-        end
-        return Dir.pwd
-      end
-
-      def git_repo_name
-        return File.basename(git_root)
-      end
-
-      def latest_commit
-        `git log --pretty='%H%n%s%n%aN%n%aE%n%at%n%cN%n%cE%n%ct%n' HEAD^..HEAD`
-      end
-
-      def git_origin_url
-        result = `(git config --get remote.origin.url || echo GIT_FAILED) 2>/dev/null`
-        return nil if result =~ /GIT_FAILED/
-        result.strip
-      end
-
-      def update_git_remote_and_push(git_repo_uri, additional_refs=[])
-        unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
-          `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
-          `git remote add #{Config::REMOTE_NAME} #{git_repo_uri.shellescape}`
-        end
-        git_push(additional_refs)
-      end
-
-      def git_current_commit
-        `git rev-parse --verify HEAD`.strip
-      end
-
-      def git_number_of_commits(id_from, id_to)
-        result = `git log --pretty='%H' #{id_from}..#{id_to}`
-        result.split("\n").length
       end
     end
   end

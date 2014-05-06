@@ -16,8 +16,8 @@ module TddiumConstant
 
     GIT_SERVER = "git.tddium.com"
     READY_TRIES = 3
-    GIT_READY_TRIES = 18
-    GIT_READY_SLEEP = 10
+    SCM_READY_TRIES = 18
+    SCM_READY_SLEEP = 10
     TEST_FINISH_TIMEOUT = 15 * 60 # 15 minutes
   end
 
@@ -81,8 +81,9 @@ module TddiumConstant
 
     module Warning
       USE_PASSWORD_TOKEN = "If you signed up with Github, use token from web dashboard as password"
+      HG_VERSION = "Unsupported hg version: %s"
       GIT_VERSION = "Unsupported git version: %s"
-      GIT_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local git repository"
+      SCM_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local repository"
       GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
       TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of tddium.yml must be a list of configurations"
@@ -151,8 +152,8 @@ EOF
       FOUND_EXISTING_SUITE = "Found a suite in Tddium for\n\n%s\n\n(on branch %s)."
       TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
-      GIT_PUSH = ">>> Pushing changes to Tddium..."
-      GIT_REPO_WAIT = ">>> Waiting for your repository to be prepared. Sleeping for 10 seconds..."
+      SCM_PUSH = ">>> Pushing changes to Tddium..."
+      SCM_REPO_WAIT = ">>> Waiting for your repository to be prepared. Sleeping for 10 seconds..."
       STARTING_TEST = ">>> Starting Session with %s tests..."
       CHECK_TEST_STATUS = ">>> Use 'tddium status' to check on pending jobs"
       FINISHED_TEST = "Finished in %s seconds"
@@ -381,7 +382,7 @@ EOF
       LIST_CONFIG_ERROR = "Error listing configuration variables"
       ADD_CONFIG_ERROR = "Error setting configuration variable"
       REMOVE_CONFIG_ERROR = "Error removing configuration variable"
-      GIT_NOT_A_REPOSITORY = "Current working directory is not a git repository"
+      SCM_NOT_A_REPOSITORY = "Current working directory is not a suitable repository"
       INVALID_CONFIGURED_PATTERN =<<EOF;
 Configuring test pattern from %s...
 
@@ -394,23 +395,23 @@ You entered:
 >>> Edit %s and rerun `tddium suite --edit`
 
 EOF
-      GIT_REPO_NOT_READY = "Your git repository is being prepped.  Try again in a minute."
-      GIT_PUSH_FAILED = <<EOF;
+      SCM_REPO_NOT_READY = "Your repository is being prepped.  Try again in a minute."
+      SCM_PUSH_FAILED = <<EOF;
 
-The git push to Tddium failed.
+Attempt to push source to Tddium failed.
 
 If you get a "Permission denied (publickey)" message, ensure that SSH is
 configured to send a key you have authorized with Tddium (Run `tddium keys` to
 see a list.)
 
-For any other error, contact us at: support@tddium.com
+For any other error, contact us at: support@solanolabs.com
 
 
 EOF
       INVALID_SSH_PUBLIC_KEY = '%s does not appear to be a valid SSH public key'
       INACCESSIBLE_SSH_PUBLIC_KEY = '%s is not accessible: %s'
-      GIT_CHANGES_NOT_COMMITTED =<<EOF
-There are uncommitted changes in the local git repository.
+      SCM_CHANGES_NOT_COMMITTED =<<EOF
+There are uncommitted changes in the local repository.
 
 Commit changes before running 'tddium spec'.
 
@@ -418,21 +419,22 @@ Use 'tddium spec --force' to test with only already-committed changes.
 EOF
       NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
-      GIT_NOT_FOUND = "Tddium requires git and git is not on your PATH"
-      GIT_NOT_INITIALIZED =<<EOF;
+      SCM_NOT_FOUND = "Tddium requires git or mercurial which are not on your PATH"
+      SCM_NOT_INITIALIZED =<<EOF;
 It doesn't look like you're in a git repo.  If you're not, use 'git init' to
 create one.
 
 If you are in a git repo and you're still seeing this message,
 you may be using an unsupported version of git.
 
-Please email us at info@tddium.com with the following trace information:
+Please email us at support@solanolabs.com with the following trace information:
 
 >>>>>>>>>>>>> BEGIN GIT TRACE >>>>>>>>>>>>>>>>>>>>>>>>>
-git version: #{`git --version 2>&1`}
-git status:  #{`git status 2>&1`}
+hg version: #{`hg status 2> /dev/null && hg -q --version 2>&1`}
+git version: #{`git status 2> /dev/null && git --version 2>&1`}
+git status:  #{`git status 2> /dev/null && git status 2>&1`}
 git status result: #{ $? }
-git details: #{`git status --porcelain 2>&1`}
+git details: #{`git status 2> /dev/null && git status --porcelain 2>&1`}
 git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF

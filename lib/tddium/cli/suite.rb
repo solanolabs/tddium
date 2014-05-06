@@ -29,9 +29,9 @@ module Tddium
         current_suite = @tddium_api.get_suite_by_id(current_suite_id)
       else
         params = Hash.new
-        params[:branch] = Tddium::Git.git_current_branch
-        params[:repo_url] = Tddium::Git.git_origin_url
-        params[:repo_name] = Tddium::Git.git_repo_name
+        params[:branch] = @scm.current_branch
+        params[:repo_url] = @scm.origin_url
+        params[:repo_name] = @scm.repo_name
 
         tool_cli_populate(options, params)
         defaults = {}
@@ -67,13 +67,13 @@ module Tddium
 
     def suite_for_current_branch?
       return true if @tddium_api.current_suite_id
-      say Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_current_branch
+      say Text::Error::NO_SUITE_EXISTS % @scm.current_branch
       false
     end
 
     def suite_for_default_branch?
       return true if @tddium_api.default_suite_id
-      say Text::Error::NO_SUITE_EXISTS % Tddium::Git.git_default_branch
+      say Text::Error::NO_SUITE_EXISTS % @scm.default_branch
       false
     end
 

@@ -32,13 +32,13 @@ module Tddium
 
         session_status = sessions[0]['status'].upcase
         session_commit = sessions[0]['commit']
-        current_commit = Tddium::Git.git_current_commit
+        current_commit = @scm.current_commit
         if session_commit == current_commit
           commit_message = "equal to your current commit"
         else
-          cnt_ahead = Tddium::Git.git_number_of_commits(session_commit, current_commit)
+          cnt_ahead = @scm.number_of_commits(session_commit, current_commit)
           if cnt_ahead == 0
-            cnt_behind = Tddium::Git.git_number_of_commits(current_commit, session_commit)
+            cnt_behind = @scm.number_of_commits(current_commit, session_commit)
             commit_message = "your workspace is behind by #{cnt_behind} commits"
           else
             commit_message = "your workspace is ahead by #{cnt_ahead} commits"

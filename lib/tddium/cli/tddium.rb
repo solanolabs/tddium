@@ -4,6 +4,7 @@ module Tddium
   class TddiumCli < Thor
     include TddiumConstant
 
+    attr_reader :scm
     attr_reader :user_details
 
     class_option :host, :type => :string, 
@@ -34,10 +35,11 @@ module Tddium
                                                         caller_version, 
                                                         cli_opts)
 
+      @scm = Tddium::SCM.configure
 
       @api_config = ApiConfig.new(@tddium_client, options[:host])
       @repo_config = RepoConfig.new
-      @tddium_api = TddiumAPI.new(@api_config, @tddium_client)
+      @tddium_api = TddiumAPI.new(@api_config, @tddium_client, @scm)
 
       # BOTCH: fugly
       @api_config.set_api(@tddium_api)
@@ -87,7 +89,7 @@ module Tddium
     end
 
     def tddium_setup(params={})
-      params[:git] = true unless params.member?(:git)
+      params[:scm] = !params.member?(:scm) || params[:scm] == true
       params[:login] = true unless params.member?(:login)
       params[:repo] = params[:repo] == true
       params[:suite] = params[:suite] == true
@@ -96,7 +98,9 @@ module Tddium
       $stderr.sync = true
 
       set_shell
-      Tddium::Git.git_version_ok if params[:git]
+      if params[:scm] then
+        @scm.configure
+      end
 
       @api_config.load_config
 
@@ -105,8 +109,8 @@ module Tddium
         exit_failure
       end
 
-      if params[:repo] && !Tddium::Git.git_repo? then
-        say Text::Error::GIT_NOT_A_REPOSITORY
+      if params[:repo] && !@scm.repo? then
+        say Text::Error::SCM_NOT_A_REPOSITORY
         exit_failure
       end
 

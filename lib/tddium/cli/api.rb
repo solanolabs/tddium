@@ -1,10 +1,13 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
   class TddiumAPI
     include TddiumConstant
 
-    def initialize(api_config, tddium_client)
+    attr_reader :scm	# rspec
+
+    def initialize(api_config, tddium_client, scm)
+      @scm = scm
       @api_config = api_config
       @tddium_client = tddium_client
     end
@@ -194,7 +197,7 @@ module Tddium
     end
 
     def current_branch
-      @current_branch ||= Tddium::Git.git_current_branch
+      @current_branch ||= @scm.current_branch
     end
 
     def current_repo_id
@@ -212,7 +215,7 @@ module Tddium
     end
 
     def default_branch
-      @default_branch ||= Tddium::Git.git_default_branch
+      @default_branch ||= @scm.default_branch
     end
 
     def default_suite_id

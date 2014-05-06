@@ -7,7 +7,7 @@ describe Tddium::TddiumCli do
   include_context "tddium_api_stubs"
 
   describe "#spec" do
-    let(:commit_log_parser) { mock(CommitLogParser) }
+    let(:commit_log_parser) { mock(GitCommitLogParser) }
     let(:suite_id) { 1 }
     let(:suite) {{ "repoman_current" => true }}
     let(:session) { { "id" => 1 } }
@@ -16,13 +16,12 @@ describe Tddium::TddiumCli do
 
     def stub_git
       Tddium::Git.stub(:git_changes?).and_return(false)
-      Tddium::Git.stub(:update_git_remote_and_push).and_return(true)
-      Tddium::Git.stub(:latest_commit).and_return(latest_commit)
+      Tddium::Git.stub(:git_push).and_return(true)
     end
 
     def stub_commit_log_parser
       commit_log_parser.stub(:commits).and_return([latest_commit])
-      CommitLogParser.stub(:new).with(latest_commit).and_return(commit_log_parser)
+      GitCommitLogParser.stub(:new).with(latest_commit).and_return(commit_log_parser)
     end
 
     before do
@@ -48,6 +47,7 @@ describe Tddium::TddiumCli do
                                         :commits_encoded => commits_encoded,
                                         :cache_control_encoded => cache_control_encoded,
                                         :cache_save_paths_encoded => cache_paths_encoded)
+      subject.scm.stub(:latest_commit).and_return(latest_commit)
       subject.spec
     end
 
@@ -55,6 +55,7 @@ describe Tddium::TddiumCli do
       tddium_api.should_not_receive(:create_session)
       tddium_api.should_receive(:update_session)
       subject.stub(:options) { {:session_id=>1} }
+      subject.scm.stub(:latest_commit).and_return(latest_commit)
       subject.spec
     end
   end

@@ -6,21 +6,15 @@ require 'tddium/cli/api'
 require 'tddium/cli/config'
 
 describe Tddium::TddiumAPI do
+  let(:scm) { Tddium::SCM.configure }
   let(:api_config) { mock(Tddium::ApiConfig, :get_branch => nil) }
   let(:tddium_client) { mock(TddiumClient::Client) }
-  let(:subject) { Tddium::TddiumAPI.new(api_config, tddium_client) }
+  let(:subject) { Tddium::TddiumAPI.new(api_config, tddium_client, scm) }
 
   shared_examples_for "retrieving the branch info" do
     before do
-      Tddium::Git.stub(:git_current_branch).and_return("master")
+      scm.stub(:current_branch).and_return("master")
       api_config.stub(:get_branch).with("master", key).and_return(key)
-    end
-
-    it "should not try to read the branch from git more than once when called multiple times" do
-      Tddium::Git.should_receive(:git_current_branch).once
-      2.times do
-        subject.send(method)
-      end
     end
 
     it "should return the branch info" do

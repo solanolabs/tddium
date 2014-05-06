@@ -9,7 +9,7 @@ module Tddium
 
       begin
         # tddium_setup asserts that we're in a git repo
-        origin_url = Tddium::Git.git_origin_url
+        origin_url = @scm.origin_url
         repo_params = {
           :active => true, 
           :repo_url => origin_url

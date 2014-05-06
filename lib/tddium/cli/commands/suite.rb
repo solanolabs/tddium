@@ -30,7 +30,7 @@ module Tddium
           # Deleting works differently (for now) because api_config can't handle
           # multiple suites with the same branch name in two different accounts.
 
-          repo_url = Tddium::Git.git_origin_url
+          repo_url = @scm.origin_url
 
           if argv.is_a?(Array) && argv.size > 0
             branch = argv[0]
@@ -78,9 +78,9 @@ module Tddium
           @api_config.write_config
         else
           # Need to find or construct the suite (and repo)
-          params[:branch] = Tddium::Git.git_current_branch
-          params[:repo_url] = Tddium::Git.git_origin_url
-          params[:repo_name] = Tddium::Git.git_repo_name
+          params[:branch] = @scm.current_branch
+          params[:repo_url] = @scm.origin_url
+          params[:repo_name] = @scm.repo_name
 
           say Text::Process::NO_CONFIGURED_SUITE % [params[:repo_name], params[:branch]]
 

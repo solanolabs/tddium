@@ -54,6 +54,7 @@ module Tddium
       return status
     end
 
+    # BOTCH: must be SCM agnostic
     def current_branch
       cmd = "cd #{ENV['TDDIUM_REPO_ROOT']} && git symbolic-ref HEAD"
       `#{cmd}`.gsub("\n", "").split("/")[2..-1].join("/")

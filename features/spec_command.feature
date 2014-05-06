@@ -87,7 +87,7 @@ Feature: spec command
 
   Scenario: Wait until repo preparation is done
     Given the destination repo exists
-    And the git ready timeout is 0
+    And the SCM ready timeout is 0
     And a git repo is initialized on branch "foobar"
     And the user is logged in
     And the user has no suites

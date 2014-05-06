@@ -58,10 +58,10 @@ module Tddium
       return ruby_version unless ruby_version.nil? || ruby_version.empty?
 
       if !options[:machine] then
-        git_root = Git.git_root
-        if git_root then
-          rvmrc = File.join(git_root, '.rvmrc')
-          ruby_version_path = File.join(git_root, '.ruby_version')
+        scm_root = @scm.root
+        if scm_root then
+          rvmrc = File.join(scm_root, '.rvmrc')
+          ruby_version_path = File.join(scm_root, '.ruby_version')
           if File.exists?(ruby_version_path) then
             ruby_version = sniff_ruby_version_rvmrc(ruby_version)
           elsif File.exists?(rvmrc) then

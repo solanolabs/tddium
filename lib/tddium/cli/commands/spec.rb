@@ -1,5 +1,4 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
-require 'tddium/commit_log_parser'
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 require 'digest'
 
 module Tddium
@@ -30,9 +29,9 @@ module Tddium
 
       exit_failure unless suite_for_current_branch?
 
-      if Tddium::Git.git_changes?(:exclude=>".gitignore") then
-        exit_failure(Text::Error::GIT_CHANGES_NOT_COMMITTED) if !options[:force]
-        warn(Text::Warning::GIT_CHANGES_NOT_COMMITTED)
+      if @scm.changes?(options) then
+        exit_failure(Text::Error::SCM_CHANGES_NOT_COMMITTED) if !options[:force]
+        warn(Text::Warning::SCM_CHANGES_NOT_COMMITTED)
       end
 
       test_execution_params = {}
@@ -66,7 +65,7 @@ module Tddium
       end
 
       tries = 0
-      while tries < Default::GIT_READY_TRIES do
+      while tries < Default::SCM_READY_TRIES do
         # Call the API to get the suite and its tests
         suite_details = @tddium_api.get_suite_by_id(
           @tddium_api.current_suite_id, :session_id => options[:session_id])
@@ -76,11 +75,11 @@ module Tddium
         if suite_details["repoman_current"] == true
           break
         else
-          say Text::Process::GIT_REPO_WAIT
-          sleep @api_config.git_ready_sleep
+          say Text::Process::SCM_REPO_WAIT
+          sleep @api_config.scm_ready_sleep
         end
       end
-      exit_failure Text::Error::GIT_REPO_NOT_READY unless suite_details["repoman_current"]
+      exit_failure Text::Error::SCM_REPO_NOT_READY unless suite_details["repoman_current"]
 
       update_suite_parameters!(suite_details, options[:session_id])
 
@@ -105,13 +104,8 @@ module Tddium
       session_data ||= {}
       session_id ||= session_data["id"]
 
-      # Push the latest code to git
-      git_repo_uri = suite_details["git_repo_uri"]
-
-      this_ref = (session_data['commit_data'] || {})['git_ref']
-      refs = this_ref ? ["HEAD:#{this_ref}"] : []
-      if !Tddium::Git.update_git_remote_and_push(git_repo_uri, refs) then
-        exit_failure Text::Error::GIT_PUSH_FAILED
+      if !@scm.push_latest(session_data, suite_details) then
+        exit_failure Text::Error::SCM_PUSH_FAILED
       end
 
       machine_data[:session_id] = session_id
@@ -272,8 +266,7 @@ module Tddium
     end
 
     def read_and_encode_latest_commits
-      latest_commit = Tddium::Git.latest_commit
-      commits = CommitLogParser.new(latest_commit).commits
+      commits = @scm.commits
       commits_packed = MessagePackPure.pack(commits)
       commits_encoded = Base64.encode64(commits_packed)
       commits_encoded

@@ -17,7 +17,7 @@ Feature: suite command
   Scenario: Fail if CWD isn't in a git repo
     Given the user is logged in
     When I run `tddium suite`
-    Then the output should contain "git repo"
+    Then the output should contain "not a suitable repository"
     And the exit status should not be 0
 
   Scenario: Configure a new suite with a complex branch

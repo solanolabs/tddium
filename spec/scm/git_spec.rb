@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'tddium/git'
+require 'tddium/scm/git'
 
 describe Tddium::Git do
-  let(:subject) { Tddium::Git }
+  let(:subject) { Tddium::Git.new }
 
   def stub_git(command, return_value)
     subject.stub(:`).with(/^git #{command}/).and_return(return_value)

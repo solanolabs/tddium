@@ -5,6 +5,7 @@ module Tddium
     include TddiumConstant
 
     def initialize
+      @scm = Tddium::SCM.configure
       @config = load_config
     end
 
@@ -19,7 +20,7 @@ module Tddium
     def load_config
       config = nil
 
-      root = Tddium::Git.git_root
+      root = @scm.root
       cfgfile_list = Config::CONFIG_PATHS.map { |fn| [File.join(root, fn), fn] }
       cfgfile_pair = cfgfile_list.select { |p| File.exists?(p.first) }.first
 
@@ -47,6 +48,7 @@ module Tddium
 
     # BOTCH: should be a state object rather than entire CLI object
     def initialize(tddium_client, host)
+      @scm = Tddium::SCM.configure
       @tddium_client = tddium_client
       @config = Hash.new
       @host = host
@@ -62,7 +64,7 @@ module Tddium
     end
 
     def populate_branches(branch)
-      suites = @tddium_api.get_suites(:repo_url => Tddium::Git.git_origin_url, :branch=>branch)
+      suites = @tddium_api.get_suites(:repo_url => @scm.origin_url, :branch=>branch)
       suites.each do |ste|
         set_suite(ste)
       end
@@ -85,8 +87,8 @@ module Tddium
       @config['api_key'] = api_key
     end
 
-    def git_ready_sleep
-      s = ENV["TDDIUM_GIT_READY_SLEEP"] || Default::GIT_READY_SLEEP
+    def scm_ready_sleep
+      s = ENV["TDDIUM_SCM_READY_SLEEP"] || Default::SCM_READY_SLEEP
       s.to_f
     end
 
@@ -129,8 +131,8 @@ module Tddium
         file.write(@config.to_json)
       end
 
-      if Tddium::Git.git_repo? then
-        branch = Tddium::Git.git_current_branch
+      if @scm.repo? then
+        branch = @scm.current_branch
         suite = @config['branches'][branch] rescue nil
 
         if suite then
@@ -139,12 +141,12 @@ module Tddium
             file.write(suite["ci_ssh_pubkey"])
           end
         end
-        write_gitignore		# BOTCH: no need to write every time
+        write_scm_ignore		# BOTCH: no need to write every time
       end
     end
 
-    def write_gitignore
-      path = File.join(Tddium::Git.git_root, Config::GIT_IGNORE)
+    def write_scm_ignore
+      path = @scm.ignore_path
       content = File.exists?(path) ? File.read(path) : ''
       unless content.include?(".tddium*\n")
         File.open(path, File::CREAT|File::APPEND|File::RDWR, 0644) do |file|
@@ -158,7 +160,7 @@ module Tddium
 
       case scope
       when :repo
-        root ||= Tddium::Git.git_repo? ? Tddium::Git.git_root : Dir.pwd
+        root ||= @scm.repo? ? @scm.root : Dir.pwd
 
       when :global
         root = ENV['HOME']
