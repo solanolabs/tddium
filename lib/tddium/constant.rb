@@ -23,6 +23,7 @@ module TddiumConstant
 
   module Config
     REMOTE_NAME = "tddium"
+    HG_IGNORE = ".hgignore"
     GIT_IGNORE = ".gitignore"
     CONFIG_PATHS = ["tddium.yml",
                     "config/tddium.yml",
@@ -82,9 +83,11 @@ module TddiumConstant
     module Warning
       USE_PASSWORD_TOKEN = "If you signed up with Github, use token from web dashboard as password"
       HG_VERSION = "Unsupported hg version: %s"
+      HG_PATHS_DEFAULT_NOT_URI = "hg paths default not a URI"
+      HG_GIT_MIRROR_MISSING = "Mirror missing; please run tddium hg:mirror"
       GIT_VERSION = "Unsupported git version: %s"
       SCM_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local repository"
-      GIT_UNABLE_TO_DETECT = "Unable to detect uncommitted git changes"
+      SCM_UNABLE_TO_DETECT = "Unable to detect uncommitted changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
       TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of tddium.yml must be a list of configurations"
     end

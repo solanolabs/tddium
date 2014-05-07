@@ -15,7 +15,7 @@ describe Tddium::Git do
 
     it "should return the latest commit" do
       subject.should_receive(:`).with("git log --pretty='%H%n%s%n%aN%n%aE%n%at%n%cN%n%cE%n%ct%n' HEAD^..HEAD")
-      subject.latest_commit.should == "latest_commit"
+      subject.send(:latest_commit).should == "latest_commit"
     end
   end
 end

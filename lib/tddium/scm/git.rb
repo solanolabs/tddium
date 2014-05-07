@@ -10,6 +10,10 @@ module Tddium
     def configure
     end
 
+    def scm_name
+      return 'git'
+    end
+
     def repo?
       if File.directory?('.git') then
         return true
@@ -26,6 +30,10 @@ module Tddium
         return root
       end
       return Dir.pwd
+    end
+
+    def mirror_path
+      return nil
     end
 
     def repo_name
@@ -51,28 +59,42 @@ module Tddium
       `git remote show origin | grep HEAD | awk '{print $3}'`.gsub("\n", "")
     end
 
+    def checkout(branch, options={})
+      if !!options[:update] then
+        `git fetch origin`
+        return false if !$?.success?
+      end
+
+      cmd = "git checkout "
+      if !!options[:force] then
+        cmd += "-f "
+      end
+      cmd += Shellwords.shellescape(branch)
+      `#{cmd}`
+      return $?.success?
+    end
+
     def changes?(options={})
       return Tddium::Git.git_changes?(:exclude=>".gitignore")
     end
 
-    def push_latest(session_data, suite_details)
-      git_repo_uri = suite_details["git_repo_uri"]
+    def push_latest(session_data, suite_details, options={})
+      branch = options[:branch] || self.current_branch
+      remote_branch = options[:remote_branch] || branch
+      git_repo_uri = options[:git_repo_uri] || suite_details["git_repo_uri"]
       this_ref = (session_data['commit_data'] || {})['git_ref']
       refs = this_ref ? ["HEAD:#{this_ref}"] : []
 
-      unless `git remote show -n #{Config::REMOTE_NAME}` =~ /#{git_repo_uri}/
-        `git remote rm #{Config::REMOTE_NAME} > /dev/null 2>&1`
-        `git remote add #{Config::REMOTE_NAME} #{git_repo_uri.shellescape}`
+      if options[:git_repo_origin_uri] then
+        Tddium::Git.git_set_remotes(options[:git_repo_origin_uri], 'origin')
       end
-      return Tddium::Git.git_push(self.current_branch, refs)
+
+      Tddium::Git.git_set_remotes(git_repo_uri)
+      return Tddium::Git.git_push(branch, refs, remote_branch)
     end
 
     def current_commit
       `git rev-parse --verify HEAD`.strip
-    end
-
-    def latest_commit
-      `git log --pretty='%H%n%s%n%aN%n%aE%n%at%n%cN%n%cE%n%ct%n' HEAD^..HEAD`
     end
 
     def commits
@@ -83,6 +105,12 @@ module Tddium
     def number_of_commits(id_from, id_to)
       result = `git log --pretty='%H' #{id_from}..#{id_to}`
       result.split("\n").length
+    end
+
+    protected
+
+    def latest_commit
+      `git log --pretty='%H%n%s%n%aN%n%aE%n%at%n%cN%n%cE%n%ct%n' HEAD^..HEAD`
     end
 
     class << self
@@ -96,7 +124,7 @@ module Tddium
         changes = false
         while line = p.gets do
           if line =~ /GIT_FAILED/
-            warn(Text::Warning::GIT_UNABLE_TO_DETECT)
+            warn(Text::Warning::SCM_UNABLE_TO_DETECT)
             return false
           end
           line = line.strip
@@ -110,9 +138,19 @@ module Tddium
         return changes
       end
 
-      def git_push(this_branch, additional_refs=[])
+      def git_set_remotes(git_repo_uri, remote_name=nil)
+        remote_name ||= Config::REMOTE_NAME
+
+        unless `git remote show -n #{remote_name}` =~ /#{git_repo_uri}/
+          `git remote rm #{remote_name} > /dev/null 2>&1`
+          `git remote add #{remote_name} #{git_repo_uri.shellescape}`
+        end
+      end
+
+      def git_push(this_branch, additional_refs=[], remote_branch=nil)
         say Text::Process::SCM_PUSH
-        refs = ["#{this_branch}:#{this_branch}"]
+        remote_branch ||= this_branch
+        refs = ["#{this_branch}:#{remote_branch}"]
         refs += additional_refs
         refspec = refs.map(&:shellescape).join(" ")
         cmd = "git push -f #{Config::REMOTE_NAME} #{refspec}"
