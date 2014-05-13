@@ -7,7 +7,7 @@ describe Tddium::TddiumCli do
   include_context "tddium_api_stubs"
 
   describe "#spec" do
-    let(:commit_log_parser) { mock(GitCommitLogParser) }
+    let(:commit_log_parser) { double(GitCommitLogParser) }
     let(:suite_id) { 1 }
     let(:suite) {{ "repoman_current" => true }}
     let(:session) { { "id" => 1 } }

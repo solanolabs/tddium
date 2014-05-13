@@ -34,9 +34,9 @@ def env_restore(env)
 end
 
 shared_context "tddium_api_stubs" do
-  let(:api_config) { mock(Tddium::ApiConfig, :get_branch => nil) }
-  let(:tddium_api) { mock(Tddium::TddiumAPI) }
-  let(:tddium_client) { mock(TddiumClient::InternalClient) }
+  let(:api_config) { double(Tddium::ApiConfig, :get_branch => nil) }
+  let(:tddium_api) { double(Tddium::TddiumAPI) }
+  let(:tddium_client) { double(TddiumClient::InternalClient) }
 
   def stub_tddium_api
     tddium_api.stub(:user_logged_in?).and_return(true)

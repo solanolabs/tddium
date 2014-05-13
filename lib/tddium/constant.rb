@@ -29,6 +29,7 @@ module TddiumConstant
                     "config/tddium.yml",
                     "config/tddium.cfg",
                     ]
+    EMBEDDED_SCRIPT_PATH = File.expand_path(File.join("..", "script"), __FILE__)
   end
 
   module Api
@@ -84,7 +85,16 @@ module TddiumConstant
       USE_PASSWORD_TOKEN = "If you signed up with Github, use token from web dashboard as password"
       HG_VERSION = "Unsupported hg version: %s"
       HG_PATHS_DEFAULT_NOT_URI = "hg paths default not a URI"
-      HG_GIT_MIRROR_MISSING = "Mirror missing; please run tddium hg:mirror"
+      HG_GIT_MIRROR_MISSING =<<EOF
+
+* The hg <-> git mirror is missing.
+
+Please run `tddium hg:mirror` to create the mirror for the first time.
+
+(Note: it may take several minutes, or even an hour, for hg:mirror to complete,
+ depending on how large your repo is. Rest assured, you'll only need to run hg:mirror once.)
+
+EOF
       GIT_VERSION = "Unsupported git version: %s"
       SCM_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local repository"
       SCM_UNABLE_TO_DETECT = "Unable to detect uncommitted changes"

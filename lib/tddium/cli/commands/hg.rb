@@ -30,11 +30,7 @@ module Tddium
 
       FileUtils.mkdir_p(@scm.mirror_path)
 
-      script_dir = File.join(File.dirname(__FILE__), '../..', 'script')
-      script_dir = File.expand_path(script_dir)
-      path = ENV['PATH'].split(':')
-      path.unshift(script_dir)
-      ENV['PATH'] = path.join(':')
+      Tddium::Scripts.prepend_script_path
 
       clone_command = "git clone hg::#{@scm.root} #{@scm.mirror_path}"
 #      origin_command = "cd #{@scm.mirror_path} && git remote set-url origin #{@scm.origin_url}"

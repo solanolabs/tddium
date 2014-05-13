@@ -12,6 +12,7 @@ require 'msgpack_pure'
 require 'erb'
 require 'github_api'
 
+require 'tddium/script'
 require 'tddium/cli/tddium'
 
 require 'tddium/cli/api'

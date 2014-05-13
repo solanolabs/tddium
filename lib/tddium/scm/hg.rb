@@ -103,6 +103,8 @@ module Tddium
           raise
         end
 
+        Tddium::Scripts.prepend_script_path
+
         Dir.chdir(self.mirror_path)
         git_scm = ::Tddium::Git.new
         git_scm.configure

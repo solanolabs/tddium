@@ -7,8 +7,8 @@ require 'tddium/cli/config'
 
 describe Tddium::TddiumAPI do
   let(:scm) { Tddium::SCM.configure }
-  let(:api_config) { mock(Tddium::ApiConfig, :get_branch => nil) }
-  let(:tddium_client) { mock(TddiumClient::Client) }
+  let(:api_config) { double(Tddium::ApiConfig, :get_branch => nil) }
+  let(:tddium_client) { double(TddiumClient::Client) }
   let(:subject) { Tddium::TddiumAPI.new(api_config, tddium_client, scm) }
 
   shared_examples_for "retrieving the branch info" do

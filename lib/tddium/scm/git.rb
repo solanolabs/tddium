@@ -59,6 +59,8 @@ module Tddium
       `git remote show origin | grep HEAD | awk '{print $3}'`.gsub("\n", "")
     end
 
+    # XXX DANGER: This method will edit the current workspace.  It's meant to
+    # be run to make a git mirror up-to-date.
     def checkout(branch, options={})
       if !!options[:update] then
         `git fetch origin`
@@ -71,6 +73,10 @@ module Tddium
       end
       cmd += Shellwords.shellescape(branch)
       `#{cmd}`
+
+      return false if !$?.success?
+
+      `git reset --hard origin/#{branch}`
       return $?.success?
     end
 
