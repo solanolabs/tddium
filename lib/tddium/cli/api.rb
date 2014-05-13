@@ -50,7 +50,7 @@ module Tddium
       acct["account_id"]
     end
 
-    def env_path(scope, key=nil)
+    def env_path(scope)
       path = ['']
 
       case scope
@@ -74,12 +74,11 @@ module Tddium
       end
 
       path << 'env'
-      path << key if key
       path.join('/')
     end
 
-    def get_config_key(scope, key=nil)
-      path = env_path(scope, key)
+    def get_config_key(scope)
+      path = env_path(scope)
       call_api(:get, path)
     end
 
@@ -89,8 +88,8 @@ module Tddium
     end
 
     def delete_config_key(scope, key)
-      path = env_path(scope, key)
-      call_api(:delete, path)
+      path = env_path(scope)
+      call_api(:delete, path, :key=>key)
     end
 
     def get_user(api_key=nil)
