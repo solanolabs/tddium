@@ -379,7 +379,7 @@ EOF
       ADD_KEYS_DUPLICATE = "You already have a key named '%s'"
       ADD_KEYS_ERROR = "Failed to add key '%s'"
       LIST_CONFIG_ERROR = "Error listing configuration variables"
-      ADD_CONFIG_ERROR = "Error settng configuration variable"
+      ADD_CONFIG_ERROR = "Error setting configuration variable"
       REMOVE_CONFIG_ERROR = "Error removing configuration variable"
       GIT_NOT_A_REPOSITORY = "Current working directory is not a git repository"
       INVALID_CONFIGURED_PATTERN =<<EOF;
