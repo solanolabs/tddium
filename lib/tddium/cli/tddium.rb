@@ -76,6 +76,24 @@ module Tddium
       return true
     end
 
+    # Thor prints a confusing message for the "help" command in case an option
+    # follows in the wrong order before the command.
+    # This code patch overwrites this behavior and prints a better error message.
+    # For Thor version >= 0.18.0, release 2013-03-26.
+    no_commands do
+      def invoke_command(command, *args)
+        begin
+          super
+        rescue InvocationError
+          if command.name == "help"
+            exit_failure Text::Error::CANT_INVOKE_COMMAND
+          else
+            raise
+          end
+        end
+      end
+    end
+
     protected
 
     def caller_version
