@@ -1,8 +1,8 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
   class TddiumCli < Thor
-    desc "keys", "List SSH keys authorized for Tddium"
+    desc "keys", "List SSH keys authorized for Solano CI"
     def keys
       user_details = tddium_setup({:scm => false})
 
@@ -18,7 +18,7 @@ module Tddium
       end
     end
 
-    desc "keys:add [NAME] [PATH]", "Authorize an existing keypair for Tddium"
+    desc "keys:add [NAME] [PATH]", "Authorize an existing keypair for Solano CI"
     method_option :dir, :type=>:string, :default=>nil
     define_method "keys:add" do |name, path|
       tddium_setup({:scm => false})
@@ -47,7 +47,7 @@ module Tddium
     end
 
     map "generate" => :gen
-    desc "keys:gen [NAME]", "Generate and authorize a keypair for Tddium"
+    desc "keys:gen [NAME]", "Generate and authorize a keypair for Solano CI"
     method_option :dir, :type=>:string, :default=>nil
     define_method "keys:gen" do |name|
       tddium_setup({:scm => false})
@@ -75,7 +75,7 @@ module Tddium
       end
     end
 
-    desc "keys:remove [NAME]", "Remove a key that was authorized for Tddium"
+    desc "keys:remove [NAME]", "Remove a key that was authorized for Solano CI"
     define_method "keys:remove" do |name|
       tddium_setup({:scm => false})
 

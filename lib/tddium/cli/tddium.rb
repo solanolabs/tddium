@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
   class TddiumCli < Thor
@@ -8,12 +8,12 @@ module Tddium
     attr_reader :user_details
 
     class_option :host, :type => :string, 
-                        :default => ENV['TDDIUM_CLIENT_HOST'] || "api.tddium.com",
-                        :desc => "Tddium app server hostname"
+                        :default => ENV['TDDIUM_CLIENT_HOST'] || "ci.solanolabs.com",
+                        :desc => "Solano CI app server hostname"
 
     class_option :port, :type => :numeric,
                         :default => (ENV['TDDIUM_CLIENT_PORT'].nil? ? nil : ENV['TDDIUM_CLIENT_PORT'].to_i),
-                        :desc => "Tddium app server port"
+                        :desc => "Solano CI app server port"
 
     class_option :proto, :type => :string,
                          :default => ENV['TDDIUM_CLIENT_PROTO'] || "https",
@@ -21,7 +21,7 @@ module Tddium
 
     class_option :insecure, :type => :boolean, 
                             :default => (ENV['TDDIUM_CLIENT_INSECURE'] != nil),
-                            :desc => "Don't verify Tddium app SSL server certificate"
+                            :desc => "Don't verify Solano CI app SSL server certificate"
 
     def initialize(*args)
       super(*args)

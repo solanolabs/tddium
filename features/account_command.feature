@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 @mimic
 Feature: Account command
@@ -91,7 +91,7 @@ Feature: Account command
     When I run `tddium account:add member member@example.com`
     Then it should fail with:
     """
-    Tddium must be initialized. Try 'tddium login'
+    Solano CI must be initialized. Try 'tddium login'
     """
 
   Scenario: Remove member from account successfully
@@ -112,5 +112,5 @@ Feature: Account command
     When I run `tddium account:remove member@example.com`
     Then it should fail with:
     """
-    Tddium must be initialized. Try 'tddium login'
+    Solano CI must be initialized. Try 'tddium login'
     """

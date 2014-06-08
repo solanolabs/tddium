@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.19.3 - Transition from Tddium to Solano CI
 - v1.19.1 - Expose PHP configuration
 - v1.19.0 - Switch to pure-ruby implementation of msgpack
 - v1.18.7 - Expose java JDK/JRE configuration

@@ -62,7 +62,7 @@ Feature: Keys command
     And the key file named "third" should exist
     And the output should contain "Generating"
     And the output should contain "authorized"
-    And the output should contain "Host git.tddium.com"
+    And the output should contain "Host git.solanolabs.com"
     And the output should contain "IdentityFile"
     And the output should contain "identity.tddium.third"
     And the output should not contain "identity.tddium.third.pub"

@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module TddiumConstant
 
@@ -14,7 +14,7 @@ module TddiumConstant
     SUITE_TEST_PATTERN = "features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb"
     SSH_OUTPUT_DIR = "~/.ssh/"
 
-    GIT_SERVER = "git.tddium.com"
+    GIT_SERVER = "git.solanolabs.com"
     READY_TRIES = 3
     SCM_READY_TRIES = 18
     SCM_READY_SLEEP = 10
@@ -103,7 +103,7 @@ EOF
     end
 
     module Process
-      SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Tddium.\n\n"
+      SSH_KEY_NEEDED = "\nIt looks like you haven't authorized an SSH key to use with Solano CI.\n\n"
       DEFAULT_KEY_ADDED = "SSH key authorized."
       NO_KEYS = "No authorized keys."
       ADD_KEYS_ADD = "Adding key '%s'"
@@ -111,9 +111,9 @@ EOF
 Authorized key '%s'.
 
 Assuming your private key is in %s, you can just add the following 
-to ~/.ssh/config to use this new key with Tddium:
+to ~/.ssh/config to use this new key with Solano CI:
 
-# Tddium SSH Config
+# Solano CI SSH Config
 Host %s
   IdentityFile %s
   IdentitiesOnly yes
@@ -122,9 +122,9 @@ EOF
       ADD_KEYS_GENERATE_DONE =<<EOF
 Generated and authorized key '%s'.
 
-Append the following to ~/.ssh/config to use this new key with Tddium:
+Append the following to ~/.ssh/config to use this new key with Solano CI:
 
-# Tddium SSH Config
+# Solano CI SSH Config
 Host %s
   IdentityFile %s
   IdentitiesOnly yes
@@ -146,26 +146,26 @@ EOF
       KEYS_EDIT_COMMANDS =<<EOF
 
 Use `tddium keys:add` to generate and authorize a new SSH keypair.
-Use `tddium keys:remove` to remove an authorized key from Tddium.
+Use `tddium keys:remove` to remove an authorized key from Solano CI.
 
 Use `ssh-keygen -lf <filename>` to print fingerprint of an existing public key.
 
 EOF
       TEST_PATTERN_INSTRUCTIONS =<<EOF
 
->>> Tddium selects tests to run by default (e.g., in CI) by matching against a
+>>> Solano CI selects tests to run by default (e.g., in CI) by matching against a
     list of Ruby glob patterns.  Use "," to join multiple globs.
 
     You can instead specify a list of test patterns in config/tddium.yml.
 
-    Read more here: https://www.tddium.com/support/reference#customization
+    Read more here: https://docs.solanolabs.com/
 
 EOF
-      NO_CONFIGURED_SUITE = "Looks like you haven't configured Tddium on this computer for %s/%s...\n"
-      FOUND_EXISTING_SUITE = "Found a suite in Tddium for\n\n%s\n\n(on branch %s)."
+      NO_CONFIGURED_SUITE = "Looks like you haven't configured Solano CI on this computer for %s/%s...\n"
+      FOUND_EXISTING_SUITE = "Found a suite in Solano CI for\n\n%s\n\n(on branch %s)."
       TERMINATE_INSTRUCTION = ">>> Press Ctrl-C to stop waiting.  Tests will continue running.\n"
       INTERRUPT = "Interrupted"
-      SCM_PUSH = ">>> Pushing changes to Tddium..."
+      SCM_PUSH = ">>> Pushing changes to Solano CI..."
       SCM_REPO_WAIT = ">>> Waiting for your repository to be prepared. Sleeping for 10 seconds..."
       STARTING_TEST = ">>> Starting Session with %s tests..."
       CHECK_TEST_STATUS = ">>> Use 'tddium status' to check on pending jobs"
@@ -259,8 +259,8 @@ EOF
     end
 
     module Status
-      SPEC_WARNINGS = "\n\n>>> Tddium Warnings:\n\n"
-      SPEC_ERRORS = "\n\n>>> Tddium Errors:\n"
+      SPEC_WARNINGS = "\n\n>>> Solano CI Warnings:\n\n"
+      SPEC_ERRORS = "\n\n>>> Solano CI Errors:\n"
       NO_SUITE = "You currently do not have any suites"
       ALL_SUITES = "Suites:"
       CURRENT_SUITE = "Current suite: %s"
@@ -289,7 +289,7 @@ Organization: <%=acct["account"]%>
 <% if acct["account_url"] %>  Organization Management URL: <%=acct["account_url"]%><% end %>
 <% if acct["heroku"] %>  Heroku Account Linked: <%=acct["heroku_activation_done"]%><% end %>
 <% if acct["third_party_pubkey"] %>
-  >>> Authorize the following SSH public key to allow Tddium's test workers to
+  >>> Authorize the following SSH public key to allow Solano CI's test workers to
   install gems from private git repos or communicate via SSH to your servers:
 
     <%= acct["third_party_pubkey"] %>
@@ -298,7 +298,7 @@ Organization: <%=acct["account"]%>
 EOF
       USER_THIRD_PARTY_KEY_DETAILS =<<EOF;
 <% if user["third_party_pubkey"] %>
->>> Authorize the following SSH public key to allow Tddium's test workers to
+>>> Authorize the following SSH public key to allow Solano CI's test workers to
 install gems from private git repos or communicate via SSH to your servers:
 
     <%= user["third_party_pubkey"] %>
@@ -314,7 +314,7 @@ EOF
   Rubygems Version:     <%=suite["rubygems_version"]%>
   Bundler Version:      <%=suite["bundler_version"]%>
 <% if suite["ci_enabled"] %>
-Tddium Hosted CI is enabled with the following parameters:
+Solano CI is enabled with the following parameters:
 
   Pull URL:             <%=suite["ci_pull_url"]%>
   Push URL:             <%=suite["ci_push_url"]%>
@@ -324,29 +324,29 @@ Notifications:
 <%=suite["ci_notifications"]%>
 
 <% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
->>> Tddium will pull from your Github repository.
+>>> Solano CI will pull from your Github repository.
 
     Visit https://github.com/<%= $1 %>/admin/keys
     then click "Add another deploy key" and copy and paste this key:
 
     <%=suite["ci_ssh_pubkey"]%>
 <% else %>
->>> Authorize the following SSH key to let Tddium's pulls and pushes through:
+>>> Authorize the following SSH key to let Solano CI's pulls and pushes through:
 
 <%=suite["ci_ssh_pubkey"]%>
 <% end %><% if suite["ci_push_url"] =~ /^git@heroku.com:(.*).git$/ %>
->>> Tddium will push to your Heroku application <%= $1 %>.
+>>> Solano CI will push to your Heroku application <%= $1 %>.
     To authorize the key, use the following command:
 
     heroku keys:add <%= tddium_deploy_key_file_name %> --app <%= $1 %>
 <% end %><% if suite["ci_pull_url"] =~ /^git@github.com:(.*).git$/ %>
->>> Configure Github to notify Tddium of your commits with a post-receive hook.
+>>> Configure Github to notify Solano CI of your commits with a post-receive hook.
 
     Visit https://github.com/<%= $1 %>/admin/hooks#generic_minibucket
     then add the following URL and click "Update Settings":
     <%=suite["hook_uri"]%>
 <% else %>
->>> In order for Tddium to know that your repo has changed, you'll need to
+>>> In order for Solano CI to know that your repo has changed, you'll need to
     configure a post-commit hook in your Git server.
 
     In Unix-based Git repositories, find the repository root and look for
@@ -356,8 +356,8 @@ Notifications:
     <%=suite["hook_uri"]%>
 <% end %>
 
->>> See http://www.tddium.com/support for more information on Tddium CI.
->>> You can enable Campfire and HipChat notifications from your Tddium Dashboard.
+>>> See http://docs.solanolabs.com/ for more information on Solano CI.
+>>> You can enable Campfire and HipChat notifications from your Solano CI Dashboard.
 <% end %>
 >>> Run 'tddium suite --edit' to edit these settings.
 >>> Run 'tddium spec' to run tests in this suite.
@@ -365,7 +365,7 @@ EOF
       ACCOUNT_MEMBERS = "Authorized users:"
       KEYS_DETAILS =<<EOF
 
-You have authorized the following SSH public keys to communicate with Tddium:
+You have authorized the following SSH public keys to communicate with Solano CI:
 
  Name               Fingerprint
  ------------------ ------------------------------------------------------------
@@ -411,10 +411,10 @@ EOF
       SCM_REPO_NOT_READY = "Your repository is being prepped.  Try again in a minute."
       SCM_PUSH_FAILED = <<EOF;
 
-Attempt to push source to Tddium failed.
+Attempt to push source to Solano CI failed.
 
 If you get a "Permission denied (publickey)" message, ensure that SSH is
-configured to send a key you have authorized with Tddium (Run `tddium keys` to
+configured to send a key you have authorized with Solano CI (Run `tddium keys` to
 see a list.)
 
 For any other error, contact us at: support@solanolabs.com
@@ -430,9 +430,9 @@ Commit changes before running 'tddium spec'.
 
 Use 'tddium spec --force' to test with only already-committed changes.
 EOF
-      NOT_INITIALIZED = "Tddium must be initialized. Try 'tddium login'"
+      NOT_INITIALIZED = "Solano CI must be initialized. Try 'tddium login'"
       INVALID_TDDIUM_FILE = ".tddium.%s config file is corrupt. Try 'tddium login'"
-      SCM_NOT_FOUND = "Tddium requires git or mercurial which are not on your PATH"
+      SCM_NOT_FOUND = "Solano CI requires git or mercurial which are not on your PATH"
       SCM_NOT_INITIALIZED =<<EOF;
 It doesn't look like you're in a git repo.  If you're not, use 'git init' to
 create one.
@@ -458,7 +458,7 @@ EOF
       PASSWORD_ERROR = "Error changing password: %s"
       ADD_MEMBER_ERROR = "Error adding %s: %s"
       REMOVE_MEMBER_ERROR = "Error removing %s: %s"
-      USE_ACTIVATE = "Visit 'https://api.tddium.com' to activate your account for the first time."
+      USE_ACTIVATE = "Visit 'https://ci.solanolabs.com' to activate your account for the first time."
       INVALID_CREDENTIALS = "Your .tddium file has an invalid API key.\nRun `tddium logout` and `tddium login`, and then try again."
       MISSING_ACCOUNT_OPTION = "You must specify an organization by passing the --org option."
       MISSING_ACCOUNT = "You must specify an organization."

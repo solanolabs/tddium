@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012, 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 module Tddium
   class TddiumCli < Thor
@@ -8,7 +8,7 @@ module Tddium
     method_option :ssh_key_file, :type => :string, :default => nil
     def activate
       say "To activate your account, please visit"
-      say "https://api.tddium.com/"
+      say "https://ci.solanolabs.com/"
     end
   end
 end

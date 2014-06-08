@@ -7,23 +7,23 @@ Gem::Specification.new do |s|
   s.version     = Tddium::VERSION
   s.platform    = (RUBY_PLATFORM == 'java' ? RUBY_PLATFORM : Gem::Platform::RUBY)
   s.authors     = ["Solano Labs"]
-  s.email       = ["info@tddium.com"]
+  s.email       = ["info@solanolabs.com"]
   s.homepage    = "https://github.com/solanolabs/tddium.git"
-  s.summary     = "Run tests in tddium Hosted Test Environment"
+  s.summary     = "Run tests in Solano CI Hosted Test Environment"
   s.license     = "MIT"
   s.description = <<-EOF
-tddium runs your test suite simply and quickly in our managed
+Solano CI runs your test suite simply and quickly in our managed
 cloud environment.  You can run tests by hand, or enable our hosted CI to watch
 your git repos automatically.
 
-Tddium automatically and safely parallelizes your tests to save you time, and
+Solano CI automatically and safely parallelizes your tests to save you time, and
 takes care of setting up fresh isolated DB instances for each test thread.
 
 Tests have access to a wide variety of databases (postgres, mongo, redis,
 mysql, memcache), solr, sphinx, selenium/webdriver browsers, webkit and culerity.
 
-Tddium supports all common Ruby test frameworks, including rspec, cucumber,
-test::unit, and spinach.  Tddium also supports Javascript testing using
+Solano CI supports all common Ruby test frameworks, including rspec, cucumber,
+test::unit, and spinach.  Solano CI also supports Javascript testing using
 jasmine, evergreen, and many other frameworks.
 EOF
 

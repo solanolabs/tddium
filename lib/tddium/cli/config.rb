@@ -156,7 +156,7 @@ module Tddium
     end
 
     def tddium_file_name(scope=:repo, kind='', root=nil)
-      ext = @host == 'api.tddium.com' ? '' : ".#{@host}"
+      ext = (@host == 'api.tddium.com' || @host == 'ci.solanolabs.com') ? '' : ".#{@host}"
 
       case scope
       when :repo

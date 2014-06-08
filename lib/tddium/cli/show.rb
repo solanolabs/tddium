@@ -56,7 +56,7 @@ module Tddium
       path = File.expand_path(File.join(dir, "identity.tddium.*"))
 
       Dir[path].reject{|fn| fn =~ /.pub$/}.each do |fn|
-        say Text::Process::SSH_CONFIG % {:scm_host=>"git.tddium.com", :file=>fn}
+        say Text::Process::SSH_CONFIG % {:scm_host=>"git.solanolabs.com", :file=>fn}
       end
     end
 
