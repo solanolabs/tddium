@@ -273,6 +273,12 @@ module Tddium
       end
     end
 
+    def get_test_exec(session_id, exec_id)
+      path = "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::TEST_EXECUTIONS}/#{exec_id}"
+      puts path
+      call_api(:get, path)["test"]
+    end
+
     def create_session(suite_id, params = {})
       new_session = call_api(:post, Api::Path::SESSIONS, params.merge(:suite_id=>suite_id))
       new_session['session']

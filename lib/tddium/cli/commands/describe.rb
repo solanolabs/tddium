@@ -7,10 +7,11 @@ module Tddium
     is provided; otherwise, the latest session on current branch."
     method_option :account, :type => :string, :default => nil,
       :aliases => %w(--org --organization)
-    method_option :all, :type=>:boolean, :default=>false
-    method_option :type, :type=>:string, :default=>nil
-    method_option :json, :type=>:boolean, :default=>false
-    method_option :names, :type=>:boolean, :default=>false
+    method_option :all, :type=>:boolean, :default=>false, :desc=>"Show all results, not just failures"
+    method_option :type, :type=>:string, :default=>nil, :desc=>"Restrict by result type"
+    method_option :json, :type=>:boolean, :default=>false, :desc=>"Format output as JSON"
+    method_option :names, :type=>:boolean, :default=>false, :desc=>"Print result names only, space-separated"
+    method_option :output, :type=>:string, :lazy_default=>:unspecified, :desc=>"Include raw test output, name filtered"
     def describe(session_id=nil)
       tddium_setup({:repo => false})
 
@@ -70,8 +71,27 @@ module Tddium
         filtered = filtered.select{|x| x['test_type'].downcase == options[:type].downcase}
       end
 
+      if options[:output] && !options[:json]
+        exit_failure Text::Error::DESCRIBE_OUTPUT_MUST_BE_JSON
+      end
+
+      tests_with_full_output = filtered.select{ |x| options[:output] == :unspecified || x['test_name'] =~ /#{options[:output]}/ }.map{|x| x["id"]}
+
+      if tests_with_full_output.size > Default::MAX_OUTPUT_SIZE
+        exit_failure Text::Error::DESCRIBE_OUTPUT_TOO_MANY_TESTS
+      end
+
       if options[:json]
-        puts JSON.pretty_generate(result['session'])
+        output_annotated = filtered.map do |x|
+          if tests_with_full_output.include?(x["id"])
+            x["output"] = @tddium_api.get_test_exec(session_id, x["id"])["result"]
+            x
+          else
+            x
+          end
+        end
+        result["session"]["tests"] = output_annotated
+        puts JSON.pretty_generate(result["session"])
       elsif options[:names]
         say filtered.map{|x| x['test_name']}.join(" ")
       else
@@ -80,15 +100,16 @@ module Tddium
         say Text::Process::DESCRIBE_SESSION % [session_id, status_message, options[:all] ? 'all' : 'failed']
 
         table = 
-          [["Test", "Status", "Duration"],
-           ["----", "------", "--------"]] +
+          [["Test", "Status", "Duration", "ID"],
+           ["----", "------", "--------", "-----------"]] +
           filtered.map do |x|
           [
             x['test_name'],
             x['status'],
-            x['elapsed_time'] ? "#{x['elapsed_time']}s" : "-"
+            x['elapsed_time'] ? "#{x['elapsed_time']}s" : "-",
+            x['id']
           ]
-        end
+          end
         print_table table
       end
     end
