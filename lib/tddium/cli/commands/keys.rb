@@ -23,6 +23,8 @@ module Tddium
     define_method "keys:add" do |name, path|
       tddium_setup({:scm => false})
 
+      path = File.expand_path(path)
+
       output_dir = options[:dir] || ENV['TDDIUM_GEM_KEY_DIR']
       output_dir ||= Default::SSH_OUTPUT_DIR
 
