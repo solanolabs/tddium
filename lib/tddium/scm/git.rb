@@ -178,7 +178,7 @@ module Tddium
         end
         version_parts = version.split(".")
         if version_parts[0].to_i < 1 ||
-           version_parts[1].to_i < 7 then
+           (version_parts[1].to_i == 1 && version_parts[1].to_i < 7) then
           warn(Text::Warning::GIT_VERSION % version)
         end
       end
