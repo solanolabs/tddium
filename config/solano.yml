@@ -1,0 +1,5 @@
+ruby_version: 'ruby-1.9.3-p545'
+bundler_version: 1.3.5
+test_pattern:
+  - features/*.feature
+  - spec/**_spec.rb

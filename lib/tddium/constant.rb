@@ -25,10 +25,13 @@ module TddiumConstant
     REMOTE_NAME = "tddium"
     HG_IGNORE = ".hgignore"
     GIT_IGNORE = ".gitignore"
-    CONFIG_PATHS = ["tddium.yml",
-                    "config/tddium.yml",
-                    "config/tddium.cfg",
-                    ]
+    CONFIG_PATHS = ["solano.yml",
+                    "config/solano.yml"
+                   ]
+    CONFIG_PATHS_DEPRECATED = ["tddium.yml",
+                               "config/tddium.yml",
+                               "config/tddium.cfg"
+                              ]
     EMBEDDED_SCRIPT_PATH = File.expand_path(File.join("..", "script"), __FILE__)
   end
 
@@ -99,7 +102,7 @@ EOF
       SCM_CHANGES_NOT_COMMITTED = "There are uncommitted changes in the local repository"
       SCM_UNABLE_TO_DETECT = "Unable to detect uncommitted changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
-      TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of tddium.yml must be a list of configurations"
+      TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of solano.yml must be a list of configurations"
     end
 
     module Process
@@ -156,7 +159,7 @@ EOF
 >>> Solano CI selects tests to run by default (e.g., in CI) by matching against a
     list of Ruby glob patterns.  Use "," to join multiple globs.
 
-    You can instead specify a list of test patterns in config/tddium.yml.
+    You can instead specify a list of test patterns in config/solano.yml.
 
     Read more here: https://docs.solanolabs.com/
 
@@ -479,6 +482,9 @@ EOF
       CANT_INVOKE_COMMAND =<<EOF
 ERROR: could not invoke tddium command
 Usage: "tddium COMMAND [ARGS] [OPTIONS]". For available commands, run "tddium help".
+EOF
+      CONFIG_PATHS_COLLISION =<<EOF
+You have both solano.yml and tddium.yml in your repo. We don't support merging the configuration from both of these files, so you'll have to pick one. The tddium.yml file will soon be deprecated, so we recommend migrating all of your configuration to solano.yml.
 EOF
     end
   end

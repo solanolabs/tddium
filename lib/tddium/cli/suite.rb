@@ -77,7 +77,7 @@ module Tddium
       false
     end
 
-    # Update the suite parameters from tddium.yml
+    # Update the suite parameters from solano.yml
     def update_suite_parameters!(current_suite, session_id=nil)
       update_params = {}
 
@@ -104,12 +104,12 @@ module Tddium
         update_params[:ruby_version] = ruby_version
       end
 
-      bundler_version = @repo_config[:bundler_version]
+      bundler_version = @repo_config["bundler_version"]
       if bundler_version && bundler_version != current_suite["bundler_version"] then
         update_params[:bundler_version] = bundler_version
       end
 
-      test_configs = @repo_config[:tests] || []
+      test_configs = @repo_config["tests"] || []
       if test_configs != (current_suite['test_configs'] || []) then
         if test_configs != 'disable' && !test_configs.is_a?(Array) then
           warn(Text::Warning::TEST_CONFIGS_MUST_BE_LIST)
@@ -118,25 +118,25 @@ module Tddium
         update_params[:test_configs] = test_configs
       end
 
-      php_config = @repo_config[:php] || {}
+      php_config = @repo_config["php"] || {}
       current_php_config = current_suite['php_config'] || {}
       if php_config != (current_suite['php_config'] || {}) then
         update_params[:php] = php_config
       end
 
-      python_config = @repo_config[:python] || {}
+      python_config = @repo_config["python"] || {}
       current_python_config = current_suite['python_config'] || {}
       if python_config != (current_suite['python_config'] || {}) then
         update_params[:python] = python_config
       end
 
-      golang_config = @repo_config[:golang] || {}
+      golang_config = @repo_config["golang"] || {}
       current_golang_config = current_suite['golang_config'] || {}
       if golang_config != (current_suite['golang_config'] || {}) then
         update_params[:golang] = golang_config
       end
 
-      java_config = @repo_config[:java] || {}
+      java_config = @repo_config["java"] || {}
       current_java_config = current_suite['java_config'] || {}
       if java_config != (current_suite['java_config'] || {}) then
         update_params[:java] = java_config

@@ -279,13 +279,13 @@ module Tddium
     end
 
     def cache_control_config
-      @repo_config['cache'] || @repo_config[:cache] || {}
+      @repo_config['cache'] || {}
     end
 
     def read_and_encode_cache_control
       cache_key_paths = cache_control_config['key_paths'] || cache_control_config[:key_paths] 
       cache_key_paths ||= ["Gemfile", "Gemfile.lock", "requirements.txt", "packages.json", "package.json"]
-      cache_key_paths.reject!{|x| x =~ /tddium.yml$/}
+      cache_key_paths.reject!{|x| x =~ /(solano|tddium).yml$/}
       cache_control_data = {}
       cache_key_paths.each do |p|
         if File.exists?(p)

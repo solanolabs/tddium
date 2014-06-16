@@ -20,7 +20,7 @@ describe "Agent" do
   end
 
   it "should initialize" do
-    lambda { agent = Tddium::BuildAgent.new }.should_not raise_error
+    expect { agent = Tddium::BuildAgent.new }.to_not raise_error
   end
 
   it "should know whether we are running inside Tddium or not" do
@@ -28,10 +28,10 @@ describe "Agent" do
       env = env_save
 
       ENV['TDDIUM'] = '1'
-      @agent.tddium?.should be_true
+      expect(@agent.tddium?).to be true
 
       ENV.delete('TDDIUM')
-      @agent.tddium?.should be_false
+      expect(@agent.tddium?).to be false
     ensure
       env_restore(env)
     end
@@ -47,7 +47,7 @@ describe "Agent" do
         env = env_save
         ENV['TDDIUM'] = '1'
         ENV[var] = val.to_s
-        @agent.send(method).should == val
+        expect(@agent.send(method)).to eq val
       ensure
         env_restore(env)
       end
@@ -59,7 +59,7 @@ describe "Agent" do
       begin
         env = env_save
         ENV['TDDIUM_MODE'] = val
-        @agent.environment.should == result
+        expect(@agent.environment).to eq result
       ensure
         env_restore(env)
       end
@@ -70,7 +70,7 @@ describe "Agent" do
     max = Tddium::BuildAgent::MAXIMUM_ATTACHMENT_SIZE
 
     blob = 'A'*(max+1)
-    lambda { @agent.attach(blob, {}) }.should raise_error(Tddium::TddiumError)
+    expect { @agent.attach(blob, {}) }.to raise_error(Tddium::TddiumError)
   end
 
   it "should attach a named blob" do
@@ -79,9 +79,9 @@ describe "Agent" do
     guid = "01234567"
     metadata = {:name => "user.#{guid}.dat"}
 
-    SecureRandom.should_receive(:hex).once.and_return(guid)
+    expect(SecureRandom).to receive(:hex).once.and_return(guid)
 
-    @agent.should_receive(:attach_file).with(anything(), metadata).and_return(nil)
+    expect(@agent).to receive(:attach_file).with(anything(), metadata).and_return(nil)
     @agent.attach(blob, metadata)
   end
 
@@ -91,9 +91,9 @@ describe "Agent" do
     guid = "01234567"
     metadata = {:name => "user.#{guid}.dat"}
 
-    SecureRandom.should_receive(:hex).twice.and_return(guid)
+    expect(SecureRandom).to receive(:hex).twice.and_return(guid)
 
-    @agent.should_receive(:attach_file).with(anything(), metadata).and_return(nil)
+    expect(@agent).to receive(:attach_file).with(anything(), metadata).and_return(nil)
     @agent.attach(blob, {})
   end
 
@@ -108,7 +108,7 @@ describe "Agent" do
 
       attach_path = @agent.send(:attachment_path, 'user.dat', @exec_id)
 
-      FileUtils.should_receive(:cp).with(path, attach_path)
+      expect(FileUtils).to receive(:cp).with(path, attach_path)
 
       @agent.attach_file(path, {:exec_id => @exec_id})
 
