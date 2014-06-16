@@ -103,14 +103,14 @@ module Tddium
     end
 
     def configured_test_pattern
-      pattern = @repo_config[:test_pattern]
+      pattern = @repo_config["test_pattern"]
 
       return nil if pattern.nil? || pattern.empty?
       return pattern
     end
 
     def configured_test_exclude_pattern
-      pattern = @repo_config[:test_exclude_pattern]
+      pattern = @repo_config["test_exclude_pattern"]
 
       return nil if pattern.nil? || pattern.empty?
       return pattern

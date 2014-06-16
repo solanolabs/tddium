@@ -215,14 +215,14 @@ Feature: spec command
       %%%% TDDIUM CI DATA END %%%%
       """
 
-  Scenario: Update suite settings from tddium.yml
+  Scenario Outline: Update suite settings from repo config file
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
-    And a file named "config/tddium.yml" with:
+    And a file named "config/<file name>" with:
     """
     ---
-    :tddium:
+    <root section>
       :test_pattern:
         - spec/foo_spec.rb
         - features/blah.feature
@@ -235,15 +235,20 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should be 0
     And the output should contain "Updated test pattern"
-    
-  Scenario: Fail to update suite settings from tddium.yml
+    Examples:
+      | file name  | root section |
+      | tddium.yml | :tddium:     |
+      | tddium.cfg | :tddium:     |
+      | solano.yml |              |
+
+  Scenario Outline: Fail to update suite settings from repo config file
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
-    And a file named "config/tddium.yml" with:
+    And a file named "config/<file name>" with:
     """
     ---
-    :tddium:
+    <root section>
       :test_pattern:
         - spec/foo_spec.rb
     """
@@ -255,15 +260,20 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should be 1
     And the output should not contain "Updated test pattern"
+    Examples:
+      | file name  | root section |
+      | tddium.yml | :tddium:     |
+      | tddium.cfg | :tddium:     |
+      | solano.yml |              |
     
-  Scenario: Update ruby version from tddium.yml
+  Scenario Outline: Update ruby version from repo config file
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
-    And a file named "config/tddium.yml" with:
+    And a file named "config/<file name>" with:
     """
     ---
-    :tddium:
+    <root section>
       :ruby_version: ruby-1.9.3-p0
     """
     And the user can update the suite's ruby_version to "ruby-1.9.3-p0"
@@ -274,4 +284,8 @@ Feature: spec command
     When I run `tddium spec`
     Then the exit status should be 0
     And the output should contain "Updated ruby version"
-    
+    Examples:
+      | file name  | root section |
+      | tddium.yml | :tddium:     |
+      | tddium.cfg | :tddium:     |
+      | solano.yml |              |

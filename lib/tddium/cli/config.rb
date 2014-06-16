@@ -1,8 +1,22 @@
 # Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
+module ConfigHelper
+  def hash_stringify_keys(h)
+    case h
+    when Hash
+      Hash[ h.map { |k, v| [ k.to_s, hash_stringify_keys(v) ] } ]
+    when Enumerable
+      h.map { |v| hash_stringify_keys(v) }
+    else
+      h
+    end
+  end
+end
+
 module Tddium
   class RepoConfig
     include TddiumConstant
+    include ConfigHelper
 
     def initialize
       @scm = Tddium::SCM.configure
@@ -10,7 +24,7 @@ module Tddium
     end
 
     def [](key)
-      return @config[key.to_sym] || @config[key.to_s]
+      return @config[key.to_s]
     end
 
     def config_filename
@@ -21,8 +35,14 @@ module Tddium
       config = nil
 
       root = @scm.root
-      cfgfile_list = Config::CONFIG_PATHS.map { |fn| [File.join(root, fn), fn] }
-      cfgfile_pair = cfgfile_list.select { |p| File.exists?(p.first) }.first
+      cfgfile_pair = pick_config_pair(root, Config::CONFIG_PATHS)
+      cfgfile_pair_depr = pick_config_pair(root, Config::CONFIG_PATHS_DEPRECATED)
+
+      if cfgfile_pair && cfgfile_pair_depr then
+        abort Text::Error::CONFIG_PATHS_COLLISION % [cfgfile_pair, cfgfile_pair_depr]
+      end
+
+      cfgfile_pair = cfgfile_pair_depr if cfgfile_pair.nil?
 
       if cfgfile_pair && cfgfile_pair.first then
         cfgfile = cfgfile_pair.first
@@ -31,7 +51,8 @@ module Tddium
           rawconfig = File.read(cfgfile)
           if rawconfig && rawconfig !~ /\A\s*\z/ then
             config = YAML.load(rawconfig)
-            config = config[:tddium] || config['tddium'] || Hash.new
+            config = hash_stringify_keys(config)
+            config = config['tddium'] || config
           end
         rescue Exception => e
           warn(Text::Warning::YAML_PARSE_FAILED % cfgfile)
@@ -40,6 +61,13 @@ module Tddium
 
       config ||= Hash.new
       return config
+    end
+
+    private
+
+    def pick_config_pair(root, config_paths)
+      files = config_paths.map { |fn| [ File.join(root, fn), fn ] }
+      files.select { |p| File.exists?(p.first) }.first
     end
   end
 
