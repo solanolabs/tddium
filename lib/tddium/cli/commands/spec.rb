@@ -13,6 +13,7 @@ module Tddium
     method_option :user_data_file, :type => :string, :default => nil
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :test_pattern, :type => :string, :default => nil
+    method_option :test_exclude_pattern, :type => :string, :default => nil
     method_option :force, :type => :boolean, :default => false
     method_option :quiet, :type => :boolean, :default => false
     method_option :machine, :type => :boolean, :default => false
@@ -64,6 +65,11 @@ module Tddium
         say Text::Process::USING_SPEC_OPTION[:test_pattern] % test_pattern
       end
 
+      test_exclude_pattern ||= options[:test_exclude_pattern]
+      if test_exclude_pattern then
+        say Text::Process::USING_SPEC_OPTION[:test_exclude_pattern] % test_exclude_pattern
+      end
+
       tries = 0
       while tries < Default::SCM_READY_TRIES do
         # Call the API to get the suite and its tests
@@ -111,7 +117,7 @@ module Tddium
       machine_data[:session_id] = session_id
 
       # Register the tests
-      @tddium_api.register_session(session_id, @tddium_api.current_suite_id, test_pattern)
+      @tddium_api.register_session(session_id, @tddium_api.current_suite_id, test_pattern, test_exclude_pattern)
 
       # Start the tests
       start_test_executions = @tddium_api.start_session(session_id, test_execution_params)

@@ -283,8 +283,13 @@ module Tddium
       result['session']
     end
 
-    def register_session(session_id, suite_id, test_pattern)
-      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", {:suite_id => suite_id, :test_pattern => test_pattern})
+    def register_session(session_id, suite_id, test_pattern, test_exclude_pattern=nil)
+      args = {:suite_id => suite_id, :test_pattern => test_pattern}
+      if test_exclude_pattern
+        args[:test_exclude_pattern] = test_exclude_pattern
+      end
+
+      call_api(:post, "#{Api::Path::SESSIONS}/#{session_id}/#{Api::Path::REGISTER_TEST_EXECUTIONS}", args)
     end
 
     def start_session(session_id, params)

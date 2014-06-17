@@ -193,10 +193,12 @@ $ tddium run
       LOGGED_OUT_SUCCESSFULLY = "Logged out successfully"
       USING_SPEC_OPTION = {:max_parallelism => "Max number of tests in parallel = %s",
                            :user_data_file => "Sending user data from %s",
-                           :test_pattern => "Selecting tests that match '%s'"}
+                           :test_pattern => "Selecting tests that match '%s'",
+                           :test_exclude_pattern => "Excluding tests that match '%s'"}
       REMEMBERED = " (Remembered value)"
       UPDATED_SUITE = "Updated suite successfully."
       UPDATED_TEST_PATTERN = "Updated test pattern to '%s'"
+      UPDATED_TEST_EXCLUDE_PATTERN = "Updated test exclude pattern to '%s'"
       UPDATED_RUBY_VERSION = "Updated ruby version to '%s'"
       UPDATED_BUNDLER_VERSION = "Updated bundler version to '%s'"
       UPDATED_PYTHON_CONFIG = "Updated Python configuration:\n%s"

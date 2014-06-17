@@ -91,6 +91,14 @@ module Tddium
         update_params[:test_pattern] = pattern
       end
 
+      exclude_pattern = configured_test_exclude_pattern
+      if exclude_pattern.is_a?(Array)
+        exclude_pattern = exclude_pattern.join(",")
+      end
+      if exclude_pattern && current_suite["test_exclude_pattern"] != exclude_pattern then
+        update_params[:test_exclude_pattern] = exclude_pattern
+      end
+
       ruby_version = sniff_ruby_version
       if ruby_version && ruby_version != current_suite["ruby_version"] then
         update_params[:ruby_version] = ruby_version
@@ -138,6 +146,9 @@ module Tddium
         @tddium_api.update_suite(@tddium_api.current_suite_id, update_params)
         if update_params[:test_pattern]
           say Text::Process::UPDATED_TEST_PATTERN % pattern
+        end
+        if update_params[:test_exclude_pattern]
+          say Text::Process::UPDATED_TEST_EXCLUDE_PATTERN % test_exclude_pattern
         end
         if update_params[:ruby_version]
           say Text::Process::UPDATED_RUBY_VERSION % ruby_version

@@ -107,6 +107,13 @@ module Tddium
       return pattern
     end
 
+    def configured_test_exclude_pattern
+      pattern = @repo_config[:test_exclude_pattern]
+
+      return nil if pattern.nil? || pattern.empty?
+      return pattern
+    end
+
     def tddium_setup(params={})
       params[:scm] = !params.member?(:scm) || params[:scm] == true
       params[:login] = true unless params.member?(:login)
