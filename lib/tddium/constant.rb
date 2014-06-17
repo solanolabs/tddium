@@ -214,6 +214,15 @@ $ tddium run
     1. Edit %s
     2. Run `tddium suite --edit` again.
 EOF
+      CONFIGURED_EXCLUDE_PATTERN =<<EOF;
+... Configured test exclude pattern from %s:
+
+%s
+
+>>> To change the pattern:
+    1. Edit %s
+    2. Run `tddium suite --edit` again.
+EOF
       DETECTED_BRANCH = "... Detected branch %s"
       SETUP_CI=<<EOF;
 

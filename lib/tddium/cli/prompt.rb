@@ -107,6 +107,16 @@ module Tddium
         ask_or_update.call(:test_pattern, Text::Prompt::TEST_PATTERN, Default::SUITE_TEST_PATTERN)
       end
 
+      exclude_pattern = configured_test_exclude_pattern
+      cfn = @repo_config.config_filename
+
+      if exclude_pattern.is_a?(Array)
+        say Text::Process::CONFIGURED_EXCLUDE_PATTERN % [cfn, exclude_pattern.map{|p| " - #{p}"}.join("\n"), cfn]
+        params[:test_exclude_pattern] = exclude_pattern.join(",")
+      elsif exclude_pattern
+        exit_failure Text::Error::INVALID_CONFIGURED_PATTERN % [cfn, cfn, exclude_pattern.inspect, cfn]
+      end
+
       unless options[:non_interactive]
         say(Text::Process::SETUP_CI)
       end
