@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.19.7 - Revert 1.19.6 - just handle older thor. Fix some exclude_pattern bugs
 - v1.19.6 - Specify thor version in gemspec
 - v1.19.5 - Add test_exclude_pattern support
 - v1.19.4 - Allow Git 2.0
