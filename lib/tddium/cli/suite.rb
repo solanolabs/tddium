@@ -148,7 +148,7 @@ module Tddium
           say Text::Process::UPDATED_TEST_PATTERN % pattern
         end
         if update_params[:test_exclude_pattern]
-          say Text::Process::UPDATED_TEST_EXCLUDE_PATTERN % test_exclude_pattern
+          say Text::Process::UPDATED_TEST_EXCLUDE_PATTERN % exclude_pattern
         end
         if update_params[:ruby_version]
           say Text::Process::UPDATED_RUBY_VERSION % ruby_version
