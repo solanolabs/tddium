@@ -1,4 +1,4 @@
-= solano
+= tddium
 
 Solano CI is a hosted continuous deployment platform that runs your build and test
 suites in the cloud, in parallel.  Your tests run isolated in freshly prepared
