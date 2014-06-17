@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    tddium (1.19.5)
+    tddium (1.19.6)
       github_api
       highline
       json
       launchy
       nayutaya-msgpack-pure (~> 0.0.2)
       tddium_client (~> 0.4.2)
-      thor
+      thor (= 0.19.1)
 
 GEM
   remote: http://rubygems.org/

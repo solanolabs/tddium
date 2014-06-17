@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.19.6 - Specify thor version in gemspec
 - v1.19.5 - Add test_exclude_pattern support
 - v1.19.4 - Allow Git 2.0
 - v1.19.3 - Transition from Tddium to Solano CI

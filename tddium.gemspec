@@ -30,7 +30,7 @@ EOF
   s.files         = `git ls-files lib bin`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 
-  s.add_runtime_dependency("thor")
+  s.add_runtime_dependency("thor", "0.19.1")
   s.add_runtime_dependency("highline")
   s.add_runtime_dependency("json")
   s.add_runtime_dependency("launchy")
