@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (1.19.7)
+    tddium (1.19.8)
       github_api
       highline
       json
