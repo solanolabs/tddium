@@ -8,8 +8,10 @@ module Tddium
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :no_op, :type=>:boolean, :default => false, :aliases => ["-n"]
     method_option :force, :type=>:boolean, :default => false
-    def rerun(session_id)
+    def rerun(session_id=nil)
       tddium_setup({:repo => false})
+
+      session_id ||= session_id_for_current_suite
 
       result = @tddium_api.query_session(session_id)
       tests = result['session']['tests']
@@ -24,6 +26,19 @@ module Tddium
 
       say cmd
       Kernel.exec(cmd) if !options[:no_op]
+    end
+
+    private
+
+    def session_id_for_current_suite
+      return unless suite_for_current_branch?
+      suite_params = {
+        :suite_id => @tddium_api.current_suite_id,
+        :active => false,
+        :limit => 1
+      }
+      session = @tddium_api.get_sessions(suite_params)
+      session[0]["id"]
     end
   end
 end
