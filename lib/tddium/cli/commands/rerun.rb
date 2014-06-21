@@ -8,6 +8,7 @@ module Tddium
     method_option :max_parallelism, :type => :numeric, :default => nil
     method_option :no_op, :type=>:boolean, :default => false, :aliases => ["-n"]
     method_option :force, :type=>:boolean, :default => false
+    method_option :local, :type=>:boolean, :default => false
     def rerun(session_id)
       tddium_setup({:repo => false})
 
@@ -16,11 +17,15 @@ module Tddium
       tests = tests.select{ |t| ['failed', 'error'].include?(t['status']) }
       tests = tests.map{ |t| t['test_name'] }
 
-      cmd = "tddium run"
-      cmd += " --max-parallelism=#{options[:max_parallelism]}" if options[:max_parallelism]
-      cmd += " --org=#{options[:account]}" if options[:account]
-      cmd += " --force" if options[:force]
-      cmd += " #{tests.join(" ")}"
+      if options[:local]
+        cmd = "ruby -rbundler/setup #{tests.map { |t| "-r./#{t}" }.join(" ")} -e ''"
+      else
+        cmd = "tddium run"
+        cmd += " --max-parallelism=#{options[:max_parallelism]}" if options[:max_parallelism]
+        cmd += " --org=#{options[:account]}" if options[:account]
+        cmd += " --force" if options[:force]
+        cmd += " #{tests.join(" ")}"
+      end
 
       say cmd
       Kernel.exec(cmd) if !options[:no_op]

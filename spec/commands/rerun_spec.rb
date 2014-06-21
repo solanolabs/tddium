@@ -17,5 +17,13 @@ describe Tddium::TddiumCli do
 
       subject.rerun(session_id)
     end
+
+    it "should produce a local command line from an old session's results" do
+      tddium_api.should_receive(:query_session).with(session_id).and_return(query_session_result)
+      Kernel.should_receive(:exec).with("ruby -rbundler/setup -r./foo.rb -e ''")
+
+      subject.stub(:options => {:local => true})
+      subject.rerun(session_id)
+    end
   end
 end
