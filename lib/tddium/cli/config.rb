@@ -52,7 +52,7 @@ module Tddium
           if rawconfig && rawconfig !~ /\A\s*\z/ then
             config = YAML.load(rawconfig)
             config = hash_stringify_keys(config)
-            config = config['tddium'] || config
+            config = config['solano'] || config['tddium'] || config
           end
         rescue Exception => e
           warn(Text::Warning::YAML_PARSE_FAILED % cfgfile)

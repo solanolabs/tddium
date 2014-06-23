@@ -239,6 +239,34 @@ Feature: spec command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
+      | solano.yml |              |
+
+  Scenario Outline: Update suite settings from repo config file with string values
+    Given the destination repo exists
+    And a git repo is initialized
+    And the user is logged in with a configured suite
+    And a file named "config/<file name>" with:
+    """
+    ---
+    <root section>
+      test_pattern:
+        - spec/foo_spec.rb
+        - features/blah.feature
+    """
+    And the user can update the suite's test_pattern to "spec/foo_spec.rb,features/blah.feature"
+    And the user can create a session
+    And the user successfully registers tests for the suite
+    And the tests start successfully
+    And the test all pass with messages
+    When I run `tddium spec`
+    Then the exit status should be 0
+    And the output should contain "Updated test pattern"
+    Examples:
+      | file name  | root section |
+      | tddium.yml | tddium:      |
+      | tddium.cfg | tddium:      |
+      | solano.yml | solano:      |
       | solano.yml |              |
 
   Scenario Outline: Fail to update suite settings from repo config file
@@ -264,6 +292,7 @@ Feature: spec command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
     
   Scenario Outline: Update ruby version from repo config file
@@ -288,4 +317,5 @@ Feature: spec command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |

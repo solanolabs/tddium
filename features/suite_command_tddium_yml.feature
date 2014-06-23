@@ -27,6 +27,7 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
 
   Scenario Outline: Configure new suite with bundler from repo config file
@@ -47,6 +48,7 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
 
   Scenario Outline: Configure new suite with repo config file without matching key
@@ -109,6 +111,7 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
 
   Scenario Outline: Configure new suite with test pattern from repo config file
@@ -141,6 +144,7 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
 
   Scenario Outline: Configure new suite with test exclude pattern from repo config file
@@ -180,6 +184,47 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
+      | solano.yml |              |
+
+  Scenario Outline: Configure new suite with test exclude pattern and string values in repo config file
+    Given the user is logged in, and can successfully create a new suite in a git repo
+    And a file named "config/<file name>" with:
+    """
+    ---
+    <root section>
+      test_pattern:
+        - spec/controllers/**_spec.rb
+        - features/api/**.feature
+        - test/unit/**_test.rb
+      test_exclude_pattern:
+        - test/unit/skip_test.rb
+    """
+    When I run `tddium suite` interactively
+    Then "tddium suite" output should contain "Looks like"
+    Then "tddium suite" output should contain "Detected branch test/foobar"
+    And "tddium suite" output should contain "Detected ruby"
+    And "tddium suite" output should contain "Configured test pattern from config/<file name>:"
+    And "tddium suite" output should contain "Configured test exclude pattern from config/<file name>:"
+    And "tddium suite" output should contain:
+    """
+     - spec/controllers/**_spec.rb
+     - features/api/**.feature
+     - test/unit/**_test.rb
+    """
+    And "tddium suite" output should contain:
+    """
+     - test/unit/skip_test.rb
+    """
+    When I choose defaults for CI settings
+    Then "tddium suite" output should contain "Created suite"
+    When the console session ends
+    Then the exit status should be 0
+    Examples:
+      | file name  | root section |
+      | tddium.yml | tddium:      |
+      | tddium.cfg | tddium:      |
+      | solano.yml | solano:      |
       | solano.yml |              |
 
   Scenario Outline: Exit with error if repo config file contains the wrong type
@@ -201,6 +246,7 @@ Feature: suite command
       | file name  | root section |
       | tddium.yml | :tddium:     |
       | tddium.cfg | :tddium:     |
+      | solano.yml | :solano:     |
       | solano.yml |              |
 
   Scenario: Exit with error if tddium.yml and solano.yml concurrently exist

@@ -1,7 +1,7 @@
 
 Given /^the destination repo exists$/ do
   result = system("mkdir -p #{current_dir} && cd #{current_dir} && mkdir -p repo && cd repo && git init --bare")
-  result.should be_true
+  expect(result).to be true
 end
 
 Given /^an old version of git is installed$/ do
@@ -31,7 +31,7 @@ Given /^a git repo is initialized(?: on branch "([^"]*)")?$/ do |branch|
   if branch && branch != 'master'
     cmd << "git checkout -b #{branch}"
   end
-  system(cmd.join(" && ")).should be_true
+  expect(system(cmd.join(" && "))).to be true
   step %{I cd to "work"}
 end
 
