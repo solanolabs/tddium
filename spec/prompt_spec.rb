@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Solano Labs All Rights Reserved
+# Copyright (c) 2013, 2014 Solano Labs All Rights Reserved
 
 require 'spec_helper'
 require 'tddium/cli'

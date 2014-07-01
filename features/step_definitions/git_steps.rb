@@ -1,3 +1,4 @@
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 Given /^the destination repo exists$/ do
   result = system("mkdir -p #{current_dir} && cd #{current_dir} && mkdir -p repo && cd repo && git init --bare")

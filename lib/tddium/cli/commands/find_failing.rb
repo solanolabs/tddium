@@ -1,3 +1,5 @@
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
+
 module Tddium
   class TddiumCli < Thor
     desc "find_failing", "Find failing ordering by binary searching a failing test run"

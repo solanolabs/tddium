@@ -1,3 +1,5 @@
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
+
 def empty_config_for_account_2
   Antilles.install(:get, "/1/accounts/#{SAMPLE_ACCOUNT_ID_2}/env",
                    {:status=>0, :env=>{}})

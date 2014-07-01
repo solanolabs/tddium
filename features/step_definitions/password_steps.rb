@@ -1,3 +1,5 @@
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
+
 Given /^the password change succeeds$/ do
   Antilles.install(:put, "/1/users/1/", {:status=>0})
 end

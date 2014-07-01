@@ -1,3 +1,5 @@
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
+
 Given /^the user can create a session$/ do
   Antilles.install(:post, "/1/sessions",
                    {:status=>0, :session=>{"id"=>SAMPLE_SESSION_ID}},

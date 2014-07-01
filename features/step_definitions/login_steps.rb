@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012 Solano Labs All Rights Reserved
+# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 Given /^the user is logged in$/ do
   @api_key = "abcdef"
