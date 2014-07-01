@@ -1,22 +1,26 @@
 = tddium
 
-Solano CI is a hosted continuous deployment platform that runs your build and test
-suites in the cloud, in parallel.  Your tests run isolated in freshly prepared
-workers that are automatically configured with real database and search engine
-instances to match your development and production environments.
+Solano CI is a hosted continuous deployment platform that runs your build
+and test suites in the cloud, in parallel.  Your tests run isolated in
+freshly prepared workers that are automatically configured with real
+database and search engine instances to match your development and
+production environments.
 
-Solano CI also supports parallel test running in our cloud even before you push to
-a shared branch.
+Solano CI also supports parallel test running in our cloud even before
+you push to a shared branch.
 
-The `tddium` gem implements a command line interface for you to start a
-parallel run from your local git workspace, along with ways to edit
-configuration and retrieve your account status all from within your terminal.
+The `tddium` gem implements a command line interface for you to start
+a parallel run from your local git workspace, along with ways to edit
+configuration and retrieve your account status all from within your
+terminal.
 
 == Getting Started
 
 See http://docs.solanolabs.com for more information.
 
+For contributed code, see the extras directory.
+
 == Copyright
 
-Copyright (c) 2011-2014 Solano Labs, Inc. All Rights Reserved. See LICENSE.txt
-for further details.
+Copyright (c) 2011-2014 Solano Labs, Inc. All Rights Reserved. See
+LICENSE.txt for further details.
