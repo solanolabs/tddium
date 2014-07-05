@@ -97,6 +97,7 @@ Feature: spec command
     And the user successfully registers tests for the suite 
     And the tests start successfully
     And the test all pass
+    And the user can indicate repoman demand
     When I run `tddium spec`
     Then the exit status should be 1
     And the output should contain "Creating suite"
@@ -158,6 +159,7 @@ Feature: spec command
     And the user successfully registers tests for the suite
     And the tests start successfully
     And the test all pass
+    And the user can indicate repoman demand
     And the session completes
     When I run `tddium spec --machine`
     Then the exit status should be 0
@@ -180,6 +182,7 @@ Feature: spec command
     And the user successfully registers tests for the suite
     And the tests start successfully
     And the test all pass with messages
+    And the user can indicate repoman demand
     And the session completes
     When I run `tddium spec --machine`
     Then the exit status should be 0
