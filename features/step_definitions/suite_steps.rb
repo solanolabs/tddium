@@ -53,6 +53,10 @@ Given /^the user creates a pending suite for "([^"]*)" on branch "([^"]*)"$/ do 
   Antilles.install(:get, "/1/suites/1", {:status=>0, :suite=>resp})
 end
 
+Given /^the user can indicate repoman demand$/ do
+  Antilles.install(:post, '/1/accounts/1/demand_repoman', {:status=>0})
+end
+
 Given /^there is a problem retrieving suite information$/ do
   Antilles.install(:get, "/1/suites/user_suites", {:status=>1, :explanation=>"Some error"})
 end
