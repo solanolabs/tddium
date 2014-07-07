@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.20.1 - fix find-failing not callable via cli, courtesy of Michael Grosser
 - v1.20.0 - Internal protocol updates to improve repository management
 - v1.19.10 - Support for solano.yml; bash autocomplete courtesy of mgrosser
 - v1.19.9 - Tddium rerun will now discover most recent session if none given
