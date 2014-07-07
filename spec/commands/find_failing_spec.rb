@@ -14,7 +14,7 @@ describe Tddium::TddiumCli do
     end
 
     def run_valid_order
-      subject.find_failing(["a.rb", "b.rb", "c.rb", "c.rb"])
+      subject.find_failing("a.rb", "b.rb", "c.rb", "c.rb")
     end
 
     around do |test|
@@ -32,13 +32,13 @@ describe Tddium::TddiumCli do
 
     it "fails with missing failure" do
       expect {
-        subject.find_failing(["a.rb", "b.rb", "c.rb"])
+        subject.find_failing("a.rb", "b.rb", "c.rb")
       }.to raise_error(SystemExit, /Files have to include the failing file/)
     end
 
     it "fails with to few files" do
       expect {
-        subject.find_failing(["a.rb", "a.rb"])
+        subject.find_failing("a.rb", "a.rb")
       }.to raise_error(SystemExit, /Files have to be more than 2/)
     end
 
@@ -64,7 +64,7 @@ describe Tddium::TddiumCli do
     it "finds the polluter in a bigger set" do
       10.times { |i| write "#{i}.rb", "$a#{i}=1" }
       subject.should_receive(:say).with("Fails when b.rb, c.rb are run together")
-      subject.find_failing(["a.rb", "0.rb", "1.rb", "2.rb", "b.rb", "3.rb", "4.rb", "5.rb", "6.rb", "7.rb", "c.rb", "8.rb", "9.rb", "c.rb"])
+      subject.find_failing("a.rb", "0.rb", "1.rb", "2.rb", "b.rb", "3.rb", "4.rb", "5.rb", "6.rb", "7.rb", "c.rb", "8.rb", "9.rb", "c.rb")
     end
   end
 end

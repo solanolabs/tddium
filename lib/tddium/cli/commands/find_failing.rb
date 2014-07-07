@@ -2,9 +2,9 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "find_failing", "Find failing ordering by binary searching a failing test run"
+    desc "find_failing FILES", "Find failing ordering by binary searching a failing test run"
     desc "find_failing files+ failing_file", "Find out which file causes pollution / makes the failing file fail"
-    def find_failing(files)
+    def find_failing(*files)
       failing = files.pop
       if !files.include?(failing)
         exit_failure "Files have to include the failing file, use the copy helper"
