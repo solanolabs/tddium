@@ -45,10 +45,12 @@ describe Tddium::TddiumCli do
         'Gemfile' => Digest::SHA1.file("Gemfile").to_s,
         'Gemfile.lock' => Digest::SHA1.file("Gemfile.lock").to_s,
       ))
+      repo_config_file_encoded = Base64.encode64(File.read('config/solano.yml'))
       tddium_api.should_receive(:create_session).with(suite_id, 
                                         :commits_encoded => commits_encoded,
                                         :cache_control_encoded => cache_control_encoded,
-                                        :cache_save_paths_encoded => cache_paths_encoded)
+                                        :cache_save_paths_encoded => cache_paths_encoded,
+                                        :raw_config_file => repo_config_file_encoded)
       subject.scm.stub(:latest_commit).and_return(latest_commit)
       subject.spec
     end

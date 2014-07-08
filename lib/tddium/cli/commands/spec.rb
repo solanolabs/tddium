@@ -96,7 +96,8 @@ module Tddium
       new_session_params = {
         :commits_encoded => read_and_encode_latest_commits,
         :cache_control_encoded => read_and_encode_cache_control,
-        :cache_save_paths_encoded => read_and_encode_cache_save_paths
+        :cache_save_paths_encoded => read_and_encode_cache_save_paths,
+        :raw_config_file => read_and_encode_config_file
       }
 
       # Create a session
@@ -301,6 +302,15 @@ module Tddium
     def read_and_encode_cache_save_paths
       cache_save_paths = cache_control_config['save_paths'] || cache_control_config[:save_paths]
       cache_save_paths_encoded = Base64.encode64(MessagePackPure.pack(cache_save_paths))
+    end
+
+    def read_and_encode_config_file
+      fn = @repo_config.config_filename
+      if fn && File.exists?(fn) then
+        Base64.encode64(File.read(fn))
+      else
+        nil
+      end
     end
   end
 end
