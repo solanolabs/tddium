@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.21.0 - Internal protocol improvements for configuration tracking
 - v1.20.1 - fix find-failing not callable via cli, courtesy of Michael Grosser
 - v1.20.0 - Internal protocol updates to improve repository management
 - v1.19.10 - Support for solano.yml; bash autocomplete courtesy of mgrosser
