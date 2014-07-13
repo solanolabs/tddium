@@ -7,7 +7,7 @@ module Tddium
     attr_reader :scm
     attr_reader :user_details
 
-    class_option :host, :type => :string, 
+    class_option :host, :type => :string,
                         :default => ENV['TDDIUM_CLIENT_HOST'] || "ci.solanolabs.com",
                         :desc => "Solano CI app server hostname"
 
@@ -19,7 +19,7 @@ module Tddium
                          :default => ENV['TDDIUM_CLIENT_PROTO'] || "https",
                          :desc => "API Protocol"
 
-    class_option :insecure, :type => :boolean, 
+    class_option :insecure, :type => :boolean,
                             :default => (ENV['TDDIUM_CLIENT_INSECURE'] != nil),
                             :desc => "Don't verify Solano CI app SSL server certificate"
 
@@ -28,11 +28,11 @@ module Tddium
 
       # XXX TODO: read host from .tddium file, allow selecting which .tddium "profile" to use
       cli_opts = options[:insecure] ? { :insecure => true } : {}
-      @tddium_client = TddiumClient::InternalClient.new(options[:host], 
-                                                        options[:port], 
-                                                        options[:proto], 
-                                                        1, 
-                                                        caller_version, 
+      @tddium_client = TddiumClient::InternalClient.new(options[:host],
+                                                        options[:port],
+                                                        options[:proto],
+                                                        1,
+                                                        caller_version,
                                                         cli_opts)
 
       @scm = Tddium::SCM.configure
@@ -53,7 +53,6 @@ module Tddium
     require "tddium/cli/commands/logout"
     require "tddium/cli/commands/password"
     require "tddium/cli/commands/rerun"
-    require "tddium/cli/commands/find_failing"
     require "tddium/cli/commands/spec"
     require "tddium/cli/commands/stop"
     require "tddium/cli/commands/suite"
