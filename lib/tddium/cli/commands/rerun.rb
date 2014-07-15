@@ -13,7 +13,12 @@ module Tddium
 
       session_id ||= session_id_for_current_suite
 
-      result = @tddium_api.query_session(session_id)
+      begin
+        result = @tddium_api.query_session(session_id)
+      rescue TddiumClient::Error::API => e
+        exit_failure Text::Error::NO_SESSION_EXISTS
+      end
+
       tests = result['session']['tests']
       tests = tests.select{ |t| ['failed', 'error'].include?(t['status']) }
       tests = tests.map{ |t| t['test_name'] }

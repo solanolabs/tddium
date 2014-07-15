@@ -465,6 +465,7 @@ git details: #{`git status 2> /dev/null && git status --porcelain 2>&1`}
 git details result: #{ $? }
 >>>>>>>>>>>>> END GIT TRACE   >>>>>>>>>>>>>>>>>>>>>>>>>
 EOF
+      NO_SESSION_EXISTS = "No session exists for the current branch. Use 'tddium run'"
       NO_SUITE_EXISTS = "No suite exists for the branch '%s'. Try running 'tddium suite'"
       TRY_DEFAULT_BRANCH = "Getting suites for default '%s' branch."
       NO_USER_DATA_FILE = "User data file '%s' does not exist"
