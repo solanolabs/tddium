@@ -19,6 +19,8 @@ module TddiumConstant
     SCM_READY_TRIES = 18
     SCM_READY_SLEEP = 10
     TEST_FINISH_TIMEOUT = 15 * 60 # 15 minutes
+
+    PARAMS_PATH = "#{ENV['HOME']}/.tddium"
   end
 
   module Config
@@ -270,6 +272,7 @@ Re-run failures from a session with `tddium rerun <session_id>`.
 Extract details of a session with `tddium describe <session_id>`.
 
 EOF
+      PARAMS_SAVED = 'Params have been successfully saved.'
     end
 
     module Status
@@ -400,6 +403,7 @@ EOF
     end
 
     module Error
+      PARAMS_NOT_SAVED = 'Params have been not saved.'
       KEY_ALREADY_EXISTS = "Aborting. SSH key already exists: %s"
       KEYGEN_FAILED = "Failed to generate new SSH key for '%s'"
       LIST_KEYS_ERROR = "Error listing SSH keys"
