@@ -10,7 +10,7 @@ module Tddium
     method_option :insecure, type: :boolean, default: false
 
     def set_params
-      @api_config.write_params options
+      self.class.write_params options
     end
   end
 end

@@ -3,24 +3,27 @@
 module Tddium
   class TddiumCli < Thor
     include TddiumConstant
-
+    extend ParamsHelper
+    
     attr_reader :scm
     attr_reader :user_details
 
+    params = self.load_params
+
     class_option :host, :type => :string, 
-                        :default => ENV['TDDIUM_CLIENT_HOST'] || "ci.solanolabs.com",
+                        :default => params['host'] || ENV['TDDIUM_CLIENT_HOST'] || "ci.solanolabs.com",
                         :desc => "Solano CI app server hostname"
 
     class_option :port, :type => :numeric,
-                        :default => (ENV['TDDIUM_CLIENT_PORT'].nil? ? nil : ENV['TDDIUM_CLIENT_PORT'].to_i),
+                        :default => params['port'] || (ENV['TDDIUM_CLIENT_PORT'].nil? ? nil : ENV['TDDIUM_CLIENT_PORT'].to_i),
                         :desc => "Solano CI app server port"
 
     class_option :proto, :type => :string,
-                         :default => ENV['TDDIUM_CLIENT_PROTO'] || "https",
+                         :default => params['proto'] || ENV['TDDIUM_CLIENT_PROTO'] || "https",
                          :desc => "API Protocol"
 
     class_option :insecure, :type => :boolean, 
-                            :default => (ENV['TDDIUM_CLIENT_INSECURE'] != nil),
+                            :default => params.key?('insecure') ? params['insecure'] : (ENV['TDDIUM_CLIENT_INSECURE'] != nil),
                             :desc => "Don't verify Solano CI app SSL server certificate"
 
     def initialize(*args)

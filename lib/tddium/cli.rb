@@ -13,6 +13,7 @@ require 'erb'
 require 'github_api'
 
 require 'tddium/script'
+require 'tddium/cli/params'
 require 'tddium/cli/tddium'
 
 require 'tddium/cli/api'
