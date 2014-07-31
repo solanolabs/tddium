@@ -1,3 +1,5 @@
+# Copyright (c) 2014 Solano Labs All Rights Reserved
+
 module ParamsHelper
   include TddiumConstant
   
