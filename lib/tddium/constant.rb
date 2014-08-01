@@ -272,7 +272,8 @@ Re-run failures from a session with `tddium rerun <session_id>`.
 Extract details of a session with `tddium describe <session_id>`.
 
 EOF
-      PARAMS_SAVED = 'Params have been successfully saved.'
+      OPTIONS_SAVED = 'Options have been successfully saved.'
+      NOT_SAVED_OPTIONS = 'You do not have file with options. Run `tddium server:set`.'
     end
 
     module Status
@@ -403,7 +404,7 @@ EOF
     end
 
     module Error
-      PARAMS_NOT_SAVED = 'Params have been not saved.'
+      OPTIONS_NOT_SAVED = 'Options have been not saved.'
       KEY_ALREADY_EXISTS = "Aborting. SSH key already exists: %s"
       KEYGEN_FAILED = "Failed to generate new SSH key for '%s'"
       LIST_KEYS_ERROR = "Error listing SSH keys"
