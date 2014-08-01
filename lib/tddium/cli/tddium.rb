@@ -67,7 +67,7 @@ module Tddium
     require "tddium/cli/commands/web"
     require 'tddium/cli/commands/github'
     require 'tddium/cli/commands/hg'
-    require 'tddium/cli/commands/set_params'
+    require 'tddium/cli/commands/server'
 
     map "-v" => :version
     desc "version", "Print the tddium gem version"
