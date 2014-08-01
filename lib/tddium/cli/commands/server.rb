@@ -8,7 +8,7 @@ module Tddium
       self.class.display
     end
 
-    desc 'server:set HOST [PORT] [PROTO] [INSECURE]', "saves connection info"
+    desc 'server:set --host HOST [--port PORT] [--proto PROTO] [--insecure]', "saves connection info"
 
     method_option :host, type: :string, required: true
     method_option :port, type: :numeric, default: 443
