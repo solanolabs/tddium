@@ -13,8 +13,7 @@ describe 'Params' do
   let(:params) { {host: 'localhost', port: 3000, insecure: false, proto: 'http'} }
 
   it 'should create file to store params' do
-    self.class.write_params params    
-    lala = File.read(self.class::Default::PARAMS_PATH)
+    self.class.write_params params
     Dir.glob(self.class::Default::PARAMS_PATH).length.should eq(1)
   end
 

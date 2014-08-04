@@ -5,7 +5,7 @@ module ParamsHelper
   
   def load_params
     begin
-      File.open(Default::PARAMS_PATH, mode = 'r') do |file|
+      File.open(Default::PARAMS_PATH, 'r') do |file|
         return JSON.parse file.read
       end
     rescue Errno::ENOENT => e

@@ -20,7 +20,7 @@ module TddiumConstant
     SCM_READY_SLEEP = 10
     TEST_FINISH_TIMEOUT = 15 * 60 # 15 minutes
 
-    PARAMS_PATH = "#{ENV['HOME']}/.tddium"
+    PARAMS_PATH = "#{ENV['HOME']}/.tddium-server"
   end
 
   module Config
@@ -273,7 +273,7 @@ Extract details of a session with `tddium describe <session_id>`.
 
 EOF
       OPTIONS_SAVED = 'Options have been successfully saved.'
-      NOT_SAVED_OPTIONS = 'You do not have file with options. Run `tddium server:set`.'
+      NOT_SAVED_OPTIONS = 'There is no server information saved. Run `tddium server:set`.'
     end
 
     module Status
