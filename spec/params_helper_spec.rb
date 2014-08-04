@@ -20,6 +20,6 @@ describe 'Params' do
 
   it 'file should have correct content' do
     params_json = JSON.parse(params.to_json)
-    self.class.load_params.should eq(params_json  )
+    self.class.load_params.should eq(params_json)
   end
 end
