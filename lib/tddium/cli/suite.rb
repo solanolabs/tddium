@@ -32,6 +32,7 @@ module Tddium
         params[:branch] = @scm.current_branch
         params[:repo_url] = @scm.origin_url
         params[:repo_name] = @scm.repo_name
+        params[:scm] = @scm.scm_name
 
         tool_cli_populate(options, params)
         defaults = {}

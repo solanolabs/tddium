@@ -322,6 +322,7 @@ EOF
       SUITE_DETAILS =<<EOF;
   Organization:         <%=suite["account"]%>
   Repo:                 <%=suite["repo_url"]%>
+  Scm:                  <%=suite["scm"]%>
   Branch:               <%=suite["branch"]%>
   Default Test Pattern: <%=suite["test_pattern"]%>
   Ruby Version:         <%=suite["ruby_version"]%>
@@ -331,7 +332,6 @@ EOF
 Solano CI is enabled with the following parameters:
 
   Pull URL:             <%=suite["ci_pull_url"]%>
-  Push URL:             <%=suite["ci_push_url"]%>
 
 Notifications:
 

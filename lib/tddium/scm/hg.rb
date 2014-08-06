@@ -35,12 +35,6 @@ module Tddium
       return Dir.pwd
     end
 
-    def mirror_path
-      git_mirror_path = File.join(self.root, '.hg/git.tddium')
-      git_mirror_path = File.expand_path(git_mirror_path)
-      return git_mirror_path
-    end
-
     def repo_name
       return File.basename(self.root)
     end
@@ -73,56 +67,19 @@ module Tddium
       return "default"
     end
 
-    def checkout(branch, options={})
-      if !!options[:update] then
-        `hg pull`
-        return false if !$?.success
-      end
-
-      cmd = "hg checkout "
-      if !!options[:force] then
-        cmd += "-C "
-      end
-      cmd += Shellwords.shellescape(branch)
-      `#{cmd}`
-      return $?.success?
-    end
-
     def changes?(options={})
       return Tddium::Hg.hg_changes?(:exclude=>".hgignore")
     end
 
     def push_latest(session_data, suite_details, options={})
-      rv = false
-      pwd = Dir.pwd
-      remote_branch = self.current_branch
-      local_branch = "branches/#{self.current_branch}"
-      begin
-        if !File.exists?(self.mirror_path) then
-          say Text::Warning::HG_GIT_MIRROR_MISSING
-          raise
-        end
+      cmd = "hg push -f -b #{self.current_branch} "
+      cmd += " #{suite_details['git_repo_uri']}"
 
-        Tddium::Scripts.prepend_script_path
-
-        Dir.chdir(self.mirror_path)
-        git_scm = ::Tddium::Git.new
-        git_scm.configure
-        options = {force: true, update: true}
-        if !git_scm.checkout(local_branch, options) then
-          raise
-        end
-        git_repo_origin_uri = "hg::#{self.root}"
-        options = {branch: local_branch, remote_branch: remote_branch,
-                   git_repo_origin_uri: git_repo_origin_uri}
-        rv = git_scm.push_latest(session_data, suite_details, options)
-      rescue Exception => e
-        rv = false
-      ensure
-        Dir.chdir(pwd)
-      end
-
-      return rv
+      # git outputs something to stderr when it runs git push.
+      # hg doesn't always ... so show the command that's being run and its output
+      puts cmd
+      puts `#{cmd}`
+      return [0,1].include?( $?.exitstatus )
     end
 
     def current_commit
