@@ -22,6 +22,10 @@ describe Tddium::TddiumCli do
     let(:options){ {'host' => 'localhost', 'port' => 3000, 'proto' => 'http', 'insecure' => true} }
     let(:default_options){ {'host' => 'ci.solanolabs.com', 'proto' => 'https', 'insecure' => false} }
 
+    it 'PARAMS_PATH constant presence' do
+      expect(self.class::Default::PARAMS_PATH).not_to be_empty
+    end
+
     it 'has default options' do
       subject
         .class
