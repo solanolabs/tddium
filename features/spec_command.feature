@@ -166,13 +166,6 @@ Feature: spec command
     And the output should not contain "Ctrl-C"
     And the output should not contain "--->"
     And the output should contain "Final result: passed."
-    And the output should contain:
-      """
-      %%%% TDDIUM CI DATA BEGIN %%%%
-      --- 
-      :session_id: 1
-      %%%% TDDIUM CI DATA END %%%%
-      """
 
   Scenario: Don't output messages with --machine
     Given the destination repo exists
@@ -188,13 +181,6 @@ Feature: spec command
     Then the exit status should be 0
     And the output should not contain "Ctrl-C"
     And the output should not contain "--->"
-    And the output should contain:
-      """
-      %%%% TDDIUM CI DATA BEGIN %%%%
-      --- 
-      :session_id: 1
-      %%%% TDDIUM CI DATA END %%%%
-      """
 
   Scenario: Output messages in normal mode
     Given the destination repo exists
@@ -210,13 +196,6 @@ Feature: spec command
     And the output should contain "Ctrl-C"
     And the output should contain "---> abcdef"
     And the output should not contain "---> abcdef --->"
-    And the output should not contain:
-      """
-      %%%% TDDIUM CI DATA BEGIN %%%%
-      --- 
-      :session_id: 1
-      %%%% TDDIUM CI DATA END %%%%
-      """
 
   Scenario Outline: Update suite settings from repo config file
     Given the destination repo exists
