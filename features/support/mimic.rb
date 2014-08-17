@@ -27,7 +27,7 @@ module Mimic
             if req_params[k] == v
               true
             else
-              puts "Mismatch on #{k}: expected #{v} got #{req_params[k]}"
+              puts "Mismatch on #{k}:\n\nexpected\n#{v}\n\ngot\n#{req_params[k]}"
               false
             end
           end
