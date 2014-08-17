@@ -59,7 +59,7 @@ Feature: spec command
     And the user has no suites
     And the user can create a ci-disabled hg suite named "work/foobar" on branch "foobar"
     And the user creates a suite for "work/foobar" on branch "foobar"
-    And the user can create a session
+    And the user can create a session with commit data
     And the user successfully registers tests for the suite 
     And the tests start successfully
     And the test all pass

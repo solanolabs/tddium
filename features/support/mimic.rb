@@ -1,6 +1,7 @@
 # Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
 require 'mimic'
+require 'msgpack_pure'
 
 module Mimic
   class FakeHost
@@ -26,6 +27,15 @@ module Mimic
           @params.all? do |k,v|
             if req_params[k] == v
               true
+            elsif v == 'msgpack_non_empty'
+              # try decoding req_params
+              decoded = MessagePackPure.unpack(Base64.decode64(req_params[k])) rescue nil
+              if !decoded || decoded.empty?
+                puts "expected #{k} to be non-empty msgpack"
+                false
+              else
+                true
+              end
             else
               puts "Mismatch on #{k}:\n\nexpected\n#{v}\n\ngot\n#{req_params[k]}"
               false

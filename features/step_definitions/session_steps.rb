@@ -6,6 +6,12 @@ Given /^the user can create a session$/ do
                    :code=>201)
 end
 
+Given /^the user can create a session with commit data$/ do
+  Antilles.install(:post, "/1/sessions",
+                   {:status=>0, :session=>{"id"=>SAMPLE_SESSION_ID}},
+                   {:code=>201, "params" => {"commits_encoded"=>:msgpack_non_empty}})
+end
+
 Given /^the user successfully registers tests for the suite(?: with test_pattern: (.*))?$/ do |pattern|
   options = {}
   if pattern == 'default'

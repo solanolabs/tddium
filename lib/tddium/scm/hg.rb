@@ -76,7 +76,8 @@ module Tddium
       cmd += " #{suite_details['git_repo_uri']}"
 
       # git outputs something to stderr when it runs git push.
-      # hg doesn't always ... so show the command that's being run and its output
+      # hg doesn't always ... so show the command that's being run and its
+      # output to indicate progress.
       puts cmd
       puts `#{cmd}`
       return [0,1].include?( $?.exitstatus )
@@ -94,14 +95,14 @@ module Tddium
     end
 
     def number_of_commits(id_from, id_to)
-      result = `hg log --template='{node}\n' #{id_from}..#{id_to}`
+      result = `hg log --template='{node}\\n' #{id_from}..#{id_to}`
       result.split("\n").length
     end
 
     protected
 
     def latest_commit
-      `hg log -f -l 1 --template='{node}\n{desc|firstline}\n{author|user}\n{author|email}\n{date}\n{author|user}\n{author|email}\n{date}\n'`
+      `hg log -f -l 1 --template='{node}\\n{desc|firstline}\\n{author|user}\\n{author|email}\\n{date}\\n{author|user}\\n{author|email}\\n{date}\\n\\n'`
     end
 
     class << self
