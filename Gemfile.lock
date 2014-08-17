@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tddium (1.21.1)
+    tddium (1.22.0)
       github_api
       highline
       json
@@ -77,9 +77,9 @@ GEM
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     nayutaya-msgpack-pure (0.0.2)
-    nokogiri (1.6.2.1)
+    nokogiri (1.6.3.1)
       mini_portile (= 0.6.0)
-    oauth2 (0.9.4)
+    oauth2 (1.0.0)
       faraday (>= 0.8, < 0.10)
       jwt (~> 1.0)
       multi_json (~> 1.3)
