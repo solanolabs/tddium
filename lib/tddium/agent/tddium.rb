@@ -99,14 +99,6 @@ module Tddium
       FileUtils.cp(path, attach_path)
     end
 
-    protected
-
-    def fetch_id(name)
-      return nil unless tddium? && ENV.member?(name)
-      id = ENV[name]
-      return id.to_i
-    end
-
     # FUTURE: convert to call to internal agent API server
     # Unregistered and authenticated files will be ignored
     def attachment_path(name, exec_id=nil)
@@ -117,6 +109,14 @@ module Tddium
         path = File.join(path, exec_id.to_s, name)
       end
       return path
+    end
+
+    protected
+
+    def fetch_id(name)
+      return nil unless tddium? && ENV.member?(name)
+      id = ENV[name]
+      return id.to_i
     end
   end
 end
