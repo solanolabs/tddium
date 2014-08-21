@@ -71,11 +71,11 @@ Given /^the user can create a suite named "([^"]*)" on branch "([^"]*)" with bun
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>resp}, :code=>201)
 end
 
-Given /^the user can create a ci\-disabled hg suite named "(.*?)" on branch "(.*?)"$/ do |name, branch|
+Given /^the user can create an hg suite named "(.*?)" on branch "(.*?)"$/ do |name, branch|
   resp = make_suite_response(name, branch)
   options = {:code=>201}
   ruby_version = `ruby -v`.strip
-  options["params"] = {"suite"=>{"branch"=>"foobar", "scm"=>"hg", "repo_url"=>"ssh://hg@example.com/foo.hg", "repo_name"=>"work", "ruby_version"=>ruby_version, "bundler_version"=>Bundler::VERSION, "rubygems_version"=>Gem::VERSION, "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=>"", "ci_push_url"=>""}}
+  options["params"] = {"suite"=>{"branch"=>"foobar", "scm"=>"hg", "repo_url"=>"ssh://hg@example.com/foo.hg", "repo_name"=>"work", "ruby_version"=>ruby_version, "bundler_version"=>Bundler::VERSION, "rubygems_version"=>Gem::VERSION, "test_pattern"=>"features/**.feature, spec/**_spec.rb, spec/features/**.feature, test/**_test.rb", "ci_pull_url"=> "ssh://hg@example.com/foo.hg", "ci_push_url"=>nil}}
   Antilles.install(:post, "/1/suites", {:status=>0, :suite=>resp}, options)
 end
 

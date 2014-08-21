@@ -19,8 +19,6 @@ module Tddium
     method_option :machine, :type => :boolean, :default => false
     method_option :session_id, :type => :numeric, :default => nil
     method_option :tool, :type => :hash, :default => {}
-    method_option :no_ci, :type => :boolean, :default => true
-    method_option :enable_ci, :type => :boolean, :default => false
     def spec(*pattern)
       machine_data = {}
 
