@@ -69,6 +69,9 @@ module Tddium
       if current_sessions.empty? then
         say no_session_prompt
       else
+        commit_size = 0...7
+        head = @scm.current_commit[commit_size]
+
         say all_session_prompt % (params[:suite_id] ? status_branch : "")
         say ""
         table = [
@@ -79,14 +82,21 @@ module Tddium
           start_timeago = "%s ago" % Tddium::TimeFormat.seconds_to_human_time(Time.now - Time.parse(session["start_time"]))
 
           ["#{session["id"]}",
-            session["commit"] ? session['commit'][0...7] : '-      ',
+            session["commit"] ? session['commit'][commit_size] : '-      ',
             session["status"],
             duration,
             start_timeago]
         end
-        print_table table
+        say(capture_stdout { print_table table }.gsub(head, "\e[7m#{head}\e[0m"))
       end
     end
 
+    def capture_stdout
+      old, $stdout = $stdout, StringIO.new
+      yield
+      $stdout.string
+    ensure
+      $stdout = old
+    end
   end
 end  
