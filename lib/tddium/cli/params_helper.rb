@@ -3,20 +3,16 @@
 module ParamsHelper
   include TddiumConstant
   
-  def load_params
-    begin
+  def load_params(defaults=true)
+    params = {}
+    if File.exists?(Default::PARAMS_PATH) then
       File.open(Default::PARAMS_PATH, 'r') do |file|
-        return JSON.parse file.read
+        params = JSON.parse file.read
       end
-    rescue Errno::ENOENT => e
-      # when was called from class 'TddiumCli', return {} to use default options
-      if caller[1][/`([^']*)'/, 1] == '<class:TddiumCli>'
-       {}
-      # when user wants to display options, but file not exist
-      else
-        abort Text::Process::NOT_SAVED_OPTIONS
-      end
+    elsif !defaults then
+      abort Text::Process::NOT_SAVED_OPTIONS
     end
+    return params
   end
 
   def write_params options
@@ -31,7 +27,7 @@ module ParamsHelper
   end
 
   def display
-    store_params = load_params
+    store_params = load_params(false)
     say 'Options:'
     store_params.each do |k, v|
       say "   #{k.capitalize}:\t#{v}"

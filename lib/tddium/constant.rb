@@ -404,7 +404,7 @@ EOF
     end
 
     module Error
-      OPTIONS_NOT_SAVED = 'Options have been not saved.'
+      OPTIONS_NOT_SAVED = 'Options have not been saved.'
       KEY_ALREADY_EXISTS = "Aborting. SSH key already exists: %s"
       KEYGEN_FAILED = "Failed to generate new SSH key for '%s'"
       LIST_KEYS_ERROR = "Error listing SSH keys"
