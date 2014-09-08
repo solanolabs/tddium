@@ -103,7 +103,7 @@ module Tddium
           say format_suite_details(new_suite)
         end
       rescue TddiumClient::Error::Base => e
-        exit_failure(e)
+        exit_failure(e.explanation)
       end
     end
   end
