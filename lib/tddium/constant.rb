@@ -274,7 +274,8 @@ Extract details of a session with `tddium describe <session_id>`.
 EOF
       OPTIONS_SAVED = 'Options have been successfully saved.'
       NOT_SAVED_OPTIONS = 'There is no server information saved. Run `tddium server:set`.'
-    end
+      BUILD_CONTINUES = 'Session will continue running.'
+    end # Process
 
     module Status
       SPEC_WARNINGS = "\n\n>>> Solano CI Warnings:\n\n"

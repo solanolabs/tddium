@@ -162,7 +162,7 @@ Feature: spec command
     Then the exit status should be 0
     And the output should not contain "Ctrl-C"
     And the output should not contain "--->"
-    And the output should contain "Final result: passed."
+    And the output should contain "Session will continue running"
 
   Scenario: Don't output messages with --machine
     Given the destination repo exists

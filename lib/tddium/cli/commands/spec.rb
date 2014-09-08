@@ -135,9 +135,16 @@ module Tddium
       last_finish_timestamp = nil
 
       report = start_test_executions["report"]
+
+      # In CI mode, just hang up here.  The session will continue running.
+      if options[:machine] then
+        say Text::Process::BUILD_CONTINUES
+        return
+      end
+
       say ""
-      say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
-      say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
+      say Text::Process::CHECK_TEST_REPORT % report 
+      say Text::Process::TERMINATE_INSTRUCTION 
       say ""
 
       # Catch Ctrl-C to interrupt the test
@@ -149,80 +156,58 @@ module Tddium
       end
 
       while !tests_finished do
-        # Poll the API to check the status
-        if options[:machine]
-          result = @tddium_api.check_session_done(session_id)
-          tests_finished = result["done"]
-          session_status = result["session_status"]
-        else
-          current_test_executions = @tddium_api.poll_session(session_id)
-          session_status = current_test_executions['session_status']
+        current_test_executions = @tddium_api.poll_session(session_id)
+        session_status = current_test_executions['session_status']
 
-          messages, latest_message = update_messages(latest_message,
-                                                     finished_tests,
-                                                     messages,
-                                                     current_test_executions["messages"])
+        messages, latest_message = update_messages(latest_message,
+                                                   finished_tests,
+                                                   messages,
+                                                   current_test_executions["messages"])
 
-          # Print out the progress of running tests
-          current_test_executions["tests"].each do |test_name, result_params|
-            if finished_tests.size == 0 && result_params["finished"] then
-              say ""
-              say Text::Process::CHECK_TEST_REPORT % report unless options[:machine]
-              say Text::Process::TERMINATE_INSTRUCTION unless options[:machine]
-              say ""
-            end
-            if result_params["finished"] && !finished_tests[test_name]
-              test_status = result_params["status"]
-              message = case test_status
-                          when "passed" then [".", :green, false]
-                          when "failed" then ["F", :red, false]
-                          when "error" then ["E", nil, false]
-                          when "pending" then ["*", :yellow, false]
-                          when "skipped" then [".", :yellow, false]
-                          else [".", nil, false]
-                        end
-              finished_tests[test_name] = test_status
-              last_finish_timestamp = Time.now
-              test_statuses[test_status] += 1
-              say *message
-            end
+        # Print out the progress of running tests
+        current_test_executions["tests"].each do |test_name, result_params|
+          if finished_tests.size == 0 && result_params["finished"] then
+            say ""
+            say Text::Process::CHECK_TEST_REPORT % report 
+            say Text::Process::TERMINATE_INSTRUCTION
+            say ""
           end
-
-           # XXX time out if all tests are done and the session isn't done.
-          if current_test_executions['session_done'] ||
-             (finished_tests.size >= num_tests_started && (Time.now - last_finish_timestamp) > Default::TEST_FINISH_TIMEOUT)
-            tests_finished = true
+          if result_params["finished"] && !finished_tests[test_name]
+            test_status = result_params["status"]
+            message = case test_status
+                      when "passed" then [".", :green, false]
+                      when "failed" then ["F", :red, false]
+                      when "error" then ["E", nil, false]
+                      when "pending" then ["*", :yellow, false]
+                      when "skipped" then [".", :yellow, false]
+                      else [".", nil, false]
+                      end
+            finished_tests[test_name] = test_status
+            last_finish_timestamp = Time.now
+            test_statuses[test_status] += 1
+            say *message
           end
+        end
+
+        # XXX time out if all tests are done and the session isn't done.
+        if current_test_executions['session_done'] ||
+          (finished_tests.size >= num_tests_started && (Time.now - last_finish_timestamp) > Default::TEST_FINISH_TIMEOUT)
+          tests_finished = true
         end
 
         sleep(Default::SLEEP_TIME_BETWEEN_POLLS) if !tests_finished
       end
 
-      # If we haven't been polling messages, get them all at the end.
-      if options[:machine]
-        current_test_executions = @tddium_api.poll_session(session_id)
-        messages, latest_message = update_messages(latest_message,
-                                                   finished_tests,
-                                                   messages,
-                                                   current_test_executions["messages"],
-                                                   false)
-        current_test_executions["tests"].each do |test_name, result_params|
-          test_status = result_params["status"]
-          finished_tests[test_name] = test_status
-          test_statuses[test_status] += 1
-        end
-      end
-
       display_alerts(messages, 'error', Text::Status::SPEC_ERRORS)
 
       # Print out the result
-      say "" if !options[:machine]
-      say Text::Process::RUN_TDDIUM_WEB if !options[:machine]
+      say ""
+      say Text::Process::RUN_TDDIUM_WEB
       say ""
       say Text::Process::FINISHED_TEST % (Time.now - start_time)
       say "#{finished_tests.size} tests, #{test_statuses["failed"]} failures, #{test_statuses["error"]} errors, #{test_statuses["pending"]} pending, #{test_statuses["skipped"]} skipped"
 
-      if !options[:machine] && test_statuses['failed'] > 0
+      if test_statuses['failed'] > 0
         say ""
         say Text::Process::FAILED_TESTS
         finished_tests.each do |name, status|
