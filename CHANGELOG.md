@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.22.2 - Add server:set command; handle git version 2
 - v1.22.1 - Remove disused no_ci and ci_enabled
 - v1.22.0 - (Beta) Support Mercurial (hg) repos
 - v1.21.1 - Be more resilient in 'tddium rerun' if there is no current session
