@@ -112,28 +112,13 @@ module Tddium
         update_params[:test_configs] = test_configs
       end
 
-      php_config = @repo_config["php"] || {}
-      current_php_config = current_suite['php_config'] || {}
-      if php_config != (current_suite['php_config'] || {}) then
-        update_params[:php] = php_config
-      end
-
-      python_config = @repo_config["python"] || {}
-      current_python_config = current_suite['python_config'] || {}
-      if python_config != (current_suite['python_config'] || {}) then
-        update_params[:python] = python_config
-      end
-
-      golang_config = @repo_config["golang"] || {}
-      current_golang_config = current_suite['golang_config'] || {}
-      if golang_config != (current_suite['golang_config'] || {}) then
-        update_params[:golang] = golang_config
-      end
-
-      java_config = @repo_config["java"] || {}
-      current_java_config = current_suite['java_config'] || {}
-      if java_config != (current_suite['java_config'] || {}) then
-        update_params[:java] = java_config
+      %w(golang java leiningen nodejs php python scala).each do |lang|
+        config_name = "#{lang}_config"
+        lang_config = @repo_config[lang] || {}
+        current_lang_config = current_suite[config_name] || {}
+        if lang_config != (current_suite[config_name] || {}) then
+          update_params[lang.to_sym] = lang_config
+        end
       end
 
       if !update_params.empty? then
