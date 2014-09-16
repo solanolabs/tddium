@@ -9,3 +9,5 @@ coverage
 .rvmrc
 .tddium*
 .tddium-deploy-key*
+
+pkg/*
