@@ -3,7 +3,8 @@
 
 ## Version History
 
-- v1.22.3 - Better handle processing of configuration file.
+- v1.23.0 - Changes to internal control flow
+- v1.22.4 - Better handle processing of configuration file.
 - v1.22.3 - Better handle printing API errors
 - v1.22.2 - Add server:set command; handle git version 2
 - v1.22.1 - Remove disused no_ci and ci_enabled
