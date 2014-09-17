@@ -44,13 +44,15 @@ module Tddium
             status_branch,
             repo_params, 
             Text::Status::NO_ACTIVE_SESSION, 
-            Text::Status::ACTIVE_SESSIONS
+            Text::Status::ACTIVE_SESSIONS,
+            true
           )
           show_session_details(
             status_branch,
             suite_params, 
             Text::Status::NO_INACTIVE_SESSION, 
-            Text::Status::INACTIVE_SESSIONS
+            Text::Status::INACTIVE_SESSIONS,
+            false
           ) if suite_params
           say Text::Process::RERUN_SESSION
         end
@@ -62,7 +64,7 @@ module Tddium
 
     private 
 
-    def show_session_details(status_branch ,params, no_session_prompt, all_session_prompt)
+    def show_session_details(status_branch, params, no_session_prompt, all_session_prompt, include_branch)
       current_sessions = @tddium_api.get_sessions(params)
 
       say ""
@@ -74,18 +76,19 @@ module Tddium
 
         say all_session_prompt % (params[:suite_id] ? status_branch : "")
         say ""
-        table = [
-          ["Session #", "Commit", "Status", "Duration", "Started"],
-          ["---------", "------", "------", "--------", "-------"],
-        ] + current_sessions.map do |session|
+        header = ["Session #", "Commit", ("Branch" if include_branch), "Status", "Duration", "Started"].compact
+        table = [header, header.map { |t| "-" * t.size }] + current_sessions.map do |session|
           duration = "%ds" % session['duration']
           start_timeago = "%s ago" % Tddium::TimeFormat.seconds_to_human_time(Time.now - Time.parse(session["start_time"]))
 
-          ["#{session["id"]}",
+          [
+            session["id"].to_s,
             session["commit"] ? session['commit'][commit_size] : '-      ',
+            (session["branch"] if include_branch),
             session["status"],
             duration,
-            start_timeago]
+            start_timeago
+          ].compact
         end
         say(capture_stdout { print_table table }.gsub(head, "\e[7m#{head}\e[0m"))
       end

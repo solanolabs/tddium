@@ -81,16 +81,24 @@ describe Tddium::TddiumCli do
   end
 
   describe "#show_session_details" do
-    let(:output) { subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {:suite_id => 1}, "X", "Y-%s-") } }
+    let(:branch) { false }
+    let(:output) { subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {:suite_id => 1}, "X", "Y-%s-", branch) } }
 
     it "shows empty" do
       expect(tddium_api).to receive(:get_sessions).once.and_return([])
-      output = subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {}, "X", "Y") }
+      output = subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {}, "X", "Y", false) }
       expect(output).to eq "\nX\n"
     end
 
     context "with a session" do
-      let(:session) {{"commit" => "12345671234567", "id" => "111", "status" => "running", "duration" => 123, "start_time" => Time.now.to_s}}
+      let(:session) {{
+        "commit" => "12345671234567",
+        "id" => "111",
+        "status" => "running",
+        "duration" => 123,
+        "start_time" => Time.now.to_s,
+        "branch" => "foo/bar"
+      }}
 
       before do
         now = Time.now
@@ -100,6 +108,14 @@ describe Tddium::TddiumCli do
 
       it "shows normal" do
         expect(output).to eq "\nY-xxx-\n\nSession #  Commit   Status   Duration  Started\n---------  ------   ------   --------  -------\n111        1234567  running  123s      0 secs ago\n"
+      end
+
+      context "with branch" do
+        let(:branch) { true }
+
+        it "shows normal" do
+          expect(output).to eq "\nY-xxx-\n\nSession #  Commit   Branch   Status   Duration  Started\n---------  ------   ------   ------   --------  -------\n111        1234567  foo/bar  running  123s      0 secs ago\n"
+        end
       end
 
       it "shows current head" do
