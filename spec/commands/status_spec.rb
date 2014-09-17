@@ -78,5 +78,34 @@ describe Tddium::TddiumCli do
         subject.status
       end
     end
-  end 
+  end
+
+  describe "#show_session_details" do
+    let(:output) { subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {:suite_id => 1}, "X", "Y-%s-") } }
+
+    it "shows empty" do
+      expect(tddium_api).to receive(:get_sessions).once.and_return([])
+      output = subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {}, "X", "Y") }
+      expect(output).to eq "\nX\n"
+    end
+
+    context "with a session" do
+      let(:session) {{"commit" => "12345671234567", "id" => "111", "status" => "running", "duration" => 123, "start_time" => Time.now.to_s}}
+
+      before do
+        now = Time.now
+        expect(Time).to receive(:now).at_least(:once).and_return Time.at(now.to_i)
+        expect(tddium_api).to receive(:get_sessions).once.and_return([session])
+      end
+
+      it "shows normal" do
+        expect(output).to eq "\nY-xxx-\n\nSession #  Commit   Status   Duration  Started\n---------  ------   ------   --------  -------\n111        1234567  running  123s      0 secs ago\n"
+      end
+
+      it "shows current head" do
+        expect_any_instance_of(Tddium::Git).to receive(:current_commit).and_return session["commit"]
+        expect(output).to eq "\nY-xxx-\n\nSession #  Commit   Status   Duration  Started\n---------  ------   ------   --------  -------\n111        \e[7m1234567\e[0m  running  123s      0 secs ago\n"
+      end
+    end
+  end
 end
