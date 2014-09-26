@@ -40,7 +40,8 @@ module Tddium
       suite_params = {
         :suite_id => @tddium_api.current_suite_id,
         :active => false,
-        :limit => 1
+        :limit => 1,
+        :origin => %w(ci cli)
       }
       session = @tddium_api.get_sessions(suite_params)
       session[0]["id"]
