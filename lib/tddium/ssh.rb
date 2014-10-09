@@ -38,6 +38,29 @@ module Tddium
          :hostname=>`hostname`, 
          :fingerprint=>`ssh-keygen -lf #{pub_filename}`}
       end
+
+      def validate_keys name, path, tddium_api, generate_new_key = false
+        keys_details, keydata = tddium_api.get_keys, nil
+
+        # key name should be unique
+        if keys_details.count{|x|x['name'] == name} > 0
+          abort Text::Error::ADD_KEYS_DUPLICATE % name
+        end
+
+        unless generate_new_key
+          # check out key's content uniqueness
+          keydata = self.load_ssh_key(path, name)
+          duplicate_keys = keys_details.select{|key| key['pub'] == keydata[:pub] }
+          unless duplicate_keys.empty?
+            abort Text::Error::ADD_KEY_CONTENT_DUPLICATE % duplicate_keys.first['name']
+          end
+        else
+          # generate new key
+          keydata = self.generate_keypair(name, path)
+        end
+
+        keydata
+      end
     end
   end
 end

@@ -27,6 +27,7 @@ module Tddium
       suite_auto_configure unless options[:machine]
 
       exit_failure unless suite_for_current_branch?
+      exit_failure(Text::Error::NO_SSH_KEY) if @tddium_api.get_keys.empty?
 
       if @scm.changes?(options) then
         exit_failure(Text::Error::SCM_CHANGES_NOT_COMMITTED) if !options[:force]

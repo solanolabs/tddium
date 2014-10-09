@@ -17,6 +17,9 @@ Feature: spec command
   Scenario: Fail if user has uncommitted changes
     Given a git repo is initialized
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has a suite for "repo" on "master"
     And the user can create a session
     But the user has uncommitted changes to "foo.rb"
@@ -28,6 +31,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has a suite for "repo" on "master"
     And the user can create a session
     And the user successfully registers tests for the suite 
@@ -40,6 +46,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized on branch "foobar"
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has no suites
     And the user can create a suite named "work/foobar" on branch "foobar"
     And the user creates a suite for "work/foobar" on branch "foobar"
@@ -55,6 +64,9 @@ Feature: spec command
     Given the destination hg repo exists
     And an hg repo is initialized on branch "foobar"
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has no suites
     And the user can create an hg suite named "work/foobar" on branch "foobar"
     And the user creates a suite for "work/foobar" on branch "foobar"
@@ -71,6 +83,9 @@ Feature: spec command
     And a git repo is initialized on branch "foobar"
     And a .gitignore file exists in git
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has no suites
     And the user can create a suite named "work/foobar" on branch "foobar"
     And the user creates a suite for "work/foobar" on branch "foobar"
@@ -87,6 +102,9 @@ Feature: spec command
     And the SCM ready timeout is 0
     And a git repo is initialized on branch "foobar"
     And the user is logged in
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user has no suites
     And the user can create a suite named "work/foobar" on branch "foobar"
     And the user creates a pending suite for "work/foobar" on branch "foobar"
@@ -104,6 +122,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite with test_pattern: "spec/foo"
     And the tests start successfully
@@ -119,6 +140,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite with test_pattern: "spec/foo"
     And the tests start successfully
@@ -136,6 +160,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite
     And the tests start successfully
@@ -152,6 +179,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite
     And the tests start successfully
@@ -168,6 +198,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite
     And the tests start successfully
@@ -183,6 +216,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And the user can create a session
     And the user successfully registers tests for the suite
     And the tests start successfully
@@ -198,6 +234,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And a file named "config/<file name>" with:
     """
     ---
@@ -225,6 +264,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And a file named "config/<file name>" with:
     """
     ---
@@ -252,6 +294,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And a file named "config/<file name>" with:
     """
     ---
@@ -278,6 +323,9 @@ Feature: spec command
     Given the destination repo exists
     And a git repo is initialized
     And the user is logged in with a configured suite
+    And the user has the following keys:
+      | name      |
+      | default   |
     And a file named "config/<file name>" with:
     """
     ---

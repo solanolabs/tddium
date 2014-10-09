@@ -36,6 +36,7 @@ describe Tddium::TddiumCli do
       tddium_api.stub(:register_session)
       tddium_api.stub(:start_session).and_return(test_executions)
       tddium_api.stub(:poll_session).and_return(test_executions)
+      tddium_api.stub(:get_keys).and_return([{name: 'some_key', pub: 'some content'}])
     end
 
     it "should create a new session" do

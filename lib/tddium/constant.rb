@@ -411,6 +411,7 @@ EOF
       LIST_KEYS_ERROR = "Error listing SSH keys"
       REMOVE_KEYS_ERROR = "Failed to remove key '%s'"
       ADD_KEYS_DUPLICATE = "You already have a key named '%s'"
+      ADD_KEY_CONTENT_DUPLICATE = "You already have a key named '%s' with the same content"
       ADD_KEYS_ERROR = "Failed to add key '%s'"
       LIST_CONFIG_ERROR = "Error listing configuration variables"
       ADD_CONFIG_ERROR = "Error setting configuration variable"
@@ -492,6 +493,10 @@ Usage: "tddium COMMAND [ARGS] [OPTIONS]". For available commands, run "tddium he
 EOF
       CONFIG_PATHS_COLLISION =<<EOF
 You have both solano.yml and tddium.yml in your repo. We don't support merging the configuration from both of these files, so you'll have to pick one. The tddium.yml file will soon be deprecated, so we recommend migrating all of your configuration to solano.yml.
+EOF
+      NO_SSH_KEY =<<EOF
+Aborting. You don't have any ssh key.
+Add an ssh key first, using `tddium keys:add` or visit web-site http://ci.solanolabs.com/user_settings/ssh_keys
 EOF
     end
   end

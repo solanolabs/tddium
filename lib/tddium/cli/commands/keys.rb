@@ -29,13 +29,8 @@ module Tddium
       output_dir ||= Default::SSH_OUTPUT_DIR
 
       begin
-        keys_details = @tddium_api.get_keys
-        if keys_details.count{|x|x['name'] == name} > 0
-          exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
-        end
-
+        keydata = Tddium::Ssh.validate_keys name, path, @tddium_api
         say Text::Process::ADD_KEYS_ADD % name
-        keydata = Tddium::Ssh.load_ssh_key(path, name)
         result = @tddium_api.set_keys({:keys => [keydata]})
 
         priv_path = path.sub(/[.]pub$/, '')
@@ -58,14 +53,9 @@ module Tddium
       output_dir ||= Default::SSH_OUTPUT_DIR
 
       begin
-        keys_details = @tddium_api.get_keys
-        if keys_details.count{|x|x['name'] == name} > 0
-          exit_failure Text::Error::ADD_KEYS_DUPLICATE % name
-        end
-
+        keydata = Tddium::Ssh.validate_keys name, output_dir, @tddium_api, true
         say Text::Process::ADD_KEYS_GENERATE % name
-        keydata = Tddium::Ssh.generate_keypair(name, output_dir)
-        
+
         result = @tddium_api.set_keys({:keys => [keydata]})
         outfile = File.expand_path(File.join(output_dir, "identity.tddium.#{name}"))
         say Text::Process::ADD_KEYS_GENERATE_DONE % [name, result["git_server"] || Default::GIT_SERVER, outfile]
