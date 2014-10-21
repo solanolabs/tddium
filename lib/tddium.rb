@@ -3,6 +3,8 @@
 require "tddium/constant"
 require "tddium/version"
 
+require "tddium/util"
+
 require "tddium/scm"
 require "tddium/ssh"
 

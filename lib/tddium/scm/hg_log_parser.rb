@@ -34,6 +34,7 @@ class HgCommitLogParser
     commits = []
     commit_log.lines.each do |line|
       line.strip!
+      line.sanitize!
       if line.empty?
         c = parse_commit(record)
         commits.push(c)
