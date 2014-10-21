@@ -2,7 +2,9 @@
 
 require 'rubygems'
 require 'aruba/cucumber'
+require 'aruba/in_process'
 require 'pickle/parser'
+require 'tddium/runner'
 
 def prepend_path(path)
   path = File.expand_path(File.dirname(__FILE__) + "/../../#{path}")
@@ -13,3 +15,5 @@ prepend_path('bin')
 #ENV['COVERAGE'] = "true"
 ENV['COVERAGE_ROOT'] = "#{File.expand_path(File.dirname(__FILE__) + '/../../')}"
 
+Aruba::InProcess.main_class = Tddium::Runner
+Aruba.process = Aruba::InProcess

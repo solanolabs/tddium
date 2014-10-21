@@ -38,7 +38,7 @@ EOF
   s.add_runtime_dependency("tddium_client", "~> 0.4.2")
   s.add_runtime_dependency("nayutaya-msgpack-pure", "~> 0.0.2")
 
-  s.add_development_dependency("aruba", "0.4.6")
+  s.add_development_dependency("aruba", "0.6.1")
   s.add_development_dependency("rdiscount", "1.6.8")
   s.add_development_dependency("pickle")
   s.add_development_dependency("mimic")
@@ -50,4 +50,5 @@ EOF
   s.add_development_dependency("fakefs")
   s.add_development_dependency("simplecov")
   s.add_development_dependency("rake")
+  s.add_development_dependency("pry")
 end

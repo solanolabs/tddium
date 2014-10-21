@@ -24,6 +24,8 @@ if ENV['COVERAGE']
   end
 end
 
-require "tddium"
-require "tddium/cli"
-Tddium::TddiumCli.start
+# require "tddium"
+# require "tddium/cli"
+# Tddium::TddiumCli.start
+require 'tddium/runner'
+Tddium::Runner.new(ARGV.dup).execute!
