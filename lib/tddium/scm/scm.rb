@@ -3,19 +3,18 @@
 module Tddium
   class SCM
     def self.configure
-      scm = ::Tddium::Git.new
-
+      scm = nil
       [::Tddium::Git, ::Tddium::Hg].each do |scm_class|
         sniff_scm = scm_class.new
-        if sniff_scm.repo? then
+        if sniff_scm.repo? && scm_class.version_ok
           scm = sniff_scm
           break
         end
       end
 
-      scm.class.version_ok
-      scm.configure
-      return scm
+      #default scm is git
+      scm = ::Tddium::Git.new unless scm
+      scm
     end
   end
 end
