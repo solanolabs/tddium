@@ -7,12 +7,6 @@ module Tddium
   class Hg
     include TddiumConstant
 
-    def initialize
-    end
-
-    def configure
-    end
-
     def scm_name
       return 'hg'
     end
@@ -150,9 +144,7 @@ module Tddium
         if version_parts[0].to_i < 2 then
           warn(Text::Warning::HG_VERSION % version)
         end
-
-        # BOTCH: currently have a git dependency, too
-        ::Tddium::Git.version_ok
+        true
       end
     end
   end

@@ -4,12 +4,6 @@ module Tddium
   class Git
     include TddiumConstant
 
-    def initialize
-    end
-
-    def configure
-    end
-
     def scm_name
       return 'git'
     end
@@ -181,6 +175,7 @@ module Tddium
            (version_parts[0].to_i < 2 && version_parts[1].to_i == 1 && version_parts[1].to_i < 7) then
           warn(Text::Warning::GIT_VERSION % version)
         end
+        true
       end
     end
   end

@@ -130,9 +130,6 @@ module Tddium
       $stderr.sync = true
 
       set_shell
-      if params[:scm] then
-        @scm.configure
-      end
 
       @api_config.load_config
 
