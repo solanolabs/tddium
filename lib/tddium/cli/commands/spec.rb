@@ -254,7 +254,7 @@ module Tddium
 
     def read_and_encode_latest_commits
       commits = @scm.commits
-      commits_packed = MessagePackPure.pack(commits)
+      commits_packed = Tddium.message_pack(commits)
       commits_encoded = Base64.encode64(commits_packed)
       commits_encoded
     end
@@ -274,12 +274,14 @@ module Tddium
         end
       end
 
-      cache_control_encoded = Base64.encode64(MessagePackPure.pack(cache_control_data))
+      msgpack = Tddium.message_pack(cache_control_data)
+      cache_control_encoded = Base64.encode64(msgpack)
     end
 
     def read_and_encode_cache_save_paths
       cache_save_paths = cache_control_config['save_paths'] || cache_control_config[:save_paths]
-      cache_save_paths_encoded = Base64.encode64(MessagePackPure.pack(cache_save_paths))
+      msgpack = Tddium.message_pack(cache_save_paths)
+      cache_save_paths_encoded = Base64.encode64(msgpack)
     end
 
     def read_and_encode_config_file

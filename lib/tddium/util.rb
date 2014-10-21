@@ -17,3 +17,13 @@ class String
   end
 end
 
+module Tddium
+  def self.message_pack(value)
+    io = StringIO.new
+    io.set_encoding("UTF-8", "UTF-8")
+    packer = ::MessagePackPure::Packer.new(io)
+    packer.write(value)
+    result = io.string
+    return result
+  end
+end
