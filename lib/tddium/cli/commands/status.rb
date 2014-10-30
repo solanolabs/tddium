@@ -40,7 +40,11 @@ module Tddium
           } if suite_params
           puts JSON.pretty_generate(res)
         else
+          running_sessions = Thread.new { @tddium_api.get_sessions(repo_params) }
+          branch_sessions = Thread.new { @tddium_api.get_sessions(suite_params) }
+
           show_session_details(
+            running_sessions.value,
             status_branch,
             repo_params, 
             Text::Status::NO_ACTIVE_SESSION, 
@@ -48,6 +52,7 @@ module Tddium
             true
           )
           show_session_details(
+            branch_sessions.value,
             status_branch,
             suite_params, 
             Text::Status::NO_INACTIVE_SESSION, 
@@ -64,9 +69,7 @@ module Tddium
 
     private 
 
-    def show_session_details(status_branch, params, no_session_prompt, all_session_prompt, include_branch)
-      current_sessions = @tddium_api.get_sessions(params)
-
+    def show_session_details(current_sessions, status_branch, params, no_session_prompt, all_session_prompt, include_branch)
       say ""
       if current_sessions.empty? then
         say no_session_prompt

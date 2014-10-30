@@ -82,11 +82,10 @@ describe Tddium::TddiumCli do
 
   describe "#show_session_details" do
     let(:branch) { false }
-    let(:output) { subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {:suite_id => 1}, "X", "Y-%s-", branch) } }
+    let(:output) { subject.send(:capture_stdout) { subject.send(:show_session_details, [session], "xxx", {:suite_id => 1}, "X", "Y-%s-", branch) } }
 
     it "shows empty" do
-      expect(tddium_api).to receive(:get_sessions).once.and_return([])
-      output = subject.send(:capture_stdout) { subject.send(:show_session_details, "xxx", {}, "X", "Y", false) }
+      output = subject.send(:capture_stdout) { subject.send(:show_session_details, [], "xxx", {}, "X", "Y", false) }
       expect(output).to eq "\nX\n"
     end
 
@@ -103,7 +102,6 @@ describe Tddium::TddiumCli do
       before do
         now = Time.now
         expect(Time).to receive(:now).at_least(:once).and_return Time.at(now.to_i)
-        expect(tddium_api).to receive(:get_sessions).once.and_return([session])
       end
 
       it "shows normal" do
