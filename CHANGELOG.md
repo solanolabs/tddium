@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.24.0 - Allow use in hg repos without git installed
 - v1.23.0 - Changes to internal control flow
 - v1.22.4 - Better handle processing of configuration file.
 - v1.22.3 - Better handle printing API errors
