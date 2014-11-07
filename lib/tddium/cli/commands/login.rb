@@ -2,7 +2,7 @@
 
 module Tddium
   class TddiumCli < Thor
-    desc "login [[TOKEN]]", "Log in using your email address or token from dashboard"
+    desc "login [[TOKEN]]", "Log in using your email address or token (see: https://ci.solanolabs.com/user_settings/token)"
     method_option :email, :type => :string, :default => nil
     method_option :password, :type => :string, :default => nil
     method_option :ssh_key_file, :type => :string, :default => nil
