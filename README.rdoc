@@ -1,5 +1,7 @@
 = tddium
 
+{<img src="https://ci.solanolabs.com:443/solanolabs/tddium/badges/18269.png?badge_token=31b55379f4209b2935e283ebf4c9ffc22892fde8"/>}[https://ci.solanolabs.com:443/solanolabs/tddium/suites/18269]
+
 Solano CI is a hosted continuous deployment platform that runs your build
 and test suites in the cloud, in parallel.  Your tests run isolated in
 freshly prepared workers that are automatically configured with real
