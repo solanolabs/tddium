@@ -196,35 +196,35 @@ module Tddium
       call_api(:delete, "#{Api::Path::KEYS}/#{name}", params)
     end
 
-    def current_branch
-      @current_branch ||= @scm.current_branch
-    end
-
-    def current_repo_id
-      # api_config.get_branch will query the server if there is no locally cached data
-      @api_config.get_branch(current_branch, 'repo_id')
-    end
-
-    def current_suite_id
-      # api_config.get_branch will query the server if there is no locally cached data
-      @api_config.get_branch(current_branch, 'id')
-    end
-
-    def current_suite_options
-      @api_config.get_branch(current_branch, 'options')
-    end
-
     def default_branch
       @default_branch ||= @scm.default_branch
     end
 
-    def default_suite_id
-      # api_config.get_branch will query the server if there is no locally cached data
-      @api_config.get_branch(default_branch, 'id')
+    def current_branch
+      @current_branch ||= @scm.current_branch
     end
 
-    def default_suite_options
-      @api_config.get_branch(default_branch, 'options')
+    def current_repo_id(options={})
+      # api_config.get_branch will query the server if there is no locally cached data
+      @api_config.get_branch(current_branch, 'repo_id', options)
+    end
+
+    def current_suite_id(options={})
+      # api_config.get_branch will query the server if there is no locally cached data
+      @api_config.get_branch(current_branch, 'id', options)
+    end
+
+    def current_suite_options(options={})
+      @api_config.get_branch(current_branch, 'options', options)
+    end
+
+    def default_suite_id(options={})
+      # api_config.get_branch will query the server if there is no locally cached data
+      @api_config.get_branch(default_branch, 'id', options)
+    end
+
+    def default_suite_options(options={})
+      @api_config.get_branch(default_branch, 'options', options)
     end
 
     # suites/user_suites returns:

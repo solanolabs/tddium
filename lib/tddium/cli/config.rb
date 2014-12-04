@@ -98,13 +98,13 @@ module Tddium
       end
     end
 
-    def get_branch(branch, var)
-      val = fetch('branches', branch, var)
+    def get_branch(branch, var, options={})
+      val = fetch_branch(branch, var, options)
       return val unless val.nil?
 
       populate_branches(branch)
 
-      return fetch('branches', branch, var)
+      return fetch_branch(branch, var, options)
     end
 
     def get_api_key(options = {})
@@ -124,16 +124,19 @@ module Tddium
       branch = suite['branch']
       return if branch.nil? || branch.empty?
 
-      metadata = ['id', 'repo_id', 'ci_ssh_pubkey'].inject({}) { |h, v| h[v] = suite[v]; h }
+      keys = %w(id org_name repo_id ci_ssh_pubkey)
+      metadata = keys.inject({}) { |h, v| h[v] = suite[v]; h }
 
       branches = @config["branches"] || {}
       branches.merge!({branch => metadata})
       @config.merge!({"branches" => branches})
     end
 
-    def delete_suite(branch)
+    def delete_suite(branch, org_name=nil)
       branches = @config["branches"] || {}
-      branches.delete_if { |k, v| k == branch }
+      branches.delete_if do |k, v|
+        k == branch && (org_name.nil? || v['org_name'] == org_name)
+      end
     end
 
     def load_config(options = {})
@@ -203,15 +206,17 @@ module Tddium
 
     protected
 
-    def fetch(*args)
-      h = @config
-      while !args.empty? do
-        return nil unless h.is_a?(Hash)
-        return nil unless h.member?(args.first)
-        h = h[args.first]
-        args.shift
+    def fetch_branch(branch, var, options)
+      h = @config['branches']
+      return nil unless h.is_a?(Hash)
+      h.each_pair do |branch_name, data|
+        next unless data.is_a?(Hash)
+        next unless branch_name == branch
+        if options.keys.all? { |k| data.member?(k) && data[k] == options[k] }
+          return data[var]
+        end
       end
-      return h
+      return nil
     end
 
     private

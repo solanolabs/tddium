@@ -14,7 +14,7 @@ describe Tddium::TddiumAPI do
   shared_examples_for "retrieving the branch info" do
     before do
       scm.stub(:current_branch).and_return("master")
-      api_config.stub(:get_branch).with("master", key).and_return(key)
+      api_config.stub(:get_branch).with("master", key, anything()).and_return(key)
     end
 
     it "should return the branch info" do
