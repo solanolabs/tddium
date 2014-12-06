@@ -75,11 +75,12 @@ module Tddium
     include TddiumConstant
 
     # BOTCH: should be a state object rather than entire CLI object
-    def initialize(tddium_client, host)
+    def initialize(tddium_client, host, cli_options)
       @scm = Tddium::SCM.configure
       @tddium_client = tddium_client
       @config = Hash.new
       @host = host
+      @cli_options = cli_options
     end
 
     # BOTCH: fugly
@@ -99,6 +100,10 @@ module Tddium
     end
 
     def get_branch(branch, var, options={})
+      if options['account'].nil? && @cli_options[:account] then
+        options['account'] = @cli_options[:account]
+      end
+
       val = fetch_branch(branch, var, options)
       return val unless val.nil?
 
@@ -121,21 +126,22 @@ module Tddium
     end
 
     def set_suite(suite)
+      id = suite['id']
       branch = suite['branch']
-      return if branch.nil? || branch.empty?
+      return if id.nil? || branch.nil? || branch.empty?
 
-      keys = %w(id org_name repo_id ci_ssh_pubkey)
+      keys = %w(id branch account repo_id ci_ssh_pubkey)
       metadata = keys.inject({}) { |h, v| h[v] = suite[v]; h }
 
       branches = @config["branches"] || {}
-      branches.merge!({branch => metadata})
+      branches.merge!({id => metadata})
       @config.merge!({"branches" => branches})
     end
 
-    def delete_suite(branch, org_name=nil)
+    def delete_suite(branch, account=nil)
       branches = @config["branches"] || {}
       branches.delete_if do |k, v|
-        k == branch && (org_name.nil? || v['org_name'] == org_name)
+        v['branch'] == branch && (account.nil? || v['account'] == account)
       end
     end
 
@@ -164,7 +170,8 @@ module Tddium
 
       if @scm.repo? then
         branch = @scm.current_branch
-        suite = @config['branches'][branch] rescue nil
+        id = get_branch(branch, 'id', {})
+        suite = @config['branches'][id] rescue nil
 
         if suite then
           path = tddium_deploy_key_file_name
@@ -209,8 +216,10 @@ module Tddium
     def fetch_branch(branch, var, options)
       h = @config['branches']
       return nil unless h.is_a?(Hash)
-      h.each_pair do |branch_name, data|
+      h.keys.sort.each do |id|
+        data = h[id]
         next unless data.is_a?(Hash)
+        branch_name = data['branch']
         next unless branch_name == branch
         if options.keys.all? { |k| data.member?(k) && data[k] == options[k] }
           return data[var]

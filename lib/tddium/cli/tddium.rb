@@ -40,7 +40,7 @@ module Tddium
 
       @scm = Tddium::SCM.configure
 
-      @api_config = ApiConfig.new(@tddium_client, options[:host])
+      @api_config = ApiConfig.new(@tddium_client, options[:host], options)
       @repo_config = RepoConfig.new
       @tddium_api = TddiumAPI.new(@api_config, @tddium_client, @scm)
 

@@ -65,7 +65,11 @@ end
 
 Given /^the user is logged in with a configured suite(?: on branch "(.*)")?$/ do |branch|
   @api_key = "abcdef"
-  branch ||= "master"
+  if branch.nil? then
+    branch = "master"
+  else
+    Antilles.install(:get, "/1/suites/user_suites", SAMPLE_USER_SUITES_RESPONSE)
+  end
   Antilles.install(:get, "/1/users", SAMPLE_USER_RESPONSE)
   Antilles.install(:get, "/1/accounts/usage_by_account", SAMPLE_ACCOUNT_USAGE)
   steps %Q{

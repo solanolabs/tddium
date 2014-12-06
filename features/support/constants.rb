@@ -5,7 +5,7 @@ require 'aruba/api'
 SAMPLE_API_KEY = "afb12412bdafe124124asfasfabebafeabwbawf1312342erbfasbb"
 SAMPLE_APP_NAME = "tddelicious"
 SAMPLE_REPO_URL = "git@github.com:user/repo.git"
-SAMPLE_BRANCH_NAME = "test"
+SAMPLE_BRANCH_NAME = "test/foobar"
 SAMPLE_BUNDLER_VERSION = "Bundler version 1.10.10"
 SAMPLE_DATE_TIME = "2011-03-11T08:43:02Z"
 SAMPLE_EMAIL = "someone@example.com"
@@ -36,8 +36,10 @@ CUSTOM_TEST_PATTERN = "**/cat_spec.rb"
 SAMPLE_SSH_PUBKEY = "ssh-rsa 1234567890"
 SAMPLE_SUITE_RESPONSE = {"repo_name" => SAMPLE_APP_NAME,
                          "repo_url" => SAMPLE_REPO_URL,
+                         "repo_id" => SAMPLE_REPO_ID,
                          "branch" => SAMPLE_BRANCH_NAME,
                          "id" => SAMPLE_SUITE_ID,
+                         "account" => SAMPLE_ACCOUNT_HANDLE,
                          "account_id" => SAMPLE_ACCOUNT_ID,
                          "ruby_version"=>SAMPLE_RUBY_VERSION,
                          "rubygems_version"=>SAMPLE_RUBYGEMS_VERSION,
@@ -48,6 +50,7 @@ SAMPLE_SUITES_RESPONSE = {"suites" => [SAMPLE_SUITE_RESPONSE]}
 SAMPLE_TDDIUM_CONFIG_FILE = ".tddium.test"
 SAMPLE_TDDIUM_DEPLOY_KEY_FILE = ".tddium-deploy-key.test"
 SAMPLE_TEST_EXECUTION_STATS = "total 1, notstarted 0, started 1, passed 0, failed 0, pending 0, error 0", "start_time"
+SAMPLE_USER_SUITES_RESPONSE = {"status"=>0, "suites" => [SAMPLE_SUITE_RESPONSE]}
 SAMPLE_USER_RESPONSE = {"status"=>0, "user"=>
   { "id" => SAMPLE_USER_ID,
     "api_key" => SAMPLE_API_KEY,

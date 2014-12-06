@@ -47,6 +47,9 @@ describe Tddium::TddiumCli do
         'Gemfile.lock' => Digest::SHA1.file("Gemfile.lock").to_s,
       ))
       repo_config_file_encoded = Base64.encode64(File.read('config/solano.yml'))
+      tddium_api.stub(:get_suites).and_return([
+        {"account" => "handle-2"},
+      ])
       tddium_api.should_receive(:create_session).with(suite_id, 
                                         :commits_encoded => commits_encoded,
                                         :cache_control_encoded => cache_control_encoded,
@@ -59,6 +62,9 @@ describe Tddium::TddiumCli do
     it "should not create a new session if a session_id is specified" do
       tddium_api.should_not_receive(:create_session)
       tddium_api.should_receive(:update_session)
+      tddium_api.stub(:get_suites).and_return([
+        {"account" => "handle-2"},
+      ])
       subject.stub(:options) { {:session_id=>1} }
       subject.scm.stub(:latest_commit).and_return(latest_commit)
       subject.spec

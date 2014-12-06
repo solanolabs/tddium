@@ -141,8 +141,8 @@ Then /^the file "([^"]*)" should contain the following branches:$/ do |file, tab
     content = JSON.parse(IO.read(file))
     suite_data = table.hashes
     suite_data.each do |suite|
-      branch = suite["branch"]
-      content["branches"][branch]["id"].should == suite["id"]
+      id = suite["id"]
+      content["branches"][id]["branch"].should == suite["branch"]
     end
   end
 end
