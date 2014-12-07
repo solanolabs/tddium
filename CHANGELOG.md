@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.25.1 - Improvie support for multiple accounts for a single repo
 - v1.24.0 - Allow use in hg repos without git installed
 - v1.23.0 - Changes to internal control flow
 - v1.22.4 - Better handle processing of configuration file.

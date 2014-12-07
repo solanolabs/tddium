@@ -216,8 +216,7 @@ module Tddium
     def fetch_branch(branch, var, options)
       h = @config['branches']
       return nil unless h.is_a?(Hash)
-      h.keys.sort.each do |id|
-        data = h[id]
+      h.each_pair do |id, data|
         next unless data.is_a?(Hash)
         branch_name = data['branch']
         next unless branch_name == branch
