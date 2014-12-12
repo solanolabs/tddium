@@ -291,8 +291,10 @@ module Tddium
 
     def read_and_encode_config_file
       fn = @repo_config.config_filename
-      if fn && File.exists?(fn) then
-        Base64.encode64(File.read(fn))
+      root = @scm.root
+
+      if fn && root && File.exists?(File.join(root, fn)) then
+        Base64.encode64(File.read(File.join(root, fn)))
       else
         nil
       end

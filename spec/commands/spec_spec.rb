@@ -8,6 +8,18 @@ require 'tddium/cli/commands/spec'
 describe Tddium::TddiumCli do
   include_context "tddium_api_stubs"
 
+  describe "#read_and_encode_config_file" do
+    it "should return encoded config file" do
+      system("mkdir .tddiumtesting")
+      Dir.chdir ".tddiumtesting"
+
+      subject.send(:read_and_encode_config_file).should_not be_nil
+
+      Dir.chdir ".."
+      system("rm -rf .tddiumtesting")
+    end
+  end
+
   describe "#spec" do
     let(:commit_log_parser) { double(GitCommitLogParser) }
     let(:suite_id) { 1 }
