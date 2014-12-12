@@ -112,7 +112,12 @@ module Tddium
       session_data ||= {}
       session_id ||= session_data["id"]
 
-      if !@scm.push_latest(session_data, suite_details) then
+      push_options = {}
+      if options[:machine]
+        push_options[:use_private_uri] = true
+      end
+
+      if !@scm.push_latest(session_data, suite_details, push_options) then
         exit_failure Text::Error::SCM_PUSH_FAILED
       end
 

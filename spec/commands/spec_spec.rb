@@ -69,5 +69,22 @@ describe Tddium::TddiumCli do
       subject.scm.stub(:latest_commit).and_return(latest_commit)
       subject.spec
     end
+
+    it "should push to the public repo uri in CLI mode" do
+      subject.stub(:options) { {:machine => false} }
+      tddium_api.stub(:get_suites).and_return([
+        {"account" => "handle-2"},
+      ])
+      subject.scm.stub(:latest_commit).and_return(latest_commit)
+      subject.scm.should_receive(:push_latest).with(anything, anything, {}).and_return(true)
+      subject.spec
+    end
+
+    it "should push to the private repo uri in ci mode" do
+      subject.stub(:options) { {:machine => true} }
+      subject.scm.stub(:latest_commit).and_return(latest_commit)
+      subject.scm.should_receive(:push_latest).with(anything, anything, use_private_uri: true).and_return(true)
+      subject.spec
+    end
   end
 end

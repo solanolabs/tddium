@@ -81,7 +81,13 @@ module Tddium
     def push_latest(session_data, suite_details, options={})
       branch = options[:branch] || self.current_branch
       remote_branch = options[:remote_branch] || branch
-      git_repo_uri = options[:git_repo_uri] || suite_details["git_repo_uri"]
+      git_repo_uri = if options[:git_repo_uri] then
+                       options[:git_repo_uri]
+                     elsif options[:use_private_uri] then
+                       suite_details["git_repo_private_uri"] || suite_details["git_repo_uri"]
+                     else
+                       suite_details["git_repo_uri"]
+                     end
       this_ref = (session_data['commit_data'] || {})['git_ref']
       refs = this_ref ? ["HEAD:#{this_ref}"] : []
 

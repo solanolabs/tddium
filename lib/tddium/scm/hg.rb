@@ -65,9 +65,9 @@ module Tddium
       return Tddium::Hg.hg_changes?(:exclude=>".hgignore")
     end
 
-    def push_latest(session_data, suite_details, options={})
+    def hg_push(uri)
       cmd = "hg push -f -b #{self.current_branch} "
-      cmd += " #{suite_details['git_repo_uri']}"
+      cmd += " #{uri}"
 
       # git outputs something to stderr when it runs git push.
       # hg doesn't always ... so show the command that's being run and its
@@ -75,6 +75,15 @@ module Tddium
       puts cmd
       puts `#{cmd}`
       return [0,1].include?( $?.exitstatus )
+    end
+
+    def push_latest(session_data, suite_details, options={})
+      uri = if options[:use_private_uri] then
+              suite_details["git_repo_private_uri"] || suite_details["git_repo_uri"]
+            else
+              suite_details["git_repo_uri"]
+            end
+      self.hg_push(uri)
     end
 
     def current_commit

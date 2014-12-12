@@ -24,4 +24,24 @@ describe Tddium::Hg do
       expect(subject.send(:latest_commit)).to eq("latest_commit")
     end
   end
+
+  describe ".push_latest" do
+    let(:url) { "abc" }
+    let(:private_url) { "def" }
+
+    it "should set a public remote by default" do
+      expect(subject).to receive(:hg_push).with(url)
+      subject.push_latest({}, {"git_repo_uri" => url})
+    end
+
+    it "should set a public remote if requested" do
+      expect(subject).to receive(:hg_push).with(url)
+      subject.push_latest({}, {"git_repo_uri" => url}, {use_private_uri: false})
+    end
+
+    it "should set a private remote if requested" do
+      expect(subject).to receive(:hg_push).with(private_url)
+      subject.push_latest({}, {"git_repo_uri" => url, "git_repo_private_uri" => private_url}, {use_private_uri: true})
+    end
+  end
 end
