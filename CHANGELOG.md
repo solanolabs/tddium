@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.25.3 - Properly handle configuration file when running below repo root
 - v1.25.2 - Support git remote with private IP
 - v1.25.1 - Improve support for multiple accounts for a single repo
 - v1.24.0 - Allow use in hg repos without git installed
