@@ -44,6 +44,7 @@ EOF
   s.add_development_dependency("mimic")
   s.add_development_dependency("daemons")
   s.add_development_dependency("httparty", "0.9.0")
+  s.add_development_dependency("httpclient", "2.4.0")
   s.add_development_dependency("antilles")
   s.add_development_dependency("rspec")
   s.add_development_dependency("cucumber")
