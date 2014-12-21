@@ -1,5 +1,7 @@
 # Copyright (c) 2012, 2013, 2014 Solano Labs, Inc. All Rights Reserved
 
+require 'stringio'
+
 class String
   def sanitize(encoding="UTF-8")
     opts = {:invalid => :replace, :undef => :replace}

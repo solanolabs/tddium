@@ -1,5 +1,7 @@
 # Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
 
+require 'stringio'
+
 module Tddium
   class TddiumCli < Thor
     desc "status", "Display information about this suite, and any open dev sessions"
