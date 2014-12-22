@@ -22,7 +22,11 @@ end
 module Tddium
   def self.message_pack(value)
     io = StringIO.new
-    io.set_encoding("UTF-8", "UTF-8")
+    if RUBY_VERSION =~ /^1[.]([0-8]|9[.][0-2])/ then
+      io.set_encoding("UTF-8")
+    else
+      io.set_encoding("UTF-8", "UTF-8")
+    end
     packer = ::MessagePackPure::Packer.new(io)
     packer.write(value)
     result = io.string
