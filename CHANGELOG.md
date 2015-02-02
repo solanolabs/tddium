@@ -3,6 +3,7 @@
 
 ## Version History
 
+- v1.25.5 - Maintenance release; update to 'solano' gem
 - Final release as 'tddium'; use the 'solano' gem instead
 - v1.25.4 - Backwards compatibility for StringIO.
 - v1.25.3 - Properly handle configuration file when running below repo root
