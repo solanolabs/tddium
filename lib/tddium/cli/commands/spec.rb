@@ -1,4 +1,4 @@
-# Copyright (c) 2011, 2012, 2013, 2014 Solano Labs All Rights Reserved
+# Copyright (c) 2011-2015 Solano Labs All Rights Reserved
 require 'digest'
 
 module Tddium
@@ -27,7 +27,10 @@ module Tddium
       suite_auto_configure unless options[:machine]
 
       exit_failure unless suite_for_current_branch?
-      exit_failure(Text::Error::NO_SSH_KEY) if @tddium_api.get_keys.empty?
+
+      if !options[:machine] && @tddium_api.get_keys.empty? then
+        warn(Text::Warning::NO_SSH_KEY)
+      end
 
       if @scm.changes?(options) then
         exit_failure(Text::Error::SCM_CHANGES_NOT_COMMITTED) if !options[:force]
@@ -274,7 +277,7 @@ module Tddium
       cache_key_paths.reject!{|x| x =~ /(solano|tddium).yml$/}
       cache_control_data = {}
       cache_key_paths.each do |p|
-        if File.exists?(p)
+        if File.exists?(p) then
           cache_control_data[p] = Digest::SHA1.file(p).to_s
         end
       end

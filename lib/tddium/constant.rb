@@ -105,6 +105,9 @@ EOF
       SCM_UNABLE_TO_DETECT = "Unable to detect uncommitted changes"
       YAML_PARSE_FAILED = "Unable to parse %s as YAML"
       TEST_CONFIGS_MUST_BE_LIST = "The test_configs section of solano.yml must be a list of configurations"
+      NO_SSH_KEY =<<EOF
+You have not set an ssh key for your user.  Please add an ssh key using `solano keys:add` or visit http://ci.solanolabs.com/user_settings/ssh_keys
+EOF
     end
 
     module Process
@@ -493,10 +496,6 @@ Usage: "tddium COMMAND [ARGS] [OPTIONS]". For available commands, run "tddium he
 EOF
       CONFIG_PATHS_COLLISION =<<EOF
 You have both solano.yml and tddium.yml in your repo. We don't support merging the configuration from both of these files, so you'll have to pick one. The tddium.yml file will soon be deprecated, so we recommend migrating all of your configuration to solano.yml.
-EOF
-      NO_SSH_KEY =<<EOF
-Aborting. You don't have any ssh key.
-Add an ssh key first, using `tddium keys:add` or visit web-site http://ci.solanolabs.com/user_settings/ssh_keys
 EOF
     end
   end
